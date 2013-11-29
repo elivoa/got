@@ -1,4 +1,6 @@
 /*
+  Latest one.
+
  SQL Helper is a helper method in total filtering.
 
  Usage Examples:
@@ -310,7 +312,7 @@ func (p *QueryParser) Prepare() *QueryParser {
 	return p
 }
 
-// not
+// deprecated. why not this?
 // param: use these value parameters to replace default value.
 func (p *QueryParser) QueryOne(receiver func(*sql.Row) error) error {
 	// query one will throw exceptions, so use query instead
@@ -340,7 +342,6 @@ func (p *QueryParser) QueryOne(receiver func(*sql.Row) error) error {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -348,29 +349,28 @@ func (p *QueryParser) QueryOne(receiver func(*sql.Row) error) error {
 func (p *QueryParser) Query(receiver func(*sql.Rows) (bool, error)) error {
 	p.Prepare()
 
-	// TODO use values to replace default one.
-	// fmt.Println("--------  SQL  ------------------------------------------------------------------------")
-	// fmt.Printf("    Query \"%v\" \n    with parameters %v\n", p.sql, p.values)
-
 	// 1. get connection
 	conn, err := Connect()
+	defer CloseConn(conn)
 	if Err(err) {
 		return err
 	}
-	defer conn.Close()
 
 	// 2. prepare sql
 	stmt, err := conn.Prepare(p.sql)
 	if Err(err) {
 		return err
 	}
-	defer stmt.Close()
+	defer CloseStmt(stmt)
 
 	// 3. execute
 	rows, err := stmt.Query(p.values...)
+	// defer CloseRows(rows)
 	if err != nil {
 		return err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		goon, err := receiver(rows) // callbacks to receive values.
 		if Err(err) {

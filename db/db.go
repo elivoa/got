@@ -1,7 +1,7 @@
 /*
  This is the latest version of db
 
- Time-stamp: <[db.go] Elivoa @ Saturday, 2013-11-23 23:12:56>
+ Time-stamp: <[db.go] Elivoa @ Thursday, 2013-11-28 23:23:21>
 */
 package db
 
@@ -11,10 +11,16 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+var logdebug bool = true
+var connections int = 0
+
 // Connect create a connection to database
 func Connect() (*sql.DB, error) {
-	var err error
-	conn, err := sql.Open("mysql", "root:eserver409$)(@/syd?charset=utf8&parseTime=true&loc=Local")
+	if logdebug {
+		connections += 1
+		fmt.Printf("^^^^^^^^^  db.Connect(), [%d] connections in total.\n", connections)
+	}
+	conn, err := sql.Open("mysql", "root:eserver409$)(@/syd?charset=utf8&parseTime=true&loc=Local&timeout=30s")
 	if err != nil {
 		return nil, err
 	}
@@ -31,12 +37,15 @@ func Connectp() *sql.DB {
 }
 
 func CloseConn(conn *sql.DB) {
-	conn.Close()
-	DB.Close()
-}
-
-func Close() {
-	DB.Close()
+	fmt.Println(connections)
+	if logdebug {
+		connections -= 1
+		fmt.Printf("vvvvvvvv  db.CloseConn(), [%d] connections left.\n", connections)
+	}
+	err := conn.Close()
+	if err != nil {
+		panic("Error when closing Connection to db. " + err.Error())
+	}
 }
 
 func CloseStmt(stmt *sql.Stmt) {
@@ -54,7 +63,6 @@ func CloseRows(rows *sql.Rows) {
 /*
    params
 */
-
 type Filter struct {
 	// TODO design a filter/parameter
 }
