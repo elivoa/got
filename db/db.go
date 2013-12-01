@@ -1,7 +1,7 @@
 /*
  This is the latest version of db
 
- Time-stamp: <[db.go] Elivoa @ Thursday, 2013-11-28 23:23:21>
+ Time-stamp: <[db.go] Elivoa @ Sunday, 2013-12-01 13:11:00>
 */
 package db
 
@@ -11,7 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var logdebug bool = true
+var logdebug bool = false
 var connections int = 0
 
 // Connect create a connection to database
