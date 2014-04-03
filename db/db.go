@@ -1,7 +1,7 @@
 /*
  This is the latest version of db
 
- Time-stamp: <[db.go] Elivoa @ Sunday, 2013-12-01 13:11:00>
+ Time-stamp: <[db.go] Elivoa @ Thursday, 2014-04-03 15:42:09>
 */
 package db
 
@@ -74,8 +74,8 @@ func Err(err error) bool {
 	if err != nil {
 		fmt.Println("xxxxxxxx  DB ERROR  xxxxxxxxxxxxxxxxxxxxxxxx")
 		panic(err.Error())
-		fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-		return true
+		// fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+		// return true
 	}
 	return false
 }

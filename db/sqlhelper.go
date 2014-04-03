@@ -11,6 +11,8 @@
   em.Update().Exec(name, class, ..., id)
   em.Update("time").Where("id", 5, "person", 6).Exec(time)
 
+
+  TODO Count();
 */
 package db
 
@@ -61,6 +63,8 @@ func (e *Entity) Create(queryName string) *QueryParser {
 	return parser
 }
 
+// 1st step: choose query type.
+
 func (e *Entity) Select(fields ...string) *QueryParser {
 	return e.createQueryParser("select", fields...)
 }
@@ -77,11 +81,20 @@ func (e *Entity) Delete() *QueryParser {
 	return e.createQueryParser("delete")
 }
 
+func (e *Entity) Count() *QueryParser {
+	return e.createQueryParser("count")
+}
+
+func (e *Entity) Close() *QueryParser {
+	return e.createQueryParser("delete")
+}
+
 func (e *Entity) createQueryParser(operation string, fields ...string) *QueryParser {
 	parser := &QueryParser{
-		e:         e,
-		operation: operation,
-		fields:    fields,
+		e:          e,
+		operation:  operation,
+		fields:     fields,
+		conditions: make([]*condition, 0),
 	}
 	if nil != fields && len(fields) > 0 {
 		parser.useCustomerFields = true
@@ -183,6 +196,8 @@ func (p *QueryParser) OrderBy(orderby string) *QueryParser {
 	return p
 }
 
+// e.g.: .Limit(1,10)
+// e.g.: .Limit(1)
 func (p *QueryParser) Limit(limit ...int) *QueryParser {
 	if len(limit) >= 1 {
 		p.limit = gxl.NewInt(limit[0])
@@ -190,7 +205,18 @@ func (p *QueryParser) Limit(limit ...int) *QueryParser {
 	if len(limit) >= 2 {
 		p.n = gxl.NewInt(limit[1])
 	}
+
+	// p.debug_print_condition()
+
 	return p
+}
+
+func (p *QueryParser) debug_print_condition() {
+	if p.conditions != nil {
+		for idx, con := range p.conditions {
+			print(idx, " :: ", con.field, "\n")
+		}
+	}
 }
 
 // pin sql and cache them
@@ -233,6 +259,19 @@ func (p *QueryParser) Prepare() *QueryParser {
 				sql.WriteString(",")
 				sql.WriteString(p.n.String())
 			}
+		}
+	case "count":
+		sql.WriteString("SELECT count(1)")
+
+		// from
+		sql.WriteString(" FROM `")
+		sql.WriteString(e.Table)
+		sql.WriteString("`")
+
+		// add where condition, default only support and
+		if p.conditions != nil && len(p.conditions) > 0 {
+			sql.WriteString(" WHERE ")
+			p.values = appendWhereClouse(&sql, p.conditions...)
 		}
 	case "insert":
 		// em.Insert().Exec(name, class, ...)
@@ -307,7 +346,6 @@ func (p *QueryParser) Prepare() *QueryParser {
 
 	}
 	p.sql = sql.String()
-	// fmt.Println("%%%% sql is: ", p.sql)
 	p.prepared = true
 	return p
 }
@@ -346,6 +384,7 @@ func (p *QueryParser) QueryOne(receiver func(*sql.Row) error) error {
 }
 
 // query multi-results
+// param: receiver is a callback function to process result set;
 func (p *QueryParser) Query(receiver func(*sql.Rows) (bool, error)) error {
 	p.Prepare()
 
@@ -381,6 +420,19 @@ func (p *QueryParser) Query(receiver func(*sql.Rows) (bool, error)) error {
 		}
 	}
 	return nil
+}
+
+func (p *QueryParser) QueryInt() (int, error) {
+	var count int
+
+	if err := p.Query(
+		func(rows *sql.Rows) (bool, error) {
+			return false, rows.Scan(&count)
+		},
+	); err != nil {
+		return -1, err
+	}
+	return count, nil
 }
 
 // exec command insert, update, delete
