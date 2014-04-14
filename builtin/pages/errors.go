@@ -14,3 +14,5 @@ type Errors struct {
 func (p *Errors) SetupRender() {
 	fmt.Println("\n\nPage Error page")
 }
+
+

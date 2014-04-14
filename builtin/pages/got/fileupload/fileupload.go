@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"got/config"
+	"github.com/elivoa/got/config"
 	"got/core"
 	"io"
 	"math/rand"
