@@ -99,3 +99,6 @@ func (c *Configure) AddStaticResource(url string, path string) {
 
 // Life circle related.
 var LCC_OBJECT_KEY = "__lifecircle_control_key__"
+
+// TODO automatically get this. // no use
+var Domain string = "syd.com"

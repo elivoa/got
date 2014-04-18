@@ -19,10 +19,12 @@ package errorhandler
 import (
 	"fmt"
 	"github.com/elivoa/got/route/exit"
+	"got/debug"
 	"log"
 	"net/http"
 	"reflect"
 	rd "runtime/debug"
+	"syd/exceptions"
 )
 
 var handlers map[reflect.Type]HandlerPair
@@ -33,8 +35,8 @@ func init() {
 	// register handlers
 	// TODO should move this to generate?
 
-	AddHandler("string-panic-handler", reflect.TypeOf(""), Handle500)
-	AddHandler("default", reflect.TypeOf(PermissionDeniedError{}), HandlePermissionDenied)
+	// AddHandler("string-panic-handler", reflect.TypeOf(""), Handle500)
+	AddHandler("access denied", reflect.TypeOf(exceptions.AccessDeniedError{}), HandleAccessDeniedError)
 }
 
 // AddHandler add a new handler for some kind of error/panic.
@@ -50,10 +52,14 @@ func AddHandler(name string, errType reflect.Type, f func() *exit.Exit) error {
 
 // Process match the error and then goto the right place.
 func Process(err interface{}) *exit.Exit {
+
 	t := reflect.TypeOf(err)
 	if handlerPair, ok := handlers[t]; ok {
+		fmt.Println(">>>>>>>>>> ", "enter handler..", handlerPair)
 		return handlerPair.handler()
 	} else {
+		// common error
+		debug.DebugPrintVariable(err)
 		return Handle500()
 	}
 }
@@ -84,7 +90,7 @@ func Handle500() *exit.Exit {
 	return exit.Redirect("/error500")
 }
 
-func HandlePermissionDenied() *exit.Exit {
+func HandleAccessDeniedError() *exit.Exit {
 	// TODO: show more information in this page.
 	return exit.Redirect("/permissiondenied")
 }
@@ -110,13 +116,3 @@ func processPanic(err interface{}, r *http.Request) {
 }
 
 var yibaix = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-// -- test error structure --
-// TODO: Move exceptions to a place.
-type PermissionDeniedError struct {
-	ErrMsg string
-}
-
-func (e *PermissionDeniedError) Error() string {
-	return e.ErrMsg
-}

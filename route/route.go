@@ -40,6 +40,10 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	// --------  Error Handling  --------------------------------------------------------------
 	defer func() {
 		if err := recover(); err != nil {
+
+			fmt.Println("\n----  MEET SOME ERROR   --------------------------------------------------------")
+			fmt.Println(err)
+
 			// if panic occured, turn to errorhandler.
 			result := errorhandler.Process(err)
 			if nil != result {
@@ -49,12 +53,9 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 				if lcc != nil {
 					// TODO: what if non-break-returns.
 					lcc.HandleExternalReturn(result)
-					fmt.Println("--p---------------------------------------------------------------------")
-					fmt.Println("All after panic")
 				}
 				// fmt.Println(lcc)
 				// TODO: continued here....
-
 			}
 			/*
 				// TODO use a page to render error.

@@ -19,11 +19,12 @@ package errorhandler
 import (
 	"fmt"
 	"github.com/elivoa/got/route/exit"
-	"got/core"
+	"got/debug"
 	"log"
 	"net/http"
 	"reflect"
 	rd "runtime/debug"
+	"syd/exceptions"
 )
 
 var handlers map[reflect.Type]HandlerPair
@@ -35,12 +36,12 @@ func init() {
 	// TODO should move this to generate?
 
 	AddHandler("string-panic-handler", reflect.TypeOf(""), Handle500)
-	AddHandler("default", reflect.TypeOf(PermissionDeniedError{}), HandlePermissionDenied)
+	AddHandler("access denied", reflect.TypeOf(exceptions.AccessDeniedError{}), HandleAccessDeniedError)
 }
 
 // AddHandler add a new handler for some kind of error/panic.
 // Function f returns an interface{} that are treated as GOT returns.
-func AddHandler(name string, errType reflect.Type, f func() interface{}) error {
+func AddHandler(name string, errType reflect.Type, f func() *exit.Exit) error {
 	handlers[errType] = HandlerPair{
 		name:    name,
 		errType: errType,
@@ -50,20 +51,18 @@ func AddHandler(name string, errType reflect.Type, f func() interface{}) error {
 }
 
 // Process match the error and then goto the right place.
-func Process(err interface{}) interface{} {
+func Process(err interface{}) *exit.Exit {
 	t := reflect.TypeOf(err)
-	kind := reflect.TypeOf(err).Kind()
-	fmt.Println("********************************************************************************")
-	fmt.Println(">>  err is : ", err)
-	fmt.Println(">>  type of err is : ", reflect.TypeOf(err))
-	fmt.Println(">>  kind of err is : ", kind)
-	fmt.Println("********************************************************************************")
-
 	if handlerPair, ok := handlers[t]; ok {
-		// handle something
-		fmt.Println("match *************")
 		return handlerPair.handler()
 	} else {
+		// common error
+		fmt.Println("::::  DEBUG VARIABLE() :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
+		fmt.Println("Original v = ", err)
+		fmt.Println("TypeOf(v)  = ", reflect.TypeOf(err))
+		fmt.Println("Kind is    = ", reflect.TypeOf(err).Kind)
+		fmt.Println("value = ", err)
+		
 		return Handle500()
 	}
 }
@@ -72,12 +71,13 @@ func Process(err interface{}) interface{} {
 type HandlerPair struct {
 	name    string // name, where this uses.
 	errType reflect.Type
-	handler func() interface{} // will be the same as normal return interface{}
+	handler func() *exit.Exit // will be the same as normal return interface{}
 }
 
 // --------------------------------------------------------------------------------
 // ---- Some built-in handlers --------
-// U
+// With limited right of returns.
+// --------------------------------------------------------------------------------
 
 func Handle404() *exit.Exit {
 	// TODO: Pass current url to 404 page, which page is 404.
@@ -93,12 +93,14 @@ func Handle500() *exit.Exit {
 	return exit.Redirect("/error500")
 }
 
-func HandlePermissionDenied() *exit.Exit {
+func HandleAccessDeniedError() *exit.Exit {
 	// TODO: show more information in this page.
 	return exit.Redirect("/permissiondenied")
 }
 
+// --------------------------------------------------------------------------------
 // ----- helper functions --------
+// --------------------------------------------------------------------------------
 
 func PrintALLHandlers() {
 	// TODO: pritn all error handlers.
@@ -117,13 +119,3 @@ func processPanic(err interface{}, r *http.Request) {
 }
 
 var yibaix = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-// -- test error structure --
-
-type PermissionDeniedError struct {
-	errmsg string
-}
-
-func (e *PermissionDeniedError) Error() string {
-	return e.errmsg
-}
