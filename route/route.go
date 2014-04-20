@@ -41,14 +41,15 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 
-			fmt.Println("\n----  MEET SOME ERROR   --------------------------------------------------------")
-			fmt.Println(err)
-
 			// if panic occured, turn to errorhandler.
 			result := errorhandler.Process(err)
 			if nil != result {
 				// get current lcc object from request.
 				lcc_obj := context.Get(r, config.LCC_OBJECT_KEY)
+				if lcc_obj == nil {
+					// TODO: what to do.
+					panic("LCC is missing in session")
+				}
 				lcc := lcc_obj.(*lifecircle.LifeCircleControl)
 				if lcc != nil {
 					// TODO: what if non-break-returns.
@@ -70,6 +71,7 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 		printAccessFooter(r)
 	}()
+
 	// --------  Routing...  --------------------------------------------------------------
 
 	// 3. let's find the right pages.

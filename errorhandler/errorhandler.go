@@ -37,6 +37,7 @@ func init() {
 
 	// AddHandler("string-panic-handler", reflect.TypeOf(""), Handle500)
 	AddHandler("access denied", reflect.TypeOf(exceptions.AccessDeniedError{}), HandleAccessDeniedError)
+	AddHandler("not login", reflect.TypeOf(exceptions.LoginError{}), RedirectHandler("/account/login"))
 }
 
 // AddHandler add a new handler for some kind of error/panic.
@@ -53,14 +54,56 @@ func AddHandler(name string, errType reflect.Type, f func() *exit.Exit) error {
 // Process match the error and then goto the right place.
 func Process(err interface{}) *exit.Exit {
 
+	if true { // Debug print
+		fmt.Println("\n________________________________________________________________________________")
+		fmt.Println("---- DEBUG: ErrorHandler >> Meet An Error --------------------------------------")
+		debug.DebugPrintVariable(err)
+		fmt.Println("--------------------------------------------------------------------------------")
+		fmt.Println("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --")
+		fmt.Println("")
+	}
+
 	t := reflect.TypeOf(err)
+	// dereference interface
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	// TODO: what's in this situration?
+	// if t.Kind() == reflect.Interface {
+	// 	t = reflect.ValueOf(first.Interface())
+	// 	kind = first.Kind()
+	// }
+
 	if handlerPair, ok := handlers[t]; ok {
 		fmt.Println(">>>>>>>>>> ", "enter handler..", handlerPair)
 		return handlerPair.handler()
 	} else {
 		// common error
-		debug.DebugPrintVariable(err)
-		return Handle500()
+		// TODO: change this into environment settings.
+		if true {
+			fmt.Println("\n________________________________________________________________________________")
+			fmt.Println("----  ErrorHandler not found, panic directly for debug use ---------------------")
+			fmt.Println("----  What is in Handlers? ")
+			for k, v := range handlers {
+				fmt.Println("       ", k, "  -->  ", v)
+			}
+			fmt.Println("----  What is Expected Error?")
+
+			switch err.(type) {
+			case error:
+				fmt.Println("        Error Type is error")
+			case string:
+				fmt.Println("        Error Type is string")
+			case exceptions.LoginError:
+				fmt.Println("        Error Type is LoginError")
+			}
+			fmt.Println("        TypeOf(err) is ", reflect.TypeOf(err))
+			fmt.Println("        TypeOf(err).Kind is ", reflect.TypeOf(err).Kind())
+
+		}
+		// debug.DebugPrintVariable(err)
+		panic(err)
+		// return Handle500()
 	}
 }
 
@@ -93,6 +136,12 @@ func Handle500() *exit.Exit {
 func HandleAccessDeniedError() *exit.Exit {
 	// TODO: show more information in this page.
 	return exit.Redirect("/permissiondenied")
+}
+
+func RedirectHandler(url string) func() *exit.Exit {
+	return func() *exit.Exit {
+		return exit.Redirect(url)
+	}
 }
 
 // --------------------------------------------------------------------------------
