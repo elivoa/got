@@ -8,7 +8,8 @@ import (
 type Error500 struct {
 	A *string
 	core.Page
-	C []int
+	C     []int
+	Error interface{} // should this be type error
 }
 
 func (p *Error500) SetupRender() {

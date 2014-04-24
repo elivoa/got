@@ -17,9 +17,13 @@ Develop Tips:
 package errorhandler
 
 import (
+	"errors"
 	"fmt"
+	pBuiltin "github.com/elivoa/got/builtin/pages"
 	"github.com/elivoa/got/route/exit"
+	"got/core/lifecircle"
 	"got/debug"
+	"got/utils"
 	"log"
 	"net/http"
 	"reflect"
@@ -36,13 +40,17 @@ func init() {
 	// TODO should move this to generate?
 
 	// AddHandler("string-panic-handler", reflect.TypeOf(""), Handle500)
+	AddHandler("page not found", reflect.TypeOf(exceptions.PageNotFoundError{}), Handle404)
 	AddHandler("access denied", reflect.TypeOf(exceptions.AccessDeniedError{}), HandleAccessDeniedError)
 	AddHandler("not login", reflect.TypeOf(exceptions.LoginError{}), RedirectHandler("/account/login"))
+	// register errors.errorString; this is common error
+	AddHandler("error handler", reflect.TypeOf(errors.New("TEST")).Elem(), Handle500)
 }
 
 // AddHandler add a new handler for some kind of error/panic.
 // Function f returns an interface{} that are treated as GOT returns.
-func AddHandler(name string, errType reflect.Type, f func() *exit.Exit) error {
+func AddHandler(name string, errType reflect.Type,
+	f func(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Exit) error {
 	handlers[errType] = HandlerPair{
 		name:    name,
 		errType: errType,
@@ -52,7 +60,8 @@ func AddHandler(name string, errType reflect.Type, f func() *exit.Exit) error {
 }
 
 // Process match the error and then goto the right place.
-func Process(err interface{}) *exit.Exit {
+// TODO: return what
+func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 
 	if true { // Debug print
 		fmt.Println("\n________________________________________________________________________________")
@@ -63,20 +72,18 @@ func Process(err interface{}) *exit.Exit {
 		fmt.Println("")
 	}
 
-	t := reflect.TypeOf(err)
-	// dereference interface
-	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	// TODO: what's in this situration?
-	// if t.Kind() == reflect.Interface {
-	// 	t = reflect.ValueOf(first.Interface())
-	// 	kind = first.Kind()
-	// }
-
+	t := utils.GetRootType(err)
 	if handlerPair, ok := handlers[t]; ok {
-		fmt.Println(">>>>>>>>>> ", "enter handler..", handlerPair)
-		return handlerPair.handler()
+		// Handler found, process
+		result := handlerPair.handler(w, r, err)
+		if nil != result {
+			// get current lcc object from request.
+			if lcc, ok := lifecircle.CurrentLifecircleControl(r); ok {
+				lcc.HandleExternalReturn(result)
+				return true
+			}
+		}
+		return false
 	} else {
 		// common error
 		// TODO: change this into environment settings.
@@ -88,20 +95,7 @@ func Process(err interface{}) *exit.Exit {
 				fmt.Println("       ", k, "  -->  ", v)
 			}
 			fmt.Println("----  What is Expected Error?")
-
-			switch err.(type) {
-			case error:
-				fmt.Println("        Error Type is error")
-			case string:
-				fmt.Println("        Error Type is string")
-			case exceptions.LoginError:
-				fmt.Println("        Error Type is LoginError")
-			}
-			fmt.Println("        TypeOf(err) is ", reflect.TypeOf(err))
-			fmt.Println("        TypeOf(err).Kind is ", reflect.TypeOf(err).Kind())
-
 		}
-		// debug.DebugPrintVariable(err)
 		panic(err)
 		// return Handle500()
 	}
@@ -111,7 +105,8 @@ func Process(err interface{}) *exit.Exit {
 type HandlerPair struct {
 	name    string // name, where this uses.
 	errType reflect.Type
-	handler func() *exit.Exit // will be the same as normal return interface{}
+	// will be the same as normal return interface{}
+	handler func(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Exit
 }
 
 // --------------------------------------------------------------------------------
@@ -119,27 +114,41 @@ type HandlerPair struct {
 // With limited right of returns.
 // --------------------------------------------------------------------------------
 
-func Handle404() *exit.Exit {
-	// TODO: Pass current url to 404 page, which page is 404.
-	fmt.Println("Handle 404")
-	// TODO: Return one helper structure. and support it.
-	//	return "redirect", "/error404"
+func Handle404(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Exit {
+	pageObj := lifecircle.CreatePage(w, r, reflect.TypeOf(pBuiltin.Error404{}))
+	if pageObj != nil {
+		if page, ok := pageObj.(*pBuiltin.Error404); ok {
+			page.Error = err
+			return exit.Forward(page)
+		}
+	}
 	return exit.Redirect("/error404")
 }
 
-func Handle500() *exit.Exit {
-	// TODO pass error to 500 page, what panic?
-	fmt.Println("Handle 500")
+func Handle500(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Exit {
+	pageObj := lifecircle.CreatePage(w, r, reflect.TypeOf(pBuiltin.Error500{}))
+	if pageObj != nil {
+		if page, ok := pageObj.(*pBuiltin.Error500); ok {
+			page.Error = err
+			return exit.Forward(page)
+		}
+	}
 	return exit.Redirect("/error500")
 }
 
-func HandleAccessDeniedError() *exit.Exit {
-	// TODO: show more information in this page.
+func HandleAccessDeniedError(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Exit {
+	pageObj := lifecircle.CreatePage(w, r, reflect.TypeOf(pBuiltin.PermissionDenied{}))
+	if pageObj != nil {
+		if page, ok := pageObj.(*pBuiltin.PermissionDenied); ok {
+			page.Error = err
+			return exit.Forward(page)
+		}
+	}
 	return exit.Redirect("/permissiondenied")
 }
 
-func RedirectHandler(url string) func() *exit.Exit {
-	return func() *exit.Exit {
+func RedirectHandler(url string) func(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Exit {
+	return func(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Exit {
 		return exit.Redirect(url)
 	}
 }

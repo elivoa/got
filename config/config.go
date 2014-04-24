@@ -102,3 +102,11 @@ var LCC_OBJECT_KEY = "__lifecircle_control_key__"
 
 // TODO automatically get this. // no use
 var Domain string = "syd.com"
+
+// framework level configs.
+var (
+	TAG_path_injection      = "path-param"
+	TAG_url_injection       = "query"
+	TAG_page_injection      = "page"
+	TAG_component_injection = "component"
+)

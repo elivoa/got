@@ -2,19 +2,19 @@ package route
 
 import (
 	"fmt"
-	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/errorhandler"
 	"github.com/elivoa/got/route/exit"
+	"github.com/elivoa/got/templates"
 	"github.com/gorilla/context"
 	"got/cache"
 	"got/core"
 	"got/core/lifecircle"
 	"got/debug"
 	"got/register"
-	"got/templates"
 	"net/http"
 	"reflect"
 	"strings"
+	"syd/exceptions"
 )
 
 var (
@@ -40,30 +40,9 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	// --------  Error Handling  --------------------------------------------------------------
 	defer func() {
 		if err := recover(); err != nil {
-
-			// if panic occured, turn to errorhandler.
-			result := errorhandler.Process(err)
-			if nil != result {
-				// get current lcc object from request.
-				lcc_obj := context.Get(r, config.LCC_OBJECT_KEY)
-				if lcc_obj == nil {
-					// TODO: what to do.
-					panic("LCC is missing in session")
-				}
-				lcc := lcc_obj.(*lifecircle.LifeCircleControl)
-				if lcc != nil {
-					// TODO: what if non-break-returns.
-					lcc.HandleExternalReturn(result)
-				}
-				// fmt.Println(lcc)
-				// TODO: continued here....
-			}
-			/*
-				// TODO use a page to render error.
-				processPanic(err, r)
-				// TODO Render error page 500/404 page.
-				http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
-			*/
+			// Give control to ErrorHandler if panic occurs.
+			errorhandler.Process(w, r, err)
+			// TODO: How to ignore the error.
 		}
 
 		// clear request scope data store.
@@ -74,17 +53,17 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 	// --------  Routing...  --------------------------------------------------------------
 
-	// 3. let's find the right pages.
+	// 3. let'sp find the right pages.
 	result := lookup(url)
 	if result == nil && !result.IsValid() {
-		panic("Page not found! for: " + url)
-		// TODO goto 404 page.
-		// TODO all path-parameter parse error goes to 404, not 500.
+		panic(exceptions.NewPageNotFoundError(fmt.Sprintf("Page %s not found!", r.URL.Path)))
 	}
+
 	debug.Log("-601- [RouteFind] %v", result.Segment)
 
-	// TODO: Create New page object every request? howto share some page object? see tapestry5.
-	lcc := lifecircle.NewPageFlow(w, r, result.Segment)
+	// TODO Later: Create New page object every request? howto share some page object? see tapestry5.
+
+	var lcc = lifecircle.NewPageFlow(w, r, result.Segment)
 	lcc.SetPageUrl(result.PageUrl)
 	lcc.SetEventName(result.EventName)
 
@@ -93,7 +72,6 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("----------------------------")
 		fmt.Println("Describe the page structure:")
 		fmt.Println(lcc.PrintCallStructure())
-		// ------------------------------------------
 	}()
 
 	if !result.IsEventCall() {
@@ -133,34 +111,12 @@ func lookup(url string) *register.LookupResult {
 	return result
 }
 
-// // TODO kill this
-// // handle return
-// func handleReturn(lcc *lifecircle.LifeCircleControl, seg *register.ProtonSegment) {
-// 	// no error, no templates return or redirect.
-// 	if seg != nil && lcc.Err == nil && lcc.ResultType == "" {
-// 		// find default tempalte to return
-// 		identity, templatePath := seg.TemplatePath()
-// 		// debug.Log("-755- [TemplateSelect] %v -> %v", identity, templatePath)
-// 		if _, err := templates.GotTemplateCache.Get(identity, templatePath); err != nil {
-// 			lcc.Err = err
-// 		} else {
-// 			if err := templates.RenderGotTemplate(lcc.W, identity, lcc.Proton); err != nil {
-// 				lcc.Err = err
-// 			}
-// 		}
-// 	}
-// 	// panic here if has errors.
-// 	if lcc.Err != nil {
-// 		panic(lcc.Err.Error())
-// 	}
-// }
-
 // ----  Register Proton  ----------------------------------------------------------------------------
 
 /*
    RegisterProton register structs to the system.
-   Every proton(i.e. pages, components, mixins) should be registered by this fumc.
-   Pages and Components registered automatically by 'parser' and 'generator'.
+   Every proton(i.e. pages, components, mixins) should be registered by this func.
+   Pages and Components are registered automatically by 'parser' and 'generator'.
    Example:
       route.RegisterProton("syd/components/layout", "HeaderNav", "syd", &layout.HeaderNav{})
 */
@@ -175,15 +131,17 @@ func RegisterProton(pkg string, name string, modulePkg string, proton core.Proto
 		register.Pages.Add(si, proton)
 	case core.COMPONENT:
 		selectors := register.Components.Add(si, proton)
+
+		// register component as func
 		for _, selector := range selectors {
 			key := strings.Join(selector, "/")
 			lowerKey := strings.ToLower(key)
 			templates.RegisterComponentAsFunc(key, lifecircle.ComponentLifeCircle(lowerKey))
 		}
 	case core.MIXIN:
-		fmt.Println("........ [WARRNING...] Mixin not suported now! ", si)
+		panic(fmt.Sprint("........ [WARRNING...] Mixin not suported now! ", si))
 	case core.STRUCT, core.UNKNOWN:
-		fmt.Println("........ [Error...] Can't register non proton struct! ", si)
+		panic(fmt.Sprint("........ [Error...] Can't register non proton struct! ", si))
 	}
 }
 
