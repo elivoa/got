@@ -95,7 +95,8 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Look up page. Can detect event call.
+// Lookup call register.Lookup, then process some simple error;
+// Lookup can detect event call. Event calls on component.
 func lookup(url string) *register.LookupResult {
 	result, err := register.Pages.Lookup(url)
 	if nil != err {

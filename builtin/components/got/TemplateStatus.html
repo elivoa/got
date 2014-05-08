@@ -1,0 +1,70 @@
+<script src="/static/js/angular.min.js" ></script>
+<div ng-controller="ngc_{{.CID}}">
+  <h2>Templates:</h2>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Template Name ([[message]])</th>
+        <th>Template Root</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Tpls}}
+      <tr>
+        <td><a href="/got/status.ClickTemplate/{{.Name}}">{{.Name}}</a></td>
+        <td>{{.}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Key: ([[message]])</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat-start="t in templates">
+        <td rowspan="2"><t:a href="/got/status.ClickTemplate/[[t.Key]]" label="[[t.Key]]"/></td>
+        <!-- <td rowspan="2"><a href="/got/status.ClickTemplate/[[t.Key]]">[[t.Key]]</a></td> -->
+        <td>Key: </td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr ng-repeat-end="">
+        <td colspan="3">[[t.Path]]</td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <script type="text/javascript">
+
+// 这里这些东西是否可以自动生成？
+// 如何保证component之间不会冲突？这里需要一个设计模式。
+
+// 名字需要整理，是错误的; 这行是否应该是页面级的?
+window['ngm_{{.CID}}'] = angular.module('got', [], function($interpolateProvider) {
+  $interpolateProvider.startSymbol('[[');
+  $interpolateProvider.endSymbol(']]');
+});
+
+// 这些才应该是Component级别的；
+window['ngm_{{.CID}}'].controller('ngc_{{.CID}}', function($scope){
+  $scope.templates= {{.TemplatesJson}};
+
+  console.log({{.TemplatesJson}});
+
+  $scope.message="去你妈蛋的！";
+  $scope.changeData = function(){
+    console.log('222');
+    $scope.data[3].client='我要扯淡扯淡';
+  };
+});
+</script>
+
+  
+
+</div>
+

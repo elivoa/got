@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Tuesday, 2014-04-22 01:08:31>
+   Time-stamp: <[templates.go] Elivoa @ Thursday, 2014-05-08 13:46:45>
 */
 package templates
 
@@ -17,14 +17,16 @@ import (
 	"sync"
 )
 
-// all templates are in one template.Tempalte.
+// Templates stores all templates.
 var Templates *template.Template
 
 func init() {
 	// init template TODO remove this, change another init method.
 	// TODO: use better way to init.
 	Templates = template.New("-")
-	registerBuiltinFuncs() // Register built-in templates.
+
+	// Register built-in templates.
+	registerBuiltinFuncs()
 }
 
 /*_______________________________________________________________________________
@@ -35,18 +37,18 @@ func init() {
 func RegisterComponentAsFunc(name string, f interface{}) {
 	funcName := fmt.Sprintf("t_%v", strings.Replace(name, "/", "_", -1))
 	lowerFuncName := strings.ToLower(funcName)
-	// debuglog("-108- [RegisterComponent] %v", funcName)
 	Templates.Funcs(template.FuncMap{funcName: f, lowerFuncName: f})
 }
 
 /*
- @return
-   template - when tempalte available and parse successful.
-   nil      - when template not exists or error occurs.
+ @Param: key is template's key. not including blocks in it.
+ @return TemplateUnits.
+   TemplateUnits - when tempalte available and parse successful.
+   error         - errors occured.
 */
-func parseTempaltes(key string, filename string) (map[string]*template.Template, error) {
+func parseTemplates(key string, filename string) (map[string]*TemplateUnit, error) {
 
-	debug.Log("-   - [ParseTempalte] %v, %v", key, filename)
+	debug.Log("-   - [ParseTemplate] %v, %v", key, filename)
 
 	// borrowed from html/tempate
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
@@ -73,18 +75,18 @@ func parseTempaltes(key string, filename string) (map[string]*template.Template,
 	trans.Parse(r)
 
 	templatesToParse := map[string]string{}
-	templatesToParse[key] = trans.RenderToString()
-	blocks := trans.RenderBlocks()
+	templatesToParse[key] = trans.RenderToString() // main block
+	blocks := trans.RenderBlocks()                 // blocks found in template.
 	if blocks != nil {
 		for blockId, html := range blocks {
 			templatesToParse[fmt.Sprintf("%v:%v", key, blockId)] = html
 		}
 	}
 
-	fmt.Println(">>>> ------------------------------------------------------------------------------")
-	fmt.Println(">>>> ------------------", filename, "--------------------------------------")
-	fmt.Println(templatesToParse[key])
-	fmt.Println("<<<< ``````````````````````````````````````````````````````````````````````````````````")
+	// fmt.Println(">>>> ------------------------------------------------------------------------------")
+	// fmt.Println(">>>> ------------------", filename, "--------------------------------------")
+	// fmt.Println(templatesToParse[key])
+	// fmt.Println("<<<< ``````````````````````````````````````````````````````````````````````````````````")
 
 	// Old version uses filename as key, I make my own key. not
 	// filepath.Base(filename) First template becomes return value if
@@ -93,39 +95,44 @@ func parseTempaltes(key string, filename string) (map[string]*template.Template,
 	// file has the same name as t, this file becomes the contents of
 	// t, so t, err := New(name).Funcs(xxx).ParseFiles(name)
 	// works. Otherwise we create a new template associated with t.
-	returns := map[string]*template.Template{}
+	returns := map[string]*TemplateUnit{}
 	t := Templates
-	for name, html := range templatesToParse {
-		// Add to template
+	for _key, html := range templatesToParse {
 		var tmpl *template.Template
 		if t == nil {
-			t = template.New(name)
+			t = template.New(_key)
 		}
-		if name == t.Name() {
+		if _key == t.Name() {
 			tmpl = t
 		} else {
-			tmpl = t.New(name)
+			tmpl = t.New(_key)
 		}
 
 		_, err = tmpl.Parse(html)
 		if err != nil {
 			return nil, err
 		}
-		returns[name] = tmpl
+		returns[_key] = &TemplateUnit{
+			Key:               _key,
+			FilePath:          filename,
+			ContentOrigin:     "",
+			ContentTransfered: html,
+			// Template:          tmpl, // only one *template.Template
+			IsCached: true,
+		}
+
 	}
+
 	return returns, nil
 }
-
-/* ________________________________________________________________________________
-   parse template
-   TODO move to new package
-*/
 
 /*_______________________________________________________________________________
   Render Tempaltes
 */
-func RenderTemplate(w io.Writer, tplkey string, p interface{}) error {
-	err := Templates.ExecuteTemplate(w, tplkey, p)
+
+// RenderTemplate render template into writer.
+func RenderTemplate(w io.Writer, key string, p interface{}) error {
+	err := Templates.ExecuteTemplate(w, key, p)
 	if err != nil {
 		return err
 	}
@@ -135,36 +142,75 @@ func RenderTemplate(w io.Writer, tplkey string, p interface{}) error {
 /*_______________________________________________________________________________
   GOT Templates Caches
 */
-// TemplateCache value, mark if template is parsed.
-var Cache TemplateCache = TemplateCache{Templates: map[string]bool{}}
 
+// init template cache
+var Cache TemplateCache = TemplateCache{
+	Templates: map[string]*TemplateUnit{},
+}
+
+// TemplateCache cache templates
 type TemplateCache struct {
-	l         sync.Mutex      // TODO lock this.
-	Templates map[string]bool // is this template cached?
+	l sync.RWMutex
+
+	// fullpath as key?
+	// Changed to template key as key.
+	Templates map[string]*TemplateUnit
+}
+
+type TemplateUnit struct {
+	Key               string
+	FilePath          string
+	ContentOrigin     string `json:"-"`
+	ContentTransfered string `json:"-"`
+	IsBlock           bool   // Is this template a block? false means a main template.
+	IsCached          bool   `json:"-"`
+}
+
+func (t *TemplateCache) Get(key string) *TemplateUnit {
+	var unit *TemplateUnit
+	t.l.RLock()
+	unit, _ = t.Templates[key]
+	t.l.RUnlock()
+	return unit
 }
 
 // TODO Test & Improve Performance.
-// . the first return value is not used.
-// . the name shoud change
-func (t *TemplateCache) Get(key string, templatePath string) (*template.Template, error) {
-	t.l.Lock()
-	_, ok := t.Templates[templatePath]
-	t.l.Unlock()
+// TODO the first return value is not used.
+// TODO the name shoud change
+func (t *TemplateCache) GetnParse(key string, templatePath string) (*TemplateUnit, error) {
+	/* TODO 这里模板上锁的机制有问题。
+	   1. 先上锁判断是否存在，然后初始化，设置的时候上第二道锁；
+	      缺点：并发多的时候，会有多个进程同时初始化。
+	   2. 解决方案, 用rw嗦，读取写入的时候上多到嗦。
+	*/
+	t.l.RLock()
+	// If has something means template is cached. maybe changed in the .
+	_, ok := t.Templates[key] // chagne key as key
+	// _, ok := t.Templates[templatePath] // old, path as key.
+	t.l.RUnlock()
+	if ok {
+		return nil, nil
+	}
+
 	if !ok {
-		tmpls, err := parseTempaltes(key, templatePath) // map[string]*template.Template, error
-		if err != nil {
+		units, err := parseTemplates(key, templatePath) // returns map[string]*template.Template, error
+		// this tmpls including main block and blocks.
+		if err != nil { // error occured
 			return nil, err
 		}
-		if tmpls == nil {
+		if units == nil { // no error and no result.
 			err = errors.New(fmt.Sprintf("Templates for '%v' not found!", key))
 			return nil, err
 		}
 
-		t.l.Lock()
-		t.Templates[templatePath] = true
+		t.l.Lock() // write lock
+		// write template and it's blocks into cache.
+		for _key, unit := range units {
+			t.Templates[_key] = unit
+		}
 		t.l.Unlock()
 
-		return tmpls[key], nil
+		return units[key], nil
 	}
 	return nil, nil
 }
