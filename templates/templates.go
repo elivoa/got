@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Thursday, 2014-05-08 13:46:45>
+   Time-stamp: <[templates.go] Elivoa @ Sunday, 2014-05-11 00:18:01>
 */
 package templates
 
@@ -13,6 +13,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
 )
@@ -177,7 +178,7 @@ func (t *TemplateCache) Get(key string) *TemplateUnit {
 // TODO Test & Improve Performance.
 // TODO the first return value is not used.
 // TODO the name shoud change
-func (t *TemplateCache) GetnParse(key string, templatePath string) (*TemplateUnit, error) {
+func (t *TemplateCache) GetnParse(key string, templatePath string, pageType reflect.Type) (*TemplateUnit, error) {
 	/* TODO 这里模板上锁的机制有问题。
 	   1. 先上锁判断是否存在，然后初始化，设置的时候上第二道锁；
 	      缺点：并发多的时候，会有多个进程同时初始化。
@@ -210,6 +211,8 @@ func (t *TemplateCache) GetnParse(key string, templatePath string) (*TemplateUni
 		}
 		t.l.Unlock()
 
+		fmt.Println("--------------------------------------------------------------------------------")
+		fmt.Println(units[key].ContentTransfered)
 		return units[key], nil
 	}
 	return nil, nil

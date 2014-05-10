@@ -63,7 +63,7 @@ func AddHandler(name string, errType reflect.Type,
 // TODO: return what
 func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 
-	if true { // Debug print
+	if false { // Debug print
 		fmt.Println("\n________________________________________________________________________________")
 		fmt.Println("---- DEBUG: ErrorHandler >> Meet An Error --------------------------------------")
 		debug.DebugPrintVariable(err)

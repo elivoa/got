@@ -9,7 +9,6 @@ import (
 	"got/cache"
 	"got/core"
 	"got/core/lifecircle"
-	"got/debug"
 	"got/register"
 	"net/http"
 	"reflect"
@@ -22,30 +21,35 @@ var (
 	debugLog        = true
 )
 
-/*
-
-*/
 // RouteHandler is responsible to handler all got request.
 func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Path
 
-	// 1. skip special resources. TODO Expand to config.
-	// TODO better this
+	// 1. skip special resources. TODO Expand to config. // TODO better this
 	if url == "/favicon.ico" {
 		return
 	}
 
 	printAccessHeader(r)
 
+	// refererlcc, ok := lifecircle.CurrentLifecircleControl(r)
+	// if !ok {
+	// lcc.HandleExternalReturn(result)
+	// do nothing if referer is null.
+	// }
+
 	// --------  Error Handling  --------------------------------------------------------------
 	defer func() {
 		if err := recover(); err != nil {
 			// Give control to ErrorHandler if panic occurs.
-			errorhandler.Process(w, r, err)
+			b := errorhandler.Process(w, r, err)
+			if !b {
+				panic(err)
+			}
 			// TODO: How to ignore the error.
 		}
 
-		// clear request scope data store.
+		// clear request scope data store.:: should clear context here? Where to?
 		context.Clear(r)
 
 		printAccessFooter(r)
@@ -58,8 +62,6 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	if result == nil && !result.IsValid() {
 		panic(exceptions.NewPageNotFoundError(fmt.Sprintf("Page %s not found!", r.URL.Path)))
 	}
-
-	debug.Log("-601- [RouteFind] %v", result.Segment)
 
 	// TODO Later: Create New page object every request? howto share some page object? see tapestry5.
 
@@ -80,7 +82,7 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 		// handleReturn(lcc, result.Segment)
 	} else {
 		// event call
-		lcc.EventCall(result.EventName)
+		lcc.EventCall(result)
 
 		// TODO wrong here. this is wrong. sudo refactor lifecircle-return.
 		// if lcc not returned, return the current page.
@@ -97,7 +99,7 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 // Lookup call register.Lookup, then process some simple error;
 // Lookup can detect event call. Event calls on component.
-func lookup(url string) *register.LookupResult {
+func lookup(url string /*, referer *lifecircle.LifeCircleControl*/) *register.LookupResult {
 	result, err := register.Pages.Lookup(url)
 	if nil != err {
 		panic(err.Error())
@@ -106,8 +108,7 @@ func lookup(url string) *register.LookupResult {
 		panic(fmt.Sprintf("Error: seg.Proton is null. seg: %v", result.Segment))
 	}
 	if result.Segment.Proton == nil {
-		// TODO redirect to 404 page.
-		panic(fmt.Sprintf("~~~~ Page not found ~~~~"))
+		panic(&exceptions.PageNotFoundError{Message: "Page Not found for"})
 	}
 	return result
 }

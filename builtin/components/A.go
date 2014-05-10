@@ -1,9 +1,9 @@
 package components
 
 import (
-	"fmt"
+	bs "github.com/elivoa/got/builtin/services" // builtin services
 	"got/core"
-	// "html/template"
+	"got/core/lifecircle"
 )
 
 /*
@@ -19,27 +19,33 @@ import (
 type A struct {
 	core.Component
 
-	Href      string // A's href
-	Label     string
-	MainBlock string
+	// parameters
 
-	// key as option value and value as label
-	Data   *map[string]string // option list
-	Name   string             // bind name
-	Value  string             // current value/value bind
-	Order  []string           // TODO: use this order(ordered map?)
-	Header string             //
+	Label     string
+	MainBlock string // TODO
+	Event     string // event name
+
+	// TODO: Component inject can inject normal things into interface{}
+	// TODO: Component inject can inject normal things array into []interface{}
+	// Not only support one string parameter
+	// Context   []interface{} // just like things in tapestry.
+	Context string // just like things in tapestry.
+
+	// properties
+	Href string // A's href
+
+	// services
+
+	// TODO: use interface instead to remove *;
+	// TODO: bind services and implements.
+	LinkService *bs.LinkService
 }
 
 func (c *A) Setup() {
-	fmt.Println("------------------------------- A link initialized. ---------------")
-}
+	// TODO: init services, remove this.
+	c.LinkService = &bs.LinkService{Life: c.FlowLife().(*lifecircle.Life)}
 
-// function example
-func (c *A) IsSelected(key string) bool {
-	fmt.Printf("isselected %v == %v\n", c.Value, key)
-	if c.Value == key {
-		return true
-	}
-	return false
+	// real setup
+	c.Href = c.LinkService.GenerateEventUrlIgnoreComponent(c.Event, 1, c.Context)
+	// 1 means remove last component A
 }

@@ -1,9 +1,10 @@
 /*
-   Time-stamp: <[templates-funcs.go] Elivoa @ Tuesday, 2014-04-22 01:04:02>
+   Time-stamp: <[templates-funcs.go] Elivoa @ Saturday, 2014-05-10 10:41:32>
 */
 package templates
 
 import (
+	"github.com/elivoa/got/util"
 	"github.com/elivoa/gxl"
 	"html/template"
 	"math"
@@ -24,6 +25,8 @@ func registerBuiltinFuncs() {
 		"prettycurrency": PrettyCurrency,
 
 		"now": func() time.Time { return time.Now() },
+
+		"encode": EncodeContext,
 	})
 }
 
@@ -50,4 +53,9 @@ func PrettyCurrency(d float64) string {
 	} else {
 		return gxl.FormatCurrency(d, 0)
 	}
+}
+
+// c/text ==> c__text
+func EncodeContext(s string) string {
+	return util.EncodeContext(s)
 }

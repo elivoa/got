@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"github.com/elivoa/got/templates"
 	"got/core"
-	"html/template"
 )
 
 type TemplateStatus struct {
 	core.Component
-	Tpls []*template.Template
+	Templates []*TemplatesJson
 }
 
 type TemplatesJson struct {
@@ -17,7 +16,7 @@ type TemplatesJson struct {
 }
 
 func (c *TemplateStatus) Setup() {
-	c.Tpls = templates.Templates.Templates()
+	c.Templates = c.TemplatesJson()
 }
 
 func (c *TemplateStatus) TemplatesJson() []*TemplatesJson {

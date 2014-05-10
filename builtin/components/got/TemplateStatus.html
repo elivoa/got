@@ -1,33 +1,46 @@
 <script src="/static/js/angular.min.js" ></script>
 <div ng-controller="ngc_{{.CID}}">
   <h2>Templates:</h2>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Template Name ([[message]])</th>
-        <th>Template Root</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{range .Tpls}}
-      <tr>
-        <td><a href="/got/status.ClickTemplate/{{.Name}}">{{.Name}}</a></td>
-        <td>{{.}}</td>
-      </tr>
-      {{end}}
-    </tbody>
-  </table>
 
   <table class="table table-bordered table-condensed">
     <thead>
       <tr>
-        <th>Key: ([[message]])</th>
+        <th>Key:</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Templates}}
+      <tr>
+        <td rowspan="2">
+          <!-- TODO: "()" in context should be automatically added in transfer.go -->
+          <t:a event="TemplateDetail" context="(.Key | encode)" label=".Key"/>
+        </td>
+        <!-- <td rowspan="2"><a href="/got/status.ClickTemplate/[[t.Key]]">[[t.Key]]</a></td> -->
+        <td>Key: </td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td colspan="3">[[t.Path]]</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  
+
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Third (Angularjs) Key: ([[message]])</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
       <tr ng-repeat-start="t in templates">
-        <td rowspan="2"><t:a href="/got/status.ClickTemplate/[[t.Key]]" label="[[t.Key]]"/></td>
+        <td rowspan="2">
+          <t:a event="TemplateDetail" context="" label="[[t.Key]]"/>
+        </td>
         <!-- <td rowspan="2"><a href="/got/status.ClickTemplate/[[t.Key]]">[[t.Key]]</a></td> -->
         <td>Key: </td>
         <td></td>
@@ -38,7 +51,8 @@
       </tr>
     </tbody>
   </table>
-  
+
+
   <script type="text/javascript">
 
 // 这里这些东西是否可以自动生成？

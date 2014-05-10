@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"runtime"
+	"strings"
 )
 
 func GetCurrentPath(level int) string {
@@ -16,4 +17,13 @@ func GetCurrentPath(level int) string {
 	fmt.Printf("basepath for level %d is %s.\n", level, basePath)
 	fmt.Println("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
 	return basePath
+}
+
+// c/text ==> c__text
+func EncodeContext(s string) string {
+	return strings.Replace(s, "/", "__", -1)
+}
+
+func DecodeContext(s string) string {
+	return strings.Replace(s, "__", "/", -1)
 }
