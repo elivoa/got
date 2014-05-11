@@ -2,8 +2,10 @@ package got
 
 import (
 	"fmt"
+	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/templates"
 	"got/core"
+	"strings"
 )
 
 type TemplateStatus struct {
@@ -30,10 +32,22 @@ func (c *TemplateStatus) TemplatesJson() []*TemplatesJson {
 }
 
 // TODO: call this on page[got/status], event call on components are not worked now.
-func (c *TemplateStatus) OnTemplateDetail(templateKey string) {
+func (c *TemplateStatus) OnTemplateDetail(templateKey string) *exit.Exit {
 	fmt.Printf("-------------------------------------------------------------------------------------")
-	unit := templates.Cache.Get(templateKey)
-	if unit != nil {
-
+	if index := strings.LastIndex(templateKey, ":"); index > 0 {
+		// has block
+		if unit, err := templates.Cache.GetBlockByKey(templateKey[0:index], templateKey[index:]); err != nil {
+			if unit != nil {
+				return exit.RenderText(unit.ContentTransfered)
+			}
+		}
+	} else {
+		// no block
+		if unit, err := templates.Cache.GetByKey(templateKey); err != nil {
+			if unit != nil {
+				return exit.RenderText(unit.ContentTransfered)
+			}
+		}
 	}
+	return exit.RenderText("")
 }

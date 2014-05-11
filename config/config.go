@@ -102,8 +102,8 @@ var Domain string = "syd.com"
 
 // Life circle related.
 var (
-	LCC_OBJECT_KEY  = "__lifecircle_control_key__"
-	LCC_REFERER = "__LCC_REFERER__"
+	LCC_OBJECT_KEY = "__lifecircle_control_key__"
+	LCC_REFERER    = "__LCC_REFERER__"
 )
 
 // framework level configs.
@@ -112,4 +112,8 @@ var (
 	TAG_url_injection       = "query"
 	TAG_page_injection      = "page"
 	TAG_component_injection = "component"
+
+	SPLITER_BLOCK            = ":"
+	SPLITER_EMBED_COMPONENTS = "."
+	SPLITER_EVENT            = ":"
 )
