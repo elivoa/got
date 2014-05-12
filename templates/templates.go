@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Monday, 2014-05-12 18:54:41>
+   Time-stamp: <[templates.go] Elivoa @ Monday, 2014-05-12 22:34:51>
 */
 package templates
 
@@ -168,8 +168,32 @@ func LoadTemplates(registry *register.ProtonSegment, forceReload bool) (cached b
 		}
 		// to be continued.
 		for componentId, componentInfos := range trans.Components {
-			
-			registry.EmbedComponents[strings.ToLower(componentId)] = componentInfo.Segment
+			var specifiedIndex int
+			var hasSpecified bool
+			var serial int
+			// find specified, [only one for one id]
+			for idx, compInfo := range componentInfos {
+				if compInfo.IDSpecified {
+					specifiedIndex = idx
+					hasSpecified = true
+					serial = 1
+					break
+				}
+			}
+			for idx, compInfo := range componentInfos {
+				var realId string
+				if hasSpecified && idx == specifiedIndex {
+					realId = strings.ToLower(componentId)
+				} else {
+					if serial == 0 {
+						realId = strings.ToLower(componentId)
+					} else {
+						realId = fmt.Sprintf("%s_%d", componentId, serial)
+					}
+				}
+				registry.EmbedComponents[realId] = compInfo.Segment
+				serial += 1
+			}
 		}
 	}
 
