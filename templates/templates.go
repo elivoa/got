@@ -1,20 +1,19 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Sunday, 2014-05-11 16:34:24>
+   Time-stamp: <[templates.go] Elivoa @ Monday, 2014-05-12 01:18:24>
 */
 package templates
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/templates/transform"
 	"got/debug"
+	"got/register"
 	"html/template"
 	"io"
 	"log"
 	"os"
-	"reflect"
 	"strings"
 	"sync"
 )
@@ -59,145 +58,88 @@ func RenderTemplate(w io.Writer, key string, p interface{}) error {
   GOT Templates Caches
 */
 
-// init template cache
-var Cache TemplateCache = TemplateCache{
-	Templates: map[reflect.Type]*TemplateUnit{},
-	Keymap:    map[string]*TemplateUnit{},
-}
+// TODO: Integrate to register.
+
+// // init template cache
+// var Cache TemplateCache = TemplateCache{
+// 	// Templates: map[reflect.Type]*TemplateUnit{},
+// 	Keymap: map[string]*TemplateUnit{},
+// }
 
 // TemplateCache cache templates
-type TemplateCache struct {
-	l sync.RWMutex
+// type TemplateCache struct {
+// 	l sync.RWMutex
 
-	Templates map[reflect.Type]*TemplateUnit // type as key
-	Keymap    map[string]*TemplateUnit       // template key as key
-}
-
-type TemplateUnit struct {
-	Key               string // template key.
-	FilePath          string
-	ContentOrigin     string `json:"-"`
-	ContentTransfered string `json:"-"`
-	IsCached          bool   `json:"-"`
-
-	Blocks map[string]*BlockUnit
-
-	// todo components?
-}
-
-// Note: Component in blocks are directly belong to block's container.
-type BlockUnit struct {
-	Container         *TemplateUnit
-	ID                string // block's id
-	ContentOrigin     string
-	ContentTransfered string
-}
+// 	// Templates map[reflect.Type]*TemplateUnit // type as key
+// 	Keymap map[string]*register.TemplateUnit // template key as key
+// }
 
 // Get cached TemplateUnit by proton type.
-func (t *TemplateCache) Get(protonType reflect.Type) (*TemplateUnit, error) {
-	t.l.RLock()
-	defer t.l.RUnlock()
-	if unit, ok := t.Templates[protonType]; ok {
-		return unit, nil
-	}
-	return nil, errors.New("Template not loaded.")
-}
 
-// Get cached TemplateUnit by template key.
-func (t *TemplateCache) GetByKey(key string) (*TemplateUnit, error) {
-	t.l.RLock()
-	defer t.l.RUnlock()
-	if unit, ok := t.Keymap[key]; ok {
-		return unit, nil
-	}
-	return nil, errors.New("Template not loaded.")
-}
-
-func (t *TemplateCache) GetBlock(protonType reflect.Type, blockName string) (*BlockUnit, error) {
-	t.l.RLock()
-	defer t.l.RUnlock()
-	if unit, ok := t.Templates[protonType]; ok {
-		if nil == unit {
-			return nil, errors.New("Error: Templates are nil, can't has blocks.")
-		}
-		if bu, okb := unit.Blocks[blockName]; okb {
-			return bu, nil
-		}
-		return nil, errors.New(fmt.Sprintf("Block '%v' not found.", blockName))
-	}
-	return nil, errors.New("Template not loaded.")
-}
-
-func (t *TemplateCache) GetBlockByKey(key string, blockName string) (*BlockUnit, error) {
-	t.l.RLock()
-	defer t.l.RUnlock()
-	if unit, ok := t.Keymap[key]; ok {
-		if nil == unit {
-			return nil, errors.New("Error: Templates are nil, can't has blocks.")
-		}
-		if bu, okb := unit.Blocks[blockName]; okb {
-			return bu, nil
-		}
-		return nil, errors.New(fmt.Sprintf("Block '%v' not found.", blockName))
-	}
-	return nil, errors.New("Template not loaded.")
-}
+var l sync.RWMutex
 
 // Parse and cache page or component's template, return the cached one.
-func (t *TemplateCache) GetnParse(key string, templatePath string, protonType reflect.Type) (*TemplateUnit, error) {
-	/* TODO 这里模板上锁的机制有问题。
-	   1. 先上锁判断是否存在，然后初始化，设置的时候上第二道锁；
-	      缺点：并发多的时候，会有多个进程同时初始化。
-	   2. 解决方案, 用rw嗦，读取写入的时候上多到嗦。
-	*/
-
-	// if !ok {
-	forceLoad := false
-	tu, cached, err := t.LoadTemplates(protonType, key, templatePath, forceLoad)
-	if err != nil { // error occured
-		return nil, err
-	}
-	if tu == nil { // no error and no result.
-		err = errors.New(fmt.Sprintf("Templates for '%v' not found!", key))
-		return nil, err
-	}
-	if !cached { // return the cached one.
-		// parse templates
-		t.l.Lock() // write lock
-		ParseTemplate(tu)
-		t.l.Unlock()
-	}
-	return tu, nil
-}
+// func GetnParse(key string, templatePath string, protonType reflect.Type) (*TemplateUnit, error) {
+// 	/* TODO 这里模板上锁的机制有问题。
+// 	   1. 先上锁判断是否存在，然后初始化，设置的时候上第二道锁；
+// 	      缺点：并发多的时候，会有多个进程同时初始化。
+// 	   2. 解决方案, 用rw嗦，读取写入的时候上多到嗦。
+// 	*/
+// 	fmt.Println(register.Components)
+// 	// if !ok {
+// 	forceLoad := false
+// 	tu, cached, err := t.LoadTemplates(protonType, key, templatePath, forceLoad)
+// 	if err != nil { // error occured
+// 		return nil, err
+// 	}
+// 	if tu == nil { // no error and no result.
+// 		err = errors.New(fmt.Sprintf("Templates for '%v' not found!", key))
+// 		return nil, err
+// 	}
+// 	if !cached { // return the cached one.
+// 		// parse templates
+// 		t.l.Lock() // write lock
+// 		ParseTemplate(tu)
+// 		t.l.Unlock()
+// 	}
+// 	return tu, nil
+// }
 
 /*
-  Load template and it's contents into memory.
+  Load template and it's contents into memory. Then parse it into template.
   TODO: zip the source
   TODO: implement force reload
 */
-func (t *TemplateCache) LoadTemplates(protonType reflect.Type, key string, filename string, forceReload bool) (tu *TemplateUnit, cached bool, err error) {
-	debug.Log("-   - [ParseTemplate] %v", filename)
+/*, protonType reflect.Type, key string, filename string*/
+func LoadTemplates(registry *register.ProtonSegment, forceReload bool) (cached bool, err error) {
+
+	identity, templatePath := registry.TemplatePath()
+	debug.Log("-   - [ParseTemplate] %v", templatePath)
 
 	// TODO: 这里的锁有问题，高并发时容易引起资源浪费。
 	if !forceReload { // read cache.
-		if tu, err = t.Get(protonType); err == nil {
+		if registry.IsTemplateLoaded {
 			// Be Lazy, err is Tempalte not loaded yet!
 			cached = true
 			return // return cached version.
 		}
 	}
 
+	// load and parse it.
+	registry.L.Lock() // write lock
+	defer registry.L.Unlock()
+
 	// if file doesn't exist.
-	if _, err = os.Stat(filename); os.IsNotExist(err) {
+	if _, err = os.Stat(templatePath); os.IsNotExist(err) {
 		// set nil to cache
-		t.Templates[protonType] = nil
+		registry.IsTemplateLoaded = true
 		return
 	} else if err != nil {
 		return // other file error.
 	}
 
 	// open input file
-	fi, err := os.Open(filename)
+	fi, err := os.Open(templatePath)
 	if err != nil {
 		panic(err)
 	}
@@ -214,47 +156,33 @@ func (t *TemplateCache) LoadTemplates(protonType reflect.Type, key string, filen
 	// transform
 	trans := transform.NewTransformer()
 	trans.Parse(r)
-
-	tu = &TemplateUnit{
-		Key:               key,
-		FilePath:          filename,
-		IsCached:          true,
-		ContentTransfered: trans.RenderToString(),
+	registry.IsTemplateLoaded = true
+	registry.ContentTransfered = trans.RenderToString()
+	// parse tempalte
+	if err = parseTemplate(identity, registry.ContentTransfered); err != nil {
+		// TODO: Detailed template parse Error page.
+		panic(fmt.Sprintf("Error when parse template %x", identity))
 	}
 
 	blocks := trans.RenderBlocks() // blocks found in template.
 	if blocks != nil {
-		tu.Blocks = map[string]*BlockUnit{}
+		registry.Blocks = map[string]*register.Block{}
 		for blockId, html := range blocks {
-			tu.Blocks[blockId] = &BlockUnit{
-				Container:         tu,
+			block := &register.Block{
 				ID:                blockId,
 				ContentTransfered: html,
 			}
-		}
-	}
-
-	// add to cache
-	t.Templates[protonType] = tu
-	t.Keymap[tu.Key] = tu
-	return
-}
-
-func ParseTemplate(tu *TemplateUnit) (err error) {
-	// parse main
-	if err = parseTemplate(tu.Key, tu.ContentTransfered); err != nil {
-		return
-	}
-
-	if tu.Blocks != nil {
-		for _, block := range tu.Blocks {
-			key := fmt.Sprintf("%s%s%s", tu.Key, config.SPLITER_BLOCK, block.ID)
-			if err = parseTemplate(key, block.ContentTransfered); err != nil {
-				return
+			registry.Blocks[blockId] = block
+			blockKey := fmt.Sprintf("%s%s%s", registry.Identity(), config.SPLITER_BLOCK, blockId)
+			if err = parseTemplate(blockKey, block.ContentTransfered); err != nil {
+				panic(fmt.Sprintf("Error when parse template %x", blockKey))
 			}
+
 		}
 	}
-	return nil
+	// add to cache
+	register.TemplateKeyMap.Keymap[registry.Identity()] = registry
+	return
 }
 
 func parseTemplate(key string, content string) error {

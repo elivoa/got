@@ -67,10 +67,8 @@ func PrintSourceCaches() {
 func (p *Status) AfterRender() {
 }
 
-func (p *Status) OnClickTemplate(name string) {
+func (p *Status) OnTestEvent() *exit.Exit {
 	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-	fmt.Println("click template: ", name)
-	t := templates.Templates.Lookup(name)
-	fmt.Println(t)
-	fmt.Println(t.Delims)
+	fmt.Println("OnTestEvent")
+	return exit.Forward(p.IndexPage)
 }

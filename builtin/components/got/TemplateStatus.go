@@ -3,9 +3,8 @@ package got
 import (
 	"fmt"
 	"github.com/elivoa/got/route/exit"
-	"github.com/elivoa/got/templates"
 	"got/core"
-	"strings"
+	"got/register"
 )
 
 type TemplateStatus struct {
@@ -14,7 +13,8 @@ type TemplateStatus struct {
 }
 
 type TemplatesJson struct {
-	*templates.TemplateUnit
+	Key      string
+	FilePath string
 }
 
 func (c *TemplateStatus) Setup() {
@@ -23,9 +23,11 @@ func (c *TemplateStatus) Setup() {
 
 func (c *TemplateStatus) TemplatesJson() []*TemplatesJson {
 	var json = []*TemplatesJson{}
-	for _, unit := range templates.Cache.Templates {
+	for key, seg := range register.TemplateKeyMap.Keymap {
+		_, path := seg.TemplatePath()
 		json = append(json, &TemplatesJson{
-			TemplateUnit: unit,
+			Key:      key,
+			FilePath: path,
 		})
 	}
 	return json
@@ -34,20 +36,20 @@ func (c *TemplateStatus) TemplatesJson() []*TemplatesJson {
 // TODO: call this on page[got/status], event call on components are not worked now.
 func (c *TemplateStatus) OnTemplateDetail(templateKey string) *exit.Exit {
 	fmt.Printf("-------------------------------------------------------------------------------------")
-	if index := strings.LastIndex(templateKey, ":"); index > 0 {
-		// has block
-		if unit, err := templates.Cache.GetBlockByKey(templateKey[0:index], templateKey[index:]); err != nil {
-			if unit != nil {
-				return exit.RenderText(unit.ContentTransfered)
-			}
-		}
-	} else {
-		// no block
-		if unit, err := templates.Cache.GetByKey(templateKey); err != nil {
-			if unit != nil {
-				return exit.RenderText(unit.ContentTransfered)
-			}
-		}
-	}
+	// if index := strings.LastIndex(templateKey, ":"); index > 0 {
+	// 	// has block
+	// 	if unit, err := templates.Cache.GetBlockByKey(templateKey[0:index], templateKey[index:]); err != nil {
+	// 		if unit != nil {
+	// 			return exit.RenderText(unit.ContentTransfered)
+	// 		}
+	// 	}
+	// } else {
+	// 	// no block
+	// 	if unit, err := templates.Cache.GetByKey(templateKey); err != nil {
+	// 		if unit != nil {
+	// 			return exit.RenderText(unit.ContentTransfered)
+	// 		}
+	// 	}
+	// }
 	return exit.RenderText("")
 }

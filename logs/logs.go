@@ -14,6 +14,8 @@ const (
 	Trace
 )
 
+// TODO: override methods to support middle prefix-
+
 type Logger struct {
 	*log.Logger
 	loglevel int
@@ -65,5 +67,6 @@ func Get(name string) *Logger {
 func init() {
 	InitLogger("IOC:Inject", "", Trace)
 	InitLogger("GOT:PageFlow", "", Trace)
+	InitLogger("GOT:EventCall", "", Trace)
 	InitLogger("URL Lookup", "", Trace)
 }
