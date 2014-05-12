@@ -1,5 +1,5 @@
 /**
-  Time-stamp: <[transform.go] Elivoa @ Tuesday, 2014-04-22 01:08:56>
+  Time-stamp: <[transform.go] Elivoa @ Monday, 2014-05-12 18:49:35>
   TODO remove this package.
 */
 package transform
@@ -19,14 +19,34 @@ import (
 )
 
 // ---- Transform template ------------------------------------------
+
+// 同一个Page或者Component应该使用同一个Transformer
 type Transformater struct {
-	tree   *Node // root node
+	tree   *Node // root nopde
 	blocks map[string]*Node
 	z      *html.Tokenizer
+
+	// results
+	// TODO: original source
+	Components map[string][]ComponentInfo
+
+	// 值如果是-1， 说明这个是通过t:id的方式指定的ID，不允许重复。
+	ComponentCount map[string]int
+}
+
+type ComponentInfo struct {
+	Name        string // component name
+	Segment     *register.ProtonSegment
+	ID          string // component ID (How to deal with component that in a loop.)
+	Index       int    // how many this components in one page.
+	IDSpecified bool
 }
 
 func NewTransformer() *Transformater {
-	return &Transformater{}
+	return &Transformater{
+		Components:     map[string][]ComponentInfo{},
+		ComponentCount: map[string]int{},
+	}
 }
 
 /*
@@ -228,11 +248,14 @@ func (t *Transformater) processStartTag(node *Node) bool {
 		elementName   []byte
 		err           error
 	)
+
+	// start with componentp
 	if len(bname) >= 2 && bname[0] == 't' && bname[1] == ':' {
 		iscomopnent = true
 		componentName = bname[2:]
 	}
 
+	// another kind of component
 	var attrs map[string][]byte
 	if hasAttr {
 		attrs = map[string][]byte{}
@@ -333,6 +356,7 @@ func (t *Transformater) renderIf(node *Node, attrs map[string][]byte) {
 	node.html.WriteString("}}")
 }
 
+// Processing Components
 func (t *Transformater) transformComponent(node *Node, componentName []byte, elementName []byte,
 	attrs map[string][]byte) error {
 
@@ -346,10 +370,62 @@ func (t *Transformater) transformComponent(node *Node, componentName []byte, ele
 		return err
 	}
 
+	// create cache.StructInfo
 	sc := cache.StructCache
 	si := sc.GetCreate(reflect.TypeOf(lr.Segment.Proton), core.COMPONENT)
-	// TODO: cache embed directly elements.
 
+	// fmt.Println("\n\n------------------------------------------------------------------------------------------")
+	// fmt.Printf("Find Component %s , parameters: \n", string(componentName))
+	// for idx, v := range attrs {
+	// 	fmt.Printf("\t%s := %v\n", idx, string(v))
+	// }
+
+	/*
+		For ComponentID， 使用 t:id 这种方式指定ID的，ID不能重复。
+		其他情况下使用Component的名字来命名。这种情况下允许重复，ID直接累加。
+	*/
+	var (
+		componentId     string
+		hardSpecifiedId bool
+	)
+
+	for key, val := range attrs {
+		if strings.ToLower(key) == "t:id" {
+			componentId = string(val)
+			break
+		}
+	}
+
+	if componentId == "" {
+		componentId = lr.Segment.StructInfo.StructName
+		hardSpecifiedId = false
+	} else {
+		hardSpecifiedId = true
+	}
+
+	var count int
+	var ok bool
+	if count, ok = t.ComponentCount[componentId]; ok {
+		if hardSpecifiedId {
+			panic(fmt.Sprintf("ID Duplicated %s.", componentId))
+		}
+		t.ComponentCount[componentId] = 1
+	}
+
+	if _, ok := t.Components[componentId]; !ok {
+		t.Components[componentId] = []ComponentInfo{}
+	}
+	t.Components[componentId] = append(t.Components[componentId], ComponentInfo{
+		Name:        string(componentName),
+		Segment:     lr.Segment,
+		ID:          componentId,
+		Index:       count,
+		IDSpecified: hardSpecifiedId,
+	})
+	t.ComponentCount[componentId] += 1
+
+	// --------------------------------------------------------------------------------
+	// write template back
 	node.html.WriteString("{{t_")
 	// node.html.Write(componentName)
 	node.html.WriteString(strings.Replace(lookupurl, "/", "_", -1))

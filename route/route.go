@@ -66,7 +66,8 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO Later: Create New page object every request? howto share some page object? see tapestry5.
 
 	var lcc = lifecircle.NewPageFlow(w, r, result.Segment)
-	lcc.SetPageUrl(result.PageUrl)     // ?
+	lcc.SetParameters(result.Parameters)
+	// lcc.SetPageUrl(result.PageUrl)     // ?
 	lcc.SetEventName(result.EventName) // ?
 
 	// print some information.

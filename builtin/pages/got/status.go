@@ -7,7 +7,6 @@ import (
 	"github.com/elivoa/got/templates"
 	"got/cache"
 	"got/core"
-	"got/debug"
 	"got/register"
 	"html/template"
 	page "syd/pages"
@@ -31,14 +30,6 @@ type Status struct {
 }
 
 func (p *Status) SetupRender() *exit.Exit {
-	fmt.Println(">>>>>>>>>>> set up redner >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
-	fmt.Println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-	fmt.Println("Injected page isntance is: \n", p.IndexPage)
-	fmt.Println("Injected page isntance is: \n", p.IndexPage.FlowLife)
-	debug.DebugPrintVariable(p.IndexPage)
-	fmt.Println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-
 	// PrintSourceCaches()
 	register.DeubgPrintTypeMaps()
 
@@ -50,8 +41,6 @@ func (p *Status) SetupRender() *exit.Exit {
 	p.Modules = register.Modules
 	p.Pages = &register.Pages
 
-	// panic(&exceptions.AccessDeniedError{Message: "something panics"})
-	// return exit.Forward(p.IndexPage)
 	return nil
 }
 

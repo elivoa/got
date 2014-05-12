@@ -1,10 +1,13 @@
 package got
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/elivoa/got/route/exit"
+	"github.com/elivoa/got/util"
 	"got/core"
 	"got/register"
+	"strings"
 )
 
 type TemplateStatus struct {
@@ -35,21 +38,34 @@ func (c *TemplateStatus) TemplatesJson() []*TemplatesJson {
 
 // TODO: call this on page[got/status], event call on components are not worked now.
 func (c *TemplateStatus) OnTemplateDetail(templateKey string) *exit.Exit {
-	fmt.Printf("-------------------------------------------------------------------------------------")
-	// if index := strings.LastIndex(templateKey, ":"); index > 0 {
-	// 	// has block
-	// 	if unit, err := templates.Cache.GetBlockByKey(templateKey[0:index], templateKey[index:]); err != nil {
-	// 		if unit != nil {
-	// 			return exit.RenderText(unit.ContentTransfered)
-	// 		}
-	// 	}
-	// } else {
-	// 	// no block
-	// 	if unit, err := templates.Cache.GetByKey(templateKey); err != nil {
-	// 		if unit != nil {
-	// 			return exit.RenderText(unit.ContentTransfered)
-	// 		}
-	// 	}
-	// }
-	return exit.RenderText("")
+	var buffer bytes.Buffer
+	buffer.WriteString("Details for Template: ")
+	key := util.DecodeContext(templateKey)
+	buffer.WriteString(key)
+	buffer.WriteString("\n\n")
+
+	isblock := false
+	blockname := ""
+	if index := strings.LastIndex(key, ":"); index > 0 {
+		blockname = templateKey[index:]
+		key = key[0:index]
+		isblock = true
+	}
+	// TODO: can't see templates that are not initialized.
+	// currentSeg := FollowComponentByIds(lcc.page.registry, result.ComponentPaths)
+
+	if seg, ok := register.TemplateKeyMap.Keymap[key]; ok {
+		if !isblock {
+			buffer.WriteString(seg.ContentTransfered)
+		} else {
+			if block, ok := seg.Blocks[blockname]; ok {
+				buffer.WriteString(block.ContentTransfered)
+			}
+		}
+		return exit.RenderText(buffer.String())
+	}
+	// panic(fmt.Sprintf("Template Not Found for %v", util.DecodeContext(templateKey)))
+	buffer.WriteString(fmt.Sprintf("\n\nTemplate Not Found for %v", util.DecodeContext(templateKey)))
+	return exit.RenderText(buffer.String())
+
 }

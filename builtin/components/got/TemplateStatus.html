@@ -14,7 +14,9 @@
       <tr>
         <td rowspan="2">
           <!-- TODO: "()" in context should be automatically added in transfer.go -->
-          <t:a event="TemplateDetail" context="(.Key | encode)" label=".Key"/>
+          <t:a t:id="DetailLink" event="TemplateDetail" context="(.Key | encode)" label=".Key"
+               target="_blank"/>
+          <!-- TODO How to deal with component content-->
         </td>
         <!-- <td rowspan="2"><a href="/got/status.ClickTemplate/[[t.Key]]">[[t.Key]]</a></td> -->
         <td>Key: </td>

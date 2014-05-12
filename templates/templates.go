@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Monday, 2014-05-12 01:18:24>
+   Time-stamp: <[templates.go] Elivoa @ Monday, 2014-05-12 18:54:41>
 */
 package templates
 
@@ -155,9 +155,32 @@ func LoadTemplates(registry *register.ProtonSegment, forceReload bool) (cached b
 
 	// transform
 	trans := transform.NewTransformer()
-	trans.Parse(r)
+	trans.Parse(r) // then trans has components
+
 	registry.IsTemplateLoaded = true
 	registry.ContentTransfered = trans.RenderToString()
+
+	// append components
+	// TODO aspsign component id.
+	if nil != trans.Components && len(trans.Components) > 0 {
+		if nil == registry.EmbedComponents {
+			registry.EmbedComponents = map[string]*register.ProtonSegment{}
+		}
+		// to be continued.
+		for componentId, componentInfos := range trans.Components {
+			
+			registry.EmbedComponents[strings.ToLower(componentId)] = componentInfo.Segment
+		}
+	}
+
+	// var realId string
+	// if count == 0 {
+	// 	realId = componentId
+	// } else {
+	// 	realId = fmt.Sprintf("%s_%d", componentId, count)
+	// }
+	// t.Components[realId] = component
+
 	// parse tempalte
 	if err = parseTemplate(identity, registry.ContentTransfered); err != nil {
 		// TODO: Detailed template parse Error page.
