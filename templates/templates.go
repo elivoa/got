@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Monday, 2014-05-12 22:34:51>
+   Time-stamp: <[templates.go] Elivoa @ Saturday, 2014-05-17 00:55:02>
 */
 package templates
 
@@ -167,33 +167,35 @@ func LoadTemplates(registry *register.ProtonSegment, forceReload bool) (cached b
 			registry.EmbedComponents = map[string]*register.ProtonSegment{}
 		}
 		// to be continued.
-		for componentId, componentInfos := range trans.Components {
-			var specifiedIndex int
-			var hasSpecified bool
-			var serial int
-			// find specified, [only one for one id]
-			for idx, compInfo := range componentInfos {
-				if compInfo.IDSpecified {
-					specifiedIndex = idx
-					hasSpecified = true
-					serial = 1
-					break
-				}
-			}
-			for idx, compInfo := range componentInfos {
-				var realId string
-				if hasSpecified && idx == specifiedIndex {
-					realId = strings.ToLower(componentId)
-				} else {
-					if serial == 0 {
-						realId = strings.ToLower(componentId)
-					} else {
-						realId = fmt.Sprintf("%s_%d", componentId, serial)
-					}
-				}
-				registry.EmbedComponents[realId] = compInfo.Segment
-				serial += 1
-			}
+		for _, componentInfo := range trans.Components {
+			registry.EmbedComponents[strings.ToLower(componentInfo.ID)] = componentInfo.Segment
+
+			// var specifiedIndex int
+			// var hasSpecified bool
+			// var serial int
+			// // find specified, [only one for one id]
+			// for idx, compInfo := range componentInfos {
+			// 	if compInfo.IDSpecified {
+			// 		specifiedIndex = idx
+			// 		hasSpecified = true
+			// 		serial = 1
+			// 		break
+			// 	}
+			// }
+			// for idx, compInfo := range componentInfos {
+			// 	var realId string
+			// 	if hasSpecified && idx == specifiedIndex {
+			// 		realId = strings.ToLower(componentId)
+			// 	} else {
+			// 		if serial == 0 {
+			// 			realId = strings.ToLower(componentId)
+			// 		} else {
+			// 			realId = fmt.Sprintf("%s_%d", componentId, serial)
+			// 		}
+			// 	}
+			// 	registry.EmbedComponents[realId] = compInfo.Segment
+			// 	serial += 1
+			// }
 		}
 	}
 

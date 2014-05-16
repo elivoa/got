@@ -1,5 +1,5 @@
 /**
-  Time-stamp: <[transform.go] Elivoa @ Monday, 2014-05-12 18:49:35>
+  Time-stamp: <[transform.go] Elivoa @ Saturday, 2014-05-17 00:48:21>
   TODO remove this package.
 */
 package transform
@@ -27,10 +27,11 @@ type Transformater struct {
 	z      *html.Tokenizer
 
 	// results
-	// TODO: original source
-	Components map[string][]ComponentInfo
+	// Components' Id --> ComponentInfo
+	Components map[string]*ComponentInfo
+	// Components map[string][]ComponentInfo
 
-	// 值如果是-1， 说明这个是通过t:id的方式指定的ID，不允许重复。
+	// outdated. 值如果是-1， 说明这个是通过t:id的方式指定的ID，不允许重复。
 	ComponentCount map[string]int
 }
 
@@ -44,7 +45,7 @@ type ComponentInfo struct {
 
 func NewTransformer() *Transformater {
 	return &Transformater{
-		Components:     map[string][]ComponentInfo{},
+		Components:     map[string]*ComponentInfo{},
 		ComponentCount: map[string]int{},
 	}
 }
@@ -374,14 +375,14 @@ func (t *Transformater) transformComponent(node *Node, componentName []byte, ele
 	sc := cache.StructCache
 	si := sc.GetCreate(reflect.TypeOf(lr.Segment.Proton), core.COMPONENT)
 
-	// fmt.Println("\n\n------------------------------------------------------------------------------------------")
+	// fmt.Println("\n\n----------------------------------------------------------------------------")
 	// fmt.Printf("Find Component %s , parameters: \n", string(componentName))
 	// for idx, v := range attrs {
 	// 	fmt.Printf("\t%s := %v\n", idx, string(v))
 	// }
 
 	/*
-		For ComponentID， 使用 t:id 这种方式指定ID的，ID不能重复。
+		For ComponentID， 使用 tid 这种方式指定ID的，ID不能重复。
 		其他情况下使用Component的名字来命名。这种情况下允许重复，ID直接累加。
 	*/
 	var (
@@ -389,47 +390,66 @@ func (t *Transformater) transformComponent(node *Node, componentName []byte, ele
 		hardSpecifiedId bool
 	)
 
-	for key, val := range attrs {
-		if strings.ToLower(key) == "t:id" {
-			componentId = string(val)
-			break
-		}
+	if id, ok := attrs["tid"]; ok {
+		componentId = string(id)
+	} else if id, ok := attrs["t:id"]; ok {
+		componentId = string(id)
 	}
 
+	//// loop version.
+	// for key, val := range attrs {
+	// 	if strings.ToLower(key) == "tid" || strings.ToLower(key) == "t:id" {
+	// 		componentId = string(val)
+	// 		break
+	// 	}
+	// }
+
 	if componentId == "" {
+		// occupy id if not specified.
 		componentId = lr.Segment.StructInfo.StructName
 		hardSpecifiedId = false
 	} else {
 		hardSpecifiedId = true
 	}
 
-	var count int
-	var ok bool
-	if count, ok = t.ComponentCount[componentId]; ok {
-		if hardSpecifiedId {
-			panic(fmt.Sprintf("ID Duplicated %s.", componentId))
-		}
-		t.ComponentCount[componentId] = 1
+	var (
+		count  int
+		ok     bool
+		realId string = componentId
+	)
+	if count, ok = t.ComponentCount[componentId]; !ok {
+		count = -1
 	}
 
-	if _, ok := t.Components[componentId]; !ok {
-		t.Components[componentId] = []ComponentInfo{}
+	// generate component id
+	if count >= 0 {
+		realId = fmt.Sprintf("%s_%d", componentId, count)
 	}
-	t.Components[componentId] = append(t.Components[componentId], ComponentInfo{
-		Name:        string(componentName),
-		Segment:     lr.Segment,
-		ID:          componentId,
-		Index:       count,
-		IDSpecified: hardSpecifiedId,
-	})
-	t.ComponentCount[componentId] += 1
+	// fmt.Println("\n----------------------------------------------------")
+	// fmt.Println("count is", count, "; componentId is ", realId)
+
+	if _, ok := t.Components[realId]; !ok {
+		t.Components[realId] = &ComponentInfo{
+			Name:        string(componentName),
+			Segment:     lr.Segment,
+			ID:          realId,
+			Index:       count,
+			IDSpecified: hardSpecifiedId,
+		}
+	} else {
+		// if find duplicated. return error.
+		panic(fmt.Sprintf("ID Duplicated %s.", realId))
+	}
+	t.ComponentCount[componentId] = count + 1 // write back count
 
 	// --------------------------------------------------------------------------------
 	// write template back
 	node.html.WriteString("{{t_")
-	// node.html.Write(componentName)
 	node.html.WriteString(strings.Replace(lookupurl, "/", "_", -1))
-	node.html.WriteString(" $")
+	node.html.WriteString(" $") // 1st param: it's container
+	node.html.WriteString(" `")
+	node.html.WriteString(realId) // 2nd param: unique id in component scope.
+	node.html.WriteString("`")
 
 	// elementName
 	if elementName != nil {

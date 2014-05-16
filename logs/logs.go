@@ -65,8 +65,10 @@ func Get(name string) *Logger {
 }
 
 func init() {
-	InitLogger("IOC:Inject", "", Trace)
+	InitLogger("IOC:Inject", "", Error)
 	InitLogger("GOT:PageFlow", "", Trace)
 	InitLogger("GOT:EventCall", "", Trace)
 	InitLogger("URL Lookup", "", Trace)
+	InitLogger("ComponentFLow", "", Trace)
+
 }
