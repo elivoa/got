@@ -3,6 +3,7 @@ package route
 import (
 	"fmt"
 	"github.com/elivoa/got/errorhandler"
+	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/templates"
 	"github.com/gorilla/context"
@@ -19,6 +20,7 @@ import (
 var (
 	emptyParameters = []reflect.Value{}
 	debugLog        = true
+	logRoute        = logs.Get("Router")
 )
 
 // RouteHandler is responsible to handler all got request.
@@ -59,6 +61,9 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 3. let'sp find the right pages.
 	result := lookup(url)
+	if logRoute.Trace() {
+		logRoute.Printf("Lookup(%s) is:\n%v", url, result)
+	}
 	if result == nil && !result.IsValid() {
 		panic(exceptions.NewPageNotFoundError(fmt.Sprintf("Page %s not found!", r.URL.Path)))
 	}

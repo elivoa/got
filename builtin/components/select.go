@@ -3,7 +3,6 @@ package components
 import (
 	"fmt"
 	"got/core"
-	// "html/template"
 )
 
 /*

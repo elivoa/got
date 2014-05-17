@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Saturday, 2014-05-17 00:55:02>
+   Time-stamp: <[templates.go] Elivoa @ Saturday, 2014-05-17 14:13:42>
 */
 package templates
 
@@ -210,7 +210,8 @@ func LoadTemplates(registry *register.ProtonSegment, forceReload bool) (cached b
 	// parse tempalte
 	if err = parseTemplate(identity, registry.ContentTransfered); err != nil {
 		// TODO: Detailed template parse Error page.
-		panic(fmt.Sprintf("Error when parse template %x", identity))
+		panic(err)
+		// panic(fmt.Sprintf("Error when parse template %x", identity))
 	}
 
 	blocks := trans.RenderBlocks() // blocks found in template.
