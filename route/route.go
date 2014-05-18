@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/context"
 	"got/cache"
 	"got/core"
+	"got/debug"
 	"net/http"
 	"reflect"
 	"strings"
@@ -43,6 +44,9 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	// --------  Error Handling  --------------------------------------------------------------
 	defer func() {
 		if err := recover(); err != nil {
+
+			fmt.Println("?????>>>>>>>>>>>>>>>>>>>>>")
+			debug.Error(err.(error))
 			// Give control to ErrorHandler if panic occurs.
 			b := errorhandler.Process(w, r, err)
 			if !b {
@@ -80,6 +84,8 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("----------------------------")
 		fmt.Println("Describe the page structure:")
 		fmt.Println(lcc.PrintCallStructure())
+		// fmt.Println("-- Page Result is ---------")
+		// fmt.Println(result)
 	}()
 
 	if !result.IsEventCall() {

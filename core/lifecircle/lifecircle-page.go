@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-page.go] Elivoa @ Sunday, 2014-05-18 11:43:23>
+   Time-stamp: <[lifecircle-page.go] Elivoa @ Sunday, 2014-05-18 16:49:53>
 */
 package lifecircle
 
@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/logs"
-	"github.com/elivoa/got/templates"
 	"github.com/elivoa/got/register"
+	"github.com/elivoa/got/templates"
 	"net/http"
 	"reflect"
 	"strings"
@@ -87,6 +87,8 @@ func (lcc *LifeCircleControl) PageFlow() *LifeCircleControl {
 		// normal template-rendering
 		lcc.w.Write(lcc.page.out.Bytes())
 	}
+	// fmt.Printf("--------------------------------------------------------------------------------\n")
+	// fmt.Printf("Smart Return: :::: %v \n", returns)
 	return lcc
 }
 

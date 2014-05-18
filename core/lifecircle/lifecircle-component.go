@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-component.go] Elivoa @ Sunday, 2014-05-18 13:39:27>
+   Time-stamp: <[lifecircle-component.go] Elivoa @ Sunday, 2014-05-18 16:36:23>
 */
 package lifecircle
 
@@ -107,7 +107,7 @@ func (lcc *LifeCircleControl) componentFlow(containerLife *Life, componentSeed c
 
 	if cflog.Debug() {
 		cflog.Printf("----- [Component flow] ------------------------%v",
-			"----------------------------------------")
+			"------------------------")
 		cflog.Printf("- C - [Component Container] Type: %v, ComponentType:%v, tid:%s\n",
 			containerLife.rootType, reflect.TypeOf(componentSeed), tid)
 	}

@@ -1,11 +1,12 @@
 /*
-   Time-stamp: <[lifecircle-return.go] Elivoa @ Sunday, 2014-05-18 13:39:53>
+   Time-stamp: <[lifecircle-return.go] Elivoa @ Sunday, 2014-05-18 16:46:49>
 */
 package lifecircle
 
 import (
 	"errors"
 	"fmt"
+	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/utils"
 	"got/core"
@@ -21,6 +22,8 @@ import (
 func (lcc *LifeCircleControl) refreshThisPage() *exit.Exit {
 	return exit.Redirect(lcc.r.URL.Path)
 }
+
+var logReturn = logs.Get("Return")
 
 /*
    Return analysis the return values and redirect to the write place.
@@ -52,9 +55,6 @@ func SmartReturn(returns []reflect.Value) *exit.Exit {
 
 	first := returns[0]
 	kind := first.Kind()
-
-	// fmt.Println("********************************************************************************")
-	// fmt.Println("returns is", first)
 
 	// dereference interface
 	if kind == reflect.Interface {

@@ -71,5 +71,6 @@ func init() {
 	InitLogger("URL Lookup", "", Trace)
 	InitLogger("ComponentFLow", "", Trace)
 	InitLogger("Route", "", Trace)
+	InitLogger("Return", "", Trace)
 
 }
