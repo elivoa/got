@@ -12,15 +12,33 @@
           <h2>GOT Framework (Go on Tapestry)</h2>
         </div>
 
-        <a href=""></a>TODO Pages, Components, 
-        
+        <div style="padding:8px;border:solid 1px red">
+          <t:a event="GotoHome" label="Goto Home"/>
+        </div>
+
+        <ul>
+          <li>Modules</li>
+          <li>Pages</li>
+          <li>Components</li>
+          <li>Mixins</li>
+          <li>Templates</li>
+        </ul>
+
         <t:got.templatestatus />
+
+        
+        <div name="Pages">
+          <h4>Pages:</h4>
+          {{.Pages | escape}}
+        </div>
+        
+        <div name="Components">
+          <h4>Components:</h4>
+          {{.Components}}
+        </div>
         
       </div>
     </div>
 
-    <div>
-      <t:a event="TestEvent" label="test event link"/>
-    </div>
   </body>
 </html>

@@ -12,7 +12,7 @@
     <tbody>
       {{range .Templates}}
       <tr>
-        <td rowspan="2">
+        <td>
           <!-- TODO: "()" in context should be automatically added in transfer.go -->
           <!-- id is not used here -->
           <t:a tid="DetailLink" event="TemplateDetail" context="(.Key | encode)" label=".Key"
@@ -23,9 +23,6 @@
         <td>Key: </td>
         <td></td>
         <td></td>
-      </tr>
-      <tr>
-        <td colspan="3">[[t.Path]]</td>
       </tr>
       {{end}}
     </tbody>

@@ -126,6 +126,18 @@ func Handle404(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Ex
 }
 
 func Handle500(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Exit {
+	fmt.Println(`
+ERRORER     ERROR     ERROR
+ER         ER   OR   ER   OR
+ERR       ER     ER ER     OR
+  ERROR   ER     ER ER     OR
+      ER  ER     ER ER     OR
+ERR   ER   ER   OR   RO   OR
+  ERROR     ERROR     ORERR
+`)
+	fmt.Println("500 Error Page: error is")
+	printError(err)
+
 	pageObj := lifecircle.CreatePage(w, r, reflect.TypeOf(pBuiltin.Error500{}))
 	if pageObj != nil {
 		if page, ok := pageObj.(*pBuiltin.Error500); ok {
@@ -134,6 +146,13 @@ func Handle500(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Ex
 		}
 	}
 	return exit.Redirect("/error500")
+}
+
+func printError(err interface{}) {
+	if e, ok := err.(error); ok {
+		debug.Error(e)
+	}
+	fmt.Printf("Error is %v\n", err)
 }
 
 func HandleAccessDeniedError(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Exit {
