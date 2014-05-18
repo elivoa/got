@@ -1,5 +1,5 @@
 /**
-  Time-stamp: <[transform.go] Elivoa @ Saturday, 2014-05-17 00:48:21>
+  Time-stamp: <[transform.go] Elivoa @ Sunday, 2014-05-18 11:42:39>
   TODO remove this package.
 */
 package transform
@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"got/cache"
 	"got/core"
-	"got/register"
+	"github.com/elivoa/got/register"
 	"io"
 	"reflect"
 	"regexp"

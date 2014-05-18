@@ -3,12 +3,13 @@ package got
 import (
 	"errors"
 	"fmt"
+	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/templates"
 	"got/cache"
 	"got/core"
-	"got/register"
 	"html/template"
+	"strings"
 	page "syd/pages"
 )
 
@@ -45,11 +46,15 @@ func (p *Status) SetupRender() *exit.Exit {
 }
 
 func (p *Status) Pages() template.HTML {
-	return template.HTML(register.Pages.StringTree("<br />"))
+	html := register.Pages.StringTree("<br>")
+	html = strings.Replace(html, " ", "&nbsp;", -1)
+	return template.HTML(html)
 }
 
 func (p *Status) Components() template.HTML {
-	return template.HTML(register.Components.StringTree("<br />"))
+	html := register.Components.StringTree("<br>")
+	html = strings.Replace(html, " ", "&nbsp;", -1)
+	return template.HTML(html)
 }
 
 func PrintSourceCaches() {

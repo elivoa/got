@@ -6,8 +6,8 @@ package builtin
 
 import (
 	"github.com/elivoa/got/builtin/pages/got/fileupload"
+	"github.com/elivoa/got/utils"
 	"got/core"
-	"got/utils"
 	"net/http"
 )
 

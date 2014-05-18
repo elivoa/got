@@ -3,10 +3,10 @@ package got
 import (
 	"bytes"
 	"fmt"
+	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/util"
 	"got/core"
-	"got/register"
 	"strings"
 )
 

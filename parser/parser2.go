@@ -13,8 +13,8 @@
 package parser
 
 import (
+	"github.com/elivoa/got/utils"
 	"got/core"
-	"got/utils"
 	"strings"
 	"sync"
 )

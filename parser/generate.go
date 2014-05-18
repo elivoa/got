@@ -358,8 +358,8 @@ import (
     "github.com/elivoa/got/parser"
     "github.com/elivoa/got/route"
     "fmt"
-    _got "got"
-    "got/register"
+    _got "github.com/elivoa/got"
+    "github.com/elivoa/got/register"
     "got/cache"
 	{{range $k, $v := $.ImportPaths}}
     {{$v}} "{{$k}}"{{end}}

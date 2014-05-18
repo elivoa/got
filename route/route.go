@@ -2,15 +2,15 @@ package route
 
 import (
 	"fmt"
+	"github.com/elivoa/got/core/lifecircle"
 	"github.com/elivoa/got/errorhandler"
 	"github.com/elivoa/got/logs"
+	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/templates"
 	"github.com/gorilla/context"
 	"got/cache"
 	"got/core"
-	"got/core/lifecircle"
-	"got/register"
 	"net/http"
 	"reflect"
 	"strings"

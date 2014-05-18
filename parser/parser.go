@@ -11,6 +11,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/elivoa/got/utils"
 	"go/ast"
 	"go/build"
 	"go/parser"
@@ -18,7 +19,6 @@ import (
 	"go/token"
 	"got/core"
 	"got/debug"
-	"got/utils"
 	"log"
 	"os"
 	"path/filepath"

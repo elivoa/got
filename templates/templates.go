@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Sunday, 2014-05-18 11:08:25>
+   Time-stamp: <[templates.go] Elivoa @ Sunday, 2014-05-18 11:42:34>
 */
 package templates
 
@@ -9,7 +9,7 @@ import (
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/templates/transform"
-	"got/register"
+	"github.com/elivoa/got/register"
 	"html/template"
 	"io"
 	"os"
