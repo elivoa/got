@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates-funcs.go] Elivoa @ Saturday, 2014-05-10 10:41:32>
+   Time-stamp: <[templates-funcs.go] Elivoa @ Tuesday, 2014-05-20 17:10:29>
 */
 package templates
 
@@ -12,9 +12,9 @@ import (
 )
 
 // TODO open this to developer to register global functions.
-func registerBuiltinFuncs() {
+func registerBuiltinFuncs(t *template.Template) {
 	// init functions
-	Templates.Funcs(template.FuncMap{
+	t.Funcs(template.FuncMap{
 		// deprecated
 		"eq": equas,
 

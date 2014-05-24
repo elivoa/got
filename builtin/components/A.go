@@ -24,6 +24,7 @@ type A struct {
 	Label     string
 	MainBlock string // TODO
 	Event     string // event name
+	Page      string // TODO: page, event must have one value.
 
 	// TODO: Component inject can inject normal things into interface{}
 	// TODO: Component inject can inject normal things array into []interface{}

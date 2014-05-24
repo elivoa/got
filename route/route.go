@@ -148,9 +148,9 @@ func RegisterProton(pkg string, name string, modulePkg string, proton core.Proto
 
 		// register component as func
 		for _, selector := range selectors {
-			key := strings.Join(selector, "/")
-			lowerKey := strings.ToLower(key)
-			templates.RegisterComponentAsFunc(key, lifecircle.ComponentLifeCircle(lowerKey))
+			key := strings.Join(selector, "/") // e.g.: got/TestComponent
+			templates.Engine.RegisterComponent(key, lifecircle.ComponentLifeCircle(strings.ToLower(key)))
+			// templates.RegisterComponentAsFunc(key, lifecircle.ComponentLifeCircle(lowerKey))
 		}
 	case core.MIXIN:
 		panic(fmt.Sprint("........ [WARRNING...] Mixin not suported now! ", si))

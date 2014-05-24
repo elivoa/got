@@ -39,6 +39,12 @@ type Configure struct {
 
 	// server
 	Port int // start port
+
+	// Database
+	DBPort     int // not used
+	DBName     string
+	DBUser     string
+	DBPassword string
 }
 
 func NewConfigure() *Configure {
@@ -52,6 +58,12 @@ func NewConfigure() *Configure {
 		// BasePackages: []string{"happystroking"},
 		// server
 		Port: 8080,
+
+		// DB
+		// DBPort:     3306,
+		// DBName:     "syd",
+		// DBUser:     "root",
+		// DBPassword: "eserver409$)(",
 	}
 }
 

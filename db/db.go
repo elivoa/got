@@ -1,13 +1,14 @@
 /*
  This is the latest version of db
 
- Time-stamp: <[db.go] Elivoa @ Thursday, 2014-04-03 15:42:09>
+ Time-stamp: <[db.go] Elivoa @ Saturday, 2014-05-24 18:22:27>
 */
 package db
 
 import (
 	"database/sql"
 	"fmt"
+	"github.com/elivoa/got/config"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -16,11 +17,10 @@ var connections int = 0
 
 // Connect create a connection to database
 func Connect() (*sql.DB, error) {
-	if logdebug {
-		connections += 1
-		fmt.Printf("^^^^^^^^^  db.Connect(), [%d] connections in total.\n", connections)
-	}
-	conn, err := sql.Open("mysql", "root:eserver409$)(@/syd?charset=utf8&parseTime=true&loc=Local&timeout=30s")
+	var c = config.Config
+	connstring := fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=true&loc=Local&timeout=30s",
+		c.DBUser, c.DBPassword, c.DBName)
+	conn, err := sql.Open("mysql", connstring)
 	if err != nil {
 		return nil, err
 	}

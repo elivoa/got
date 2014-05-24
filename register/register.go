@@ -24,6 +24,8 @@ var (
 	MixinTypeMap     = map[reflect.Type]*ProtonSegment{}
 )
 
+// template key map
+
 var TemplateKeyMap = &TempalteKeyMapStruct{
 	Keymap: map[string]*ProtonSegment{},
 }

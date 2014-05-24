@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Sunday, 2014-05-18 11:42:34>
+   Time-stamp: <[templates.go] Elivoa @ Tuesday, 2014-05-20 18:23:27>
 */
 package templates
 
@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/logs"
-	"github.com/elivoa/got/templates/transform"
 	"github.com/elivoa/got/register"
+	"github.com/elivoa/got/templates/transform"
 	"html/template"
 	"io"
 	"os"
@@ -17,17 +17,55 @@ import (
 	"sync"
 )
 
-// Templates stores all templates.
-var Templates *template.Template
+var Engine = NewTemplateEngine()
 
-func init() {
-	// init template TODO remove this, change another init method.
-	// TODO: use better way to init.
-	Templates = template.New("-")
+func NewTemplateEngine() *TemplateEngine {
+	e := &TemplateEngine{
+		// init template TODO remove this, change another init method.
+		// TODO: use better way to init.
+		template: template.New("-"),
+	}
 
 	// Register built-in templates.
-	registerBuiltinFuncs()
+	registerBuiltinFuncs(e.template)
+	return e
 }
+
+type TemplateEngine struct {
+	template *template.Template
+}
+
+// RegisterComponent register component as tempalte function. ComponentKey is converted to function name by replacing all shash '/' into '_'. Original cased and lowercased key is used. in component invoke.
+func (e *TemplateEngine) RegisterComponent(componentKey string, componentFunc interface{}) {
+	funcName := fmt.Sprintf("t_%v", strings.Replace(componentKey, "/", "_", -1))
+	e.template.Funcs(template.FuncMap{
+		funcName:                  componentFunc,
+		strings.ToLower(funcName): componentFunc,
+	})
+}
+
+// RenderTemplate render template into writer.
+func (e *TemplateEngine) RenderTemplate(w io.Writer, key string, p interface{}) error {
+	// TODO: process key, with versions.
+	err := Engine.template.ExecuteTemplate(w, key, p)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Templates stores all templates.
+// var Templates *template.Template
+
+// --
+// func init() {
+// 	// init template TODO remove this, change another init method.
+// 	// TODO: use better way to init.
+// 	Templates = template.New("-")
+
+// 	// Register built-in templates.
+// 	registerBuiltinFuncs()
+// }
 
 var logTemplate = logs.Get("Log Template")
 
@@ -36,24 +74,18 @@ var logTemplate = logs.Get("Log Template")
 */
 
 // Register components as template function call. Use interally.
-func RegisterComponentAsFunc(name string, f interface{}) {
-	funcName := fmt.Sprintf("t_%v", strings.Replace(name, "/", "_", -1))
-	lowerFuncName := strings.ToLower(funcName)
-	Templates.Funcs(template.FuncMap{funcName: f, lowerFuncName: f})
-}
+// TODO: refactor name.
+// param: name is component key,
+// func RegisterComponentAsFunc(componentKey string, f interface{}) {
+// 	funcName := fmt.Sprintf("t_%v", strings.Replace(componentKey, "/", "_", -1))
+// 	lowerFuncName := strings.ToLower(funcName)
+// 	Engine.RegisterComponent(funcName, f)
+// 	Templates.Funcs(template.FuncMap{funcName: f, lowerFuncName: f})
+// }
 
 /*_______________________________________________________________________________
   Render Tempaltes
 */
-
-// RenderTemplate render template into writer.
-func RenderTemplate(w io.Writer, key string, p interface{}) error {
-	err := Templates.ExecuteTemplate(w, key, p)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 /*_______________________________________________________________________________
   GOT Templates Caches
@@ -168,7 +200,7 @@ func parseTemplate(key string, content string) error {
 	// t, so t, err := New(name).Funcs(xxx).ParseFiles(name)
 	// works. Otherwise we create a new template associated with t.
 
-	t := Templates
+	t := Engine.template
 	var tmpl *template.Template
 	if t == nil {
 		t = template.New(key)

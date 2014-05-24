@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-component.go] Elivoa @ Sunday, 2014-05-18 16:36:23>
+   Time-stamp: <[lifecircle-component.go] Elivoa @ Tuesday, 2014-05-20 17:48:15>
 */
 package lifecircle
 
@@ -21,6 +21,7 @@ var cflog = logs.Get("ComponentFLow")
 
 // ComponentLifeCircle returns template-func to handle component render.
 // Param: name e.g.: layout/gotheader
+// Param: name - lowercased component key. e.g.: got/Component
 func ComponentLifeCircle(name string) func(...interface{}) interface{} {
 
 	// returnd string or template.HTML are inserted into final template.
@@ -254,7 +255,7 @@ func (l *Life) renderTemplate() {
 	if _, err := templates.LoadTemplates(l.registry, false); err != nil {
 		panic(err)
 	}
-	if err := templates.RenderTemplate(&l.out, l.registry.Identity(), l.proton); err != nil {
+	if err := templates.Engine.RenderTemplate(&l.out, l.registry.Identity(), l.proton); err != nil {
 		panic(err)
 	}
 }

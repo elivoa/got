@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route/exit"
-	"github.com/elivoa/got/templates"
 	"got/cache"
 	"got/core"
 	"html/template"
@@ -23,7 +22,7 @@ type Status struct {
 	Modules *register.ModuleCache
 	// Pages      *register.ProtonSegment
 	// Components *register.ProtonSegment
-	Tpls []*template.Template
+	// Tpls []*template.Template
 
 	// redirect to this page.
 	// TODO: 如何Inject一个page？ page的包名太长不好记怎么办？
@@ -38,7 +37,7 @@ func (p *Status) SetupRender() *exit.Exit {
 		panic(errors.New("CheDan ====== "))
 	}
 
-	p.Tpls = templates.Templates.Templates()
+	// p.Tpls = templates.Templates.Templates()
 	p.Modules = register.Modules
 	// p.Pages = &register.Pages
 
