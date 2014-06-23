@@ -18,8 +18,8 @@ var Config = NewConfigure()
 type Configure struct {
 	Version string // `Framewrok Version`
 
-	AppBasePath  string // e.g. /path/to/home     ;; Startup app base path.
-	SrcPath      string // e.g. /path/to/home/src
+	AppBasePath  string // e.g. /path/to/home     ;; <b>Startup app base path</b>.
+	SrcPath      string // e.g. /path/to/home/src (startup module's src-path)
 	StaticPath   string // e.g. /path/to/home/static
 	ResourcePath string // e.g. /var/site/data/syd/
 
@@ -69,6 +69,8 @@ func NewConfigure() *Configure {
 
 // set app base path and other settings.
 func (c *Configure) SetBasepath(appBasePath string) {
+	fmt.Printf("Config: Set base path to [%v]\n", appBasePath)
+	
 	c.AppBasePath = path.Join(appBasePath, "../")
 	c.SrcPath = path.Join(appBasePath, "../", "src")
 	c.StaticPath = path.Join(appBasePath, "../", "static")

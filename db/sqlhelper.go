@@ -38,7 +38,7 @@ func init() {
 
 func RegisterEntity(name string, entity *Entity) {
 	if _, ok := entities[name]; ok {
-		panic("DB: Register duplicated entities.")
+		panic(fmt.Sprintf("DB: Register duplicated entities for %s", name))
 	}
 	entities[name] = entity
 }

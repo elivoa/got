@@ -11,7 +11,6 @@ import (
 	"github.com/gorilla/context"
 	"got/cache"
 	"got/core"
-	"got/debug"
 	"net/http"
 	"reflect"
 	"strings"
@@ -45,8 +44,10 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 
-			fmt.Println("?????>>>>>>>>>>>>>>>>>>>>>")
-			debug.Error(err.(error))
+			fmt.Println("\n====== Panic Occured. =============")
+			// debug.Error(err.(error))
+			// fmt.Println("\n===================================")
+
 			// Give control to ErrorHandler if panic occurs.
 			b := errorhandler.Process(w, r, err)
 			if !b {

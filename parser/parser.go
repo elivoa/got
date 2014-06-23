@@ -72,12 +72,12 @@ func ParseSource(modules []*core.Module, findOnly bool) (*SourceInfo, *Error) {
 
 	for i := 0; i < len(modules); i++ {
 		sourcePaths[i] = modules[i].Path()
-		fmt.Println("Parse :> ", sourcePaths[i])
+		fmt.Println("!> Generator # Parse Source Folder: ", sourcePaths[i])
 	}
 
 	for _, sourcePath := range sourcePaths {
 		modulePackagePath := extractPackagePath(sourcePath)
-		fmt.Println(" modulePackagePath --> :: ", modulePackagePath)
+		fmt.Println("!> Generator # Module.modulePackagePath --> ", modulePackagePath)
 		if modulePackagePath == "" {
 			debug.Log("Skipping code path %v", sourcePath)
 			continue
@@ -143,7 +143,7 @@ func ParseSource(modules []*core.Module, findOnly bool) (*SourceInfo, *Error) {
 				}
 				ast.Print(nil, err)
 				// log.Fatalf("Failed to parse dir: %s", err)
-				panic(fmt.Sprintf("Failed to parse dir: %s", err))
+				panic(fmt.Sprintf("x> Generator.Parse Error: Failed to parse dir: %s", err))
 			}
 
 			// Skip "main" packages.
@@ -164,8 +164,6 @@ func ParseSource(modules []*core.Module, findOnly bool) (*SourceInfo, *Error) {
 				pkg = v
 			}
 			ssi := processPackage(fset, modulePackagePath, pkgPath, path, pkg)
-			// append filepath
-			// fmt.Println(sourcePath)
 			srcInfo = appendSourceInfo(srcInfo, ssi)
 			return nil // return walk
 		})
@@ -431,7 +429,6 @@ func appendStruct(specs []*StructInfo, modulePackatePath string, pkgImportPath s
 			ImportPath: importPath,
 			StructName: typeName,
 		})
-		// fmt.Println("    ...\n")
 	}
 
 	return append(specs, protonInfos)
@@ -480,7 +477,6 @@ func appendAction(fset *token.FileSet, mm methodMap, decl ast.Decl, pkgImportPat
 	}
 
 	// Add a description of the arguments to the method.
-	// fmt.Println("=========================")
 	for _, field := range funcDecl.Type.Params.List {
 		for _, name := range field.Names {
 			var importPath string
@@ -488,9 +484,6 @@ func appendAction(fset *token.FileSet, mm methodMap, decl ast.Decl, pkgImportPat
 			if !typeExpr.Valid {
 				return // We didn't understand one of the args.  Ignore this action. (Already logged)
 			}
-
-			// debug output
-			// fmt.Println(typeExpr.TypeName(""), " ==== ", typeExpr)
 
 			if typeExpr.PkgName != "" {
 				var ok bool
@@ -838,8 +831,7 @@ func IsBuiltinType(name string) bool {
 func extractPackagePath(path string) string {
 	for _, gopath := range filepath.SplitList(build.Default.GOPATH) {
 		srcPath := filepath.Join(gopath, "src")
-		fmt.Println(srcPath)
-
+		// fmt.Println(srcPath)
 		if strings.HasPrefix(path, srcPath) {
 			return filepath.ToSlash(path[len(srcPath)+1:])
 		}

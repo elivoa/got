@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/elivoa/got/config"
 	"github.com/robfig/revel"
-	"go/build"
 	"got/core"
 	"got/debug"
 	"os"
@@ -64,7 +63,6 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 	// Used by register.RegisterModule(
 	str_modules := [][]string{}
 	for _, module := range modules {
-		fmt.Printf(" --- %s\n", module.Name)
 		packageName := filepath.Base(module.PackagePath)
 		alias := addAlias(importPaths, module.PackagePath, packageName)
 		str_modules = append(str_modules, []string{alias, module.VarName})
@@ -98,26 +96,53 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 		debug.Log("Go executable not found in PATH.")
 	}
 
-	pkg, err := build.Default.Import("got", "", build.FindOnly)
-	if err != nil {
-		debug.Log("Failure importing %v", revel.ImportPath)
-	}
-	binName := path.Join(pkg.BinDir, path.Base(config.Config.AppBasePath))
+	// Loads
+	// packagePath := config.Config.StartupModule.PackagePath
+	// pkg, err := build.Default.Import(packagePath, "", build.FindOnly)
+	// if err != nil {
+	// 	debug.Log("Failure importing %v", revel.ImportPath)
+	// }
+
+	// binNamex := path.Join(pkg.BinDir, path.Base(config.Config.AppBasePath))
+	// this will generate: /Users/bogao/develop/go/src/
+
+	binName := path.Join(config.Config.StartupModule.Path(), "generated", "main")
+
 	if runtime.GOOS == "windows" {
 		binName += ".exe"
 	}
 
 	gotten := make(map[string]struct{})
 	for {
+		fmt.Println("!> *******************************************************************")
+		fmt.Println(goPath, "build", "-o", binName, path.Join(config.Config.StartupModule.PackagePath, "generated"))
 		buildCmd := exec.Command(goPath, "build",
 			// "-tags", buildTags,
-			"-o", binName, path.Join("generated"))
-		// debug.Log("Exec: %v", buildCmd.Args)
+			"-o", binName, path.Join(config.Config.StartupModule.PackagePath, "generated"))
+
+		// {
+		// 	fmt.Println("\n ========== Run Command build =======")
+
+		// 	fmt.Println("> args: ")
+		// 	fmt.Println("goPath", goPath)
+		// 	fmt.Println("binName", binName)
+
+		// 	fmt.Println("> Run Command: ==========================   ", buildCmd)
+		// 	fmt.Println("Command: Details:")
+		// 	fmt.Println("Command: Path: ", buildCmd.Path)
+		// 	fmt.Println("Command: Args: ", buildCmd.Args)
+		// 	fmt.Println("Command: Env: ", buildCmd.Env)
+		// 	fmt.Println("Command: Dir: ", buildCmd.Dir)
+		// }
+
+		// This step will generate xxx/bin/go
 		output, err := buildCmd.CombinedOutput()
+		fmt.Println("Output is: ", string(output))
 
 		// If the build succeeded, we're done.
 		if err == nil {
-			fmt.Println("bulid success, return")
+			fmt.Println("!> Generator.build success. binName is ", binName)
+			fmt.Println("!TODO> Fatal: The location of binName should be optimized. same application in same source folder may be conflict.")
 			return NewApp(binName), nil
 		}
 
@@ -196,11 +221,14 @@ func calcImports(src *SourceInfo) map[string]string {
 ////@ cleared
 func cleanSource(dirs ...string) {
 	for _, dir := range dirs {
-		tmpPath := path.Join(config.Config.SrcPath, dir)
-		fmt.Printf("Generator:> Remove Folder %s\n", tmpPath)
+		tmpPath := path.Join(
+			config.Config.SrcPath,
+			config.Config.StartupModule.PackagePath,
+			dir)
+		fmt.Printf("!> Generator: Remove Folder %s\n", tmpPath)
 		err := os.RemoveAll(tmpPath)
 		if err != nil {
-			revel.ERROR.Println("Failed to remove dir:", err)
+			revel.ERROR.Println("!> [ERROR in Generator]: Failed to remove dir:", err)
 		}
 	}
 }
@@ -215,7 +243,10 @@ func genSource(dir, filename, templateSource string, args map[string]interface{}
 		args)
 
 	// Create a fresh dir.
-	tmpPath := path.Join(config.Config.SrcPath, dir)
+	tmpPath := path.Join(
+		config.Config.SrcPath,
+		config.Config.StartupModule.PackagePath,
+		dir)
 
 	fmt.Printf("Generator :> Generating '%s/main.go'\n", tmpPath)
 
@@ -366,7 +397,7 @@ import (
 )
 
 func main() {
-    fmt.Println("=============== STARTING ================================================")
+    fmt.Println("\n=============== STARTING GENERATED CODE ================================================")
 
     // setup config.ModulePath
     {{range .STRModules}}

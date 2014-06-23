@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle.go] Elivoa @ Sunday, 2014-05-18 13:39:55>
+   Time-stamp: <[lifecircle.go] Elivoa @ Monday, 2014-06-23 21:12:59>
 */
 
 package lifecircle
@@ -259,16 +259,18 @@ func (lcc *LifeCircleControl) PostFlow() (returns *exit.Exit) {
 	}
 
 	// TODO use another method to retrive FormName. t:id
+
 	formName := lcc.r.PostFormValue("t:id")
 	if formName != "" {
+		// formName = strings.Join([]string{"From", formName}, "")
 		formName = fmt.Sprintf("From%v", formName)
 	}
 	// fmt.Println("********************************************************************************")
 	// fmt.Println(formName)
 
 	// call OnSubmit() method
-	onSubmitEventName := fmt.Sprintf("%v%v", "OnSubmit", formName)
-	fmt.Println("onSubmitEventName: ", onSubmitEventName)
+	// onSubmitEventName := fmt.Sprintf("%v%v", "OnSubmit", formName) // old, change to new
+	onSubmitEventName := fmt.Sprintf("%v%v", "OnPrepareForSubmit", formName)
 	returns = SmartReturn(lcc.page.call(onSubmitEventName))
 	if returns.IsBreakExit() {
 		return
@@ -392,7 +394,7 @@ func CreatePage(w http.ResponseWriter, r *http.Request, pageT reflect.Type) inte
 		page.SetFlowLife(newlcc.current)
 		return page
 	}
-	panic("Can't create page instance")
+	panic(fmt.Sprintf("Can't create page instance for %v", pageT))
 }
 
 // --------------------------------------------------------------------------------

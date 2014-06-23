@@ -39,6 +39,14 @@ type TempalteKeyMapStruct struct {
 
 // Get methods
 func GetPage(t reflect.Type) *ProtonSegment {
+	// -------
+	fmt.Println("\n\n----  TEMP DEBUG  ----------------------------------")
+	for k, v := range PageTypeMap {
+		fmt.Printf(">> %v -> %v \n", k, v)
+	}
+	// -------
+	
+	fmt.Println("------------------------------------------------------------------------------------")
 	if v, ok := PageTypeMap[t]; ok {
 		return v
 	}

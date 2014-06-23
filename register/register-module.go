@@ -26,7 +26,7 @@ func RegisterModule(modules ...*core.Module) {
 
 func (mc *ModuleCache) Add(module *core.Module) {
 	mc.l.Lock()
-	mc.m[module.Name] = module
+	mc.m[module.PackagePath] = module // use package path as package key
 	mc.l.Unlock()
 }
 
