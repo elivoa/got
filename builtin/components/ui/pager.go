@@ -1,6 +1,6 @@
 /*
 Got UI package -- provide basic UI components.
-Time-stamp: <[pager.go] Elivoa @ Friday, 2014-04-04 00:34:47>
+Time-stamp: <[pager.go] Elivoa @ Tuesday, 2014-07-01 18:13:21>
 */
 package ui
 
@@ -25,6 +25,18 @@ var (
 	d_last_label  = "Last"  // not used
 )
 
+var (
+	i18n_index int
+	// 0 en, 1 cn
+	i18n = map[string][]string{
+		"第":         []string{"第", ""},      // no use
+		"条":         []string{"条", "items"}, // no use
+		"共":         []string{"共", "Total"}, // no use
+		"firstpage": []string{"首页", "First Page"},
+		"lastpage":  []string{"末页", "Last Page"},
+	}
+)
+
 type Pager struct {
 	core.Component
 
@@ -33,6 +45,7 @@ type Pager struct {
 	Current     int    // parameter Current -- current item index.
 	PageItems   int    // parameter PageItems -- total items per page.
 	URLTemplate string // i.e. /order/list/{{CurrentPage}}/{{Total}}/{{PageItems}}
+	Lang        string // cn (default) | en
 
 	// outputs
 	/*
@@ -56,6 +69,9 @@ type PageNumber struct {
 
 func (p *Pager) Setup() {
 	p.GeneratePageNumbers()
+	if p.Lang == "en" {
+		i18n_index = 1
+	}
 }
 
 // generate page numbers used later in rendering html.
@@ -114,7 +130,11 @@ func (p *Pager) CreateLastPagerLink() string {
 }
 
 func (p *Pager) PageCursorMessage() string {
-	return fmt.Sprintf("第%d - %d条，共%d条", p.Current, p.Current+p.PageItems, p.Total)
+	if p.Lang == "en" {
+		return fmt.Sprintf("%d - %d，Total %d items.", p.Current, p.Current+p.PageItems, p.Total)
+	} else {
+		return fmt.Sprintf("第%d - %d条，共%d条", p.Current, p.Current+p.PageItems, p.Total)
+	}
 }
 
 // deprecated, try to use GeneratePageNumbers instead
@@ -176,4 +196,12 @@ func (p *Pager) FixData() bool {
 // Check checks if all the values is right. TODO not used
 func (p *Pager) Check() (bool, error) {
 	return false, nil
+}
+
+func (p *Pager) Msg(key string) string {
+	if msgs, ok := i18n[key]; ok {
+		return msgs[i18n_index]
+	} else {
+		return key
+	}
 }

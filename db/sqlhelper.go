@@ -77,6 +77,10 @@ func (e *Entity) Update(fields ...string) *QueryParser {
 	return e.createQueryParser("update", fields...)
 }
 
+func (e *Entity) RawQuery(sql string) *QueryParser {
+	return e.createQueryParser("sql", sql)
+}
+
 func (e *Entity) Delete() *QueryParser {
 	return e.createQueryParser("delete")
 }
@@ -228,6 +232,8 @@ func (p *QueryParser) Prepare() *QueryParser {
 	e := p.e
 	var sql bytes.Buffer
 	switch p.operation {
+	case "sql":
+		sql.WriteString(p.fields[0])
 	case "select":
 		sql.WriteString("SELECT ")
 		if p.useCustomerFields {
@@ -357,7 +363,7 @@ func (p *QueryParser) QueryOne(receiver func(*sql.Row) error) error {
 	// TODO add limit support to QueryBuilder
 
 	p.Prepare()
-
+	
 	// 1. get connection
 	conn, err := Connect()
 	if Err(err) {
@@ -472,7 +478,7 @@ func (p *QueryParser) Exec(values ...interface{}) (sql.Result, error) {
 }
 
 // ________________________________________________________________________________
-var logEnabled = false
+var logEnabled = true
 
 func debuglog(method string, format string, params ...interface{}) {
 	if logEnabled {

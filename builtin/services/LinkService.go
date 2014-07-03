@@ -14,8 +14,29 @@ type LinkService struct {
 }
 
 // GeneratePageUrl generates page's url, if it's a component, generate the container page's url.
-func (s *LinkService) GeneratePageUrl() string {
-	return s.Life.GeneratePageUrl()
+func (s *LinkService) GeneratePageUrl(page string) string {
+	// TODO: extract PageSourceService to get page from page name.
+	// here we directly get this page from page name.(index, order/edit)
+
+	fmt.Println("TODO finish this function's design!")
+	return "/" + page
+	// return s.Life.GeneratePageUrl()
+}
+
+func (s *LinkService) GeneratePageUrlWithContext(page string, contexts ...interface{}) string {
+	fmt.Println("TODO finish this function's design!")
+
+	var buffer bytes.Buffer
+	buffer.WriteString("/")
+	buffer.WriteString(page)
+
+	if nil != contexts {
+		for _, context := range contexts {
+			buffer.WriteString("/")
+			buffer.WriteString(fmt.Sprint(context)) // TODO: not support none string contexts.
+		}
+	}
+	return buffer.String()
 }
 
 // for common use.

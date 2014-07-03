@@ -1,10 +1,11 @@
 /*
-   Time-stamp: <[templates-funcs.go] Elivoa @ Tuesday, 2014-05-20 17:10:29>
+   Time-stamp: <[templates-funcs.go] Elivoa @ Thursday, 2014-07-03 16:54:37>
 */
 package templates
 
 import (
 	"github.com/elivoa/got/util"
+	"github.com/elivoa/got/utils"
 	"github.com/elivoa/gxl"
 	"html/template"
 	"math"
@@ -24,7 +25,8 @@ func registerBuiltinFuncs(t *template.Template) {
 		"prettyday":      gxl.PrettyDay,
 		"prettycurrency": PrettyCurrency,
 
-		"now": func() time.Time { return time.Now() },
+		"now":       func() time.Time { return time.Now() },
+		"validtime": utils.ValidTime,
 
 		"encode": EncodeContext,
 	})

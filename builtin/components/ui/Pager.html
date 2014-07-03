@@ -16,7 +16,7 @@
   </div>
   
   <div>
-    <a class="btn_c_s" href="{{$.CreateFirstPagerLink}}">首页</a>
+    <a class="btn_c_s" href="{{$.CreateFirstPagerLink}}">{{.Msg "firstpage"}}</a>
     <span>
       <range source=".PageNumbers">
         <if test="$.IsCurrentPage .">
@@ -27,6 +27,6 @@
         </if>
       </range>
     </span>
-    <a class="btn_c_s" href="{{$.CreateLastPagerLink}}">末页</a>
+    <a class="btn_c_s" href="{{$.CreateLastPagerLink}}">{{.Msg "lastpage"}}</a>
   </div>
 </div>

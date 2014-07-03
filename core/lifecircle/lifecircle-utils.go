@@ -16,6 +16,9 @@ func newProtonInstance(proton core.Protoner) reflect.Value {
 	method := baseValue.MethodByName("New")
 	if method.IsValid() {
 		returns := method.Call(emptyParameters)
+		if len(returns) <= 0 {
+			panic(fmt.Sprintf("Method New must has at least 1 returns. now %d", len(returns)))
+		}
 		return returns[0]
 	} else {
 		// return reflect.New(reflect.TypeOf(proton).Elem())
@@ -86,4 +89,3 @@ func extractPathParameters(url string, pageUrl string, eventName string) []strin
 	debug.Log("-   - [injection] URL:%v, parameters:%v", url, pathParams)
 	return pathParams
 }
-

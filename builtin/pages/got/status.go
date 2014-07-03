@@ -9,7 +9,7 @@ import (
 	"got/core"
 	"html/template"
 	"strings"
-	page "syd/pages"
+	// page "syd/pages"
 )
 
 // TODO render blocks as tree structure.
@@ -26,7 +26,7 @@ type Status struct {
 
 	// redirect to this page.
 	// TODO: 如何Inject一个page？ page的包名太长不好记怎么办？
-	IndexPage *page.Index `inject:"page"` //:"something that can't be emptys"`
+	// IndexPage *page.Index `inject:"page"` //:"something that can't be emptys"`
 }
 
 func (p *Status) SetupRender() *exit.Exit {
@@ -67,5 +67,6 @@ func (p *Status) AfterRender() {
 }
 
 func (p *Status) OnGotoHome() *exit.Exit {
-	return exit.Forward(p.IndexPage)
+	// return exit.Forward(p.IndexPage)
+	return exit.Forward("/")
 }

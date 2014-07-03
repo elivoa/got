@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func CurrentPackagePath() string {
@@ -117,4 +118,11 @@ func Capitalize(s string) string {
 		return strings.ToUpper(strconv.Itoa(int(firstLetter))) + s[1:]
 	}
 	return ""
+}
+
+var valid_earliest_time time.Time
+
+func ValidTime(t time.Time) bool {
+	fmt.Println(t)
+	return t.After(valid_earliest_time)
 }

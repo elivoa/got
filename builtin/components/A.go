@@ -47,6 +47,11 @@ func (c *A) Setup() {
 	c.LinkService = &bs.LinkService{Life: c.FlowLife().(*lifecircle.Life)}
 
 	// real setup
-	c.Href = c.LinkService.GenerateEventUrlIgnoreComponent(c.Event, 1, c.Context)
+	if c.Event != "" { // event link
+		c.Href = c.LinkService.GenerateEventUrlIgnoreComponent(c.Event, 1, c.Context)
+	} else if c.Page != "" { // page link
+		c.Href = c.LinkService.GeneratePageUrlWithContext(c.Page, c.Context)
+	}
+
 	// 1 means remove last component A
 }
