@@ -4,6 +4,7 @@ import (
 	bs "github.com/elivoa/got/builtin/services" // builtin services
 	"github.com/elivoa/got/core/lifecircle"
 	"got/core"
+	"html/template"
 )
 
 /*
@@ -32,14 +33,19 @@ type A struct {
 	// Context   []interface{} // just like things in tapestry.
 	Context string // just like things in tapestry.
 
-	// properties
-	Href string // A's href
+	// passthrough properties
+	Href    string // A's href
+	Onclick string
 
 	// services
 
 	// TODO: use interface instead to remove *;
 	// TODO: bind services and implements.
 	LinkService *bs.LinkService
+}
+
+func (c *A) OnclickHtml() template.HTML {
+	return template.HTML(c.Onclick)
 }
 
 func (c *A) Setup() {

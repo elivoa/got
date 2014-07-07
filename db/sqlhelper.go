@@ -195,6 +195,26 @@ func (p *QueryParser) Range(field string, values ...interface{}) *QueryParser {
 	return p
 }
 
+func (p *QueryParser) InInt64(field string, values ...int64) *QueryParser {
+	// convert to []interface{}{}
+	var interfaceValues = []interface{}{}
+	for _, v := range values {
+		interfaceValues = append(interfaceValues, v)
+	}
+	p.In(field, interfaceValues...) // call
+	return p
+}
+
+// add a `field`.in('v1', 'v2', ...)
+func (p *QueryParser) In(field string, values ...interface{}) *QueryParser {
+	p.conditions = append(p.conditions, &condition{
+		field:  field,
+		values: values,
+		op:     "in",
+	})
+	return p
+}
+
 func (p *QueryParser) OrderBy(orderby string) *QueryParser {
 	p.orderby = orderby
 	return p
@@ -363,7 +383,7 @@ func (p *QueryParser) QueryOne(receiver func(*sql.Row) error) error {
 	// TODO add limit support to QueryBuilder
 
 	p.Prepare()
-	
+
 	// 1. get connection
 	conn, err := Connect()
 	if Err(err) {
@@ -393,6 +413,14 @@ func (p *QueryParser) QueryOne(receiver func(*sql.Row) error) error {
 // param: receiver is a callback function to process result set;
 func (p *QueryParser) Query(receiver func(*sql.Rows) (bool, error)) error {
 	p.Prepare()
+
+	debuglog("Query", "\"%v\"", p.sql)
+	if false {
+		fmt.Println("================= p.values in sql is =============")
+		for _, v := range p.values {
+			fmt.Println(v)
+		}
+	}
 
 	// 1. get connection
 	conn, err := Connect()
@@ -532,6 +560,29 @@ func appendWhereClouse(sql *bytes.Buffer, conditions ...*condition) []interface{
 			}
 			values = append(values, con.values...)
 
+		case "in":
+			if lenvalue == 0 {
+				break
+			}
+			if !thefirst {
+				sql.WriteString(" and ")
+			}
+			sql.WriteString(fmt.Sprintf("`%s` in (", con.field))
+			for i := 0; i < lenvalue; i++ {
+				if i > 0 {
+					sql.WriteRune(',')
+				}
+				sql.WriteRune('?')
+			}
+			sql.WriteString(")")
+
+			fmt.Println("\n\n---------------------------------------------~~~~~~~~~~~~~~~~~--")
+			fmt.Println("<<<<<<|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+			fmt.Println("before ", values)
+			values = append(values, con.values...)
+			fmt.Println("after ", values)
+			fmt.Println("values: ", con.values)
+
 		case "range":
 			if lenvalue == 0 || lenvalue > 2 {
 				panic("Where clause must only have 1 or 2 values.")
@@ -547,7 +598,7 @@ func appendWhereClouse(sql *bytes.Buffer, conditions ...*condition) []interface{
 			sql.WriteString(")")
 			values = append(values, con.values...)
 
-		case "sql":
+		case "sql": // customized sql
 			if !thefirst {
 				sql.WriteString(" and ")
 			}

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"database/sql"
 	"fmt"
 	"go/build"
 	"log"
@@ -125,4 +126,13 @@ var valid_earliest_time time.Time
 func ValidTime(t time.Time) bool {
 	fmt.Println(t)
 	return t.After(valid_earliest_time)
+}
+
+// convert utils
+func ToNullInt64Array(int64Array []int64) []sql.NullInt64 {
+	var nullarray = []sql.NullInt64{}
+	for _, v := range int64Array {
+		nullarray = append(nullarray, sql.NullInt64{Int64: v, Valid: true})
+	}
+	return nullarray
 }

@@ -194,8 +194,9 @@ func injectField(target reflect.Value, fieldName string, value interface{}) {
 	// field
 	field := t.FieldByName(fieldName)
 	if !field.IsValid() {
-		panic(fmt.Sprintf("Inject Error: Can't set '%v' to %v's%v field, type:'%v'.",
-			reflect.TypeOf(value), target.Kind(), fieldName, field.Kind()))
+		fmt.Sprintf("Inject Error: Can't set '%v' to %v's %v field, type:'%v'.",
+			reflect.TypeOf(value), target.Kind(), fieldName, field.Kind())
+		panic(fmt.Sprintf("Fields '%s' not found.", fieldName))
 	}
 	v := reflect.ValueOf(value)
 
