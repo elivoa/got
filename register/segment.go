@@ -12,8 +12,10 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 // ----  Identity & Template path  ---------------------------------------------------------------
@@ -53,6 +55,10 @@ type ProtonSegment struct {
 	ContentTransfered string                    // template's transfered html
 	EmbedComponents   map[string]*ProtonSegment // lowercased id
 
+	// Used for debug, when modified a template file, system will reload the tempalte file as veriosn+1.
+	templateVersion          int
+	TemplateLastModifiedTime time.Time // template file's last-modified-time
+
 	// TODO: Test Performance: New Method
 	//   - Test Perforance between `reflect new` and `native func call`
 	//   ? Use Generated New function (e.g. NewSomePage) to create new Page? Is This Faster?
@@ -64,7 +70,7 @@ type ProtonSegment struct {
 	StructInfo    *parser.StructInfo // from parser package
 	module        *core.Module       // associated Module
 
-	// caches
+	// temp caches. generated template unique id and it's path.
 	identity     string // cache identity, default the same name with StructName
 	templatePath string // cache template path.
 
@@ -99,11 +105,26 @@ func (s *ProtonSegment) Remove() {
 // TODO refactor all Identities of proton. with event call and event path call.
 func (s *ProtonSegment) Identity() string {
 	if s.identity == "" {
-		s.identity = fmt.Sprintf("%v.%v",
-			path.Join(identityPrefixMap[s.Proton.Kind()], s.StructInfo.ProtonPath()),
-			s.StructInfo.StructName)
+		s.identity = s.generateIdentity()
 	}
 	return s.identity
+}
+
+func (s *ProtonSegment) generateIdentity() string {
+	var term = []string{
+		path.Join(identityPrefixMap[s.Proton.Kind()], s.StructInfo.ProtonPath()),
+		".",
+		s.StructInfo.StructName,
+	}
+	if s.templateVersion > 0 {
+		term = append(term, "::v", strconv.Itoa(s.templateVersion))
+	}
+	return strings.Join(term, "")
+}
+
+func (s *ProtonSegment) IncTemplateVersion() {
+	s.templateVersion += 1
+	s.identity = s.generateIdentity() // regenerate identity whern version changed.
 }
 
 // TemplatePath returns the tempalte key and it's full path.

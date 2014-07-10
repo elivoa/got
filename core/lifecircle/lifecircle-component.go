@@ -1,10 +1,11 @@
 /*
-   Time-stamp: <[lifecircle-component.go] Elivoa @ Tuesday, 2014-05-20 17:48:15>
+   Time-stamp: <[lifecircle-component.go] Elivoa @ Thursday, 2014-07-10 16:28:58>
 */
 package lifecircle
 
 import (
 	"fmt"
+	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route/exit"
@@ -252,7 +253,7 @@ func (l *Life) flow() (returns *exit.Exit) {
 func (l *Life) renderTemplate() {
 	// reach here means I can find the template and render it.
 	// debug.Log("-755- [TemplateSelect] %v -> %v", identity, templatePath)
-	if _, err := templates.LoadTemplates(l.registry, false); err != nil {
+	if _, err := templates.LoadTemplates(l.registry, config.ReloadTemplate); err != nil {
 		panic(err)
 	}
 	if err := templates.Engine.RenderTemplate(&l.out, l.registry.Identity(), l.proton); err != nil {

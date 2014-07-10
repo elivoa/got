@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Tuesday, 2014-05-20 18:23:27>
+   Time-stamp: <[templates.go] Elivoa @ Thursday, 2014-07-10 17:12:31>
 */
 package templates
 
@@ -17,7 +17,13 @@ import (
 	"sync"
 )
 
+var logTemplate = logs.Get("Log Template")
+
 var Engine = NewTemplateEngine()
+
+type TemplateEngine struct {
+	template *template.Template
+}
 
 func NewTemplateEngine() *TemplateEngine {
 	e := &TemplateEngine{
@@ -26,14 +32,13 @@ func NewTemplateEngine() *TemplateEngine {
 		template: template.New("-"),
 	}
 
-	// Register built-in templates.
-	registerBuiltinFuncs(e.template)
+	registerBuiltinFuncs(e.template) // Register built-in templates.
 	return e
 }
 
-type TemplateEngine struct {
-	template *template.Template
-}
+/*_______________________________________________________________________________
+  Register components
+*/
 
 // RegisterComponent register component as tempalte function. ComponentKey is converted to function name by replacing all shash '/' into '_'. Original cased and lowercased key is used. in component invoke.
 func (e *TemplateEngine) RegisterComponent(componentKey string, componentFunc interface{}) {
@@ -44,6 +49,10 @@ func (e *TemplateEngine) RegisterComponent(componentKey string, componentFunc in
 	})
 }
 
+/*_______________________________________________________________________________
+  Render Tempaltes
+*/
+
 // RenderTemplate render template into writer.
 func (e *TemplateEngine) RenderTemplate(w io.Writer, key string, p interface{}) error {
 	// TODO: process key, with versions.
@@ -53,39 +62,6 @@ func (e *TemplateEngine) RenderTemplate(w io.Writer, key string, p interface{}) 
 	}
 	return nil
 }
-
-// Templates stores all templates.
-// var Templates *template.Template
-
-// --
-// func init() {
-// 	// init template TODO remove this, change another init method.
-// 	// TODO: use better way to init.
-// 	Templates = template.New("-")
-
-// 	// Register built-in templates.
-// 	registerBuiltinFuncs()
-// }
-
-var logTemplate = logs.Get("Log Template")
-
-/*_______________________________________________________________________________
-  Register components
-*/
-
-// Register components as template function call. Use interally.
-// TODO: refactor name.
-// param: name is component key,
-// func RegisterComponentAsFunc(componentKey string, f interface{}) {
-// 	funcName := fmt.Sprintf("t_%v", strings.Replace(componentKey, "/", "_", -1))
-// 	lowerFuncName := strings.ToLower(funcName)
-// 	Engine.RegisterComponent(funcName, f)
-// 	Templates.Funcs(template.FuncMap{funcName: f, lowerFuncName: f})
-// }
-
-/*_______________________________________________________________________________
-  Render Tempaltes
-*/
 
 /*_______________________________________________________________________________
   GOT Templates Caches
@@ -99,23 +75,21 @@ var l sync.RWMutex
   TODO: Implement force reload
 */
 /*, protonType reflect.Type, key string, filename string*/
-func LoadTemplates(registry *register.ProtonSegment, forceReload bool) (cached bool, err error) {
+func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool) (cached bool, err error) {
 
-	identity, templatePath := registry.TemplatePath()
+	_, templatePath := registry.TemplatePath()
 	if logTemplate.Info() {
-		logTemplate.Printf("[ParseTemplate] Identity:%v", identity)
+		logTemplate.Printf("[ParseTemplate] Identity:%v", registry.Identity())
 		logTemplate.Printf("[ParseTemplate] FullPath:%v", templatePath)
 		logTemplate.Printf("[ParseTemplate] registry:%v", registry.Name)
 		logTemplate.Printf("[ParseTemplate] registry Alias:%v", registry.Alias)
 	}
 
 	// TODO: 这里的锁有问题，高并发时容易引起资源浪费。
-	if !forceReload { // read cache.
-		if registry.IsTemplateLoaded {
-			// Be Lazy, err is Tempalte not loaded yet!
-			cached = true
-			return // return cached version.
-		}
+	if !reloadWhenFileChanges && registry.IsTemplateLoaded {
+		// Be Lazy, err is Tempalte not loaded yet!
+		cached = true
+		return // return cached version.
 	}
 
 	// load and parse it.
@@ -123,12 +97,30 @@ func LoadTemplates(registry *register.ProtonSegment, forceReload bool) (cached b
 	defer registry.L.Unlock()
 
 	// if file doesn't exist.
-	if _, err = os.Stat(templatePath); os.IsNotExist(err) {
+	var fileInfo os.FileInfo
+	if fileInfo, err = os.Stat(templatePath); os.IsNotExist(err) {
 		// set nil to cache
+		// Set loaded flag to true even if file not exist. FileNotExist is a normal case.
 		registry.IsTemplateLoaded = true
 		return
 	} else if err != nil {
-		return // other file error.
+		panic(err) // panic on other file error.
+	} else {
+		// Normal case: file found and no error.
+		if reloadWhenFileChanges == true && registry.IsTemplateLoaded {
+			// if not the first time meet this template, process versions.
+			if registry.TemplateLastModifiedTime == fileInfo.ModTime() {
+				// nothing changed, return cached one.
+				cached = true
+				return
+			} else {
+				registry.IncTemplateVersion()
+				// >> go through to reload the file.
+			}
+		}
+		// Mark file as loaded.
+		registry.IsTemplateLoaded = true
+		registry.TemplateLastModifiedTime = fileInfo.ModTime()
 	}
 
 	// open input file
@@ -136,6 +128,7 @@ func LoadTemplates(registry *register.ProtonSegment, forceReload bool) (cached b
 	if err != nil {
 		panic(err)
 	}
+
 	// close fi on exit and check for its returned error
 	defer func() {
 		if err := fi.Close(); err != nil {
@@ -150,7 +143,6 @@ func LoadTemplates(registry *register.ProtonSegment, forceReload bool) (cached b
 	trans := transform.NewTransformer()
 	trans.Parse(r) // then trans has components
 
-	registry.IsTemplateLoaded = true
 	registry.ContentTransfered = trans.RenderToString()
 
 	// append components
@@ -164,7 +156,7 @@ func LoadTemplates(registry *register.ProtonSegment, forceReload bool) (cached b
 	}
 
 	// parse tempalte
-	if err = parseTemplate(identity, registry.ContentTransfered); err != nil {
+	if err = parseTemplate(registry.Identity(), registry.ContentTransfered); err != nil {
 		// TODO: Detailed template parse Error page.
 		panic(err)
 		// panic(fmt.Sprintf("Error when parse template %x", identity))

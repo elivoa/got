@@ -70,7 +70,7 @@ func NewConfigure() *Configure {
 // set app base path and other settings.
 func (c *Configure) SetBasepath(appBasePath string) {
 	fmt.Printf("Config: Set base path to [%v]\n", appBasePath)
-	
+
 	c.AppBasePath = path.Join(appBasePath, "../")
 	c.SrcPath = path.Join(appBasePath, "../", "src")
 	c.StaticPath = path.Join(appBasePath, "../", "static")
@@ -131,3 +131,7 @@ var (
 	SPLITER_EMBED_COMPONENTS = "."
 	SPLITER_EVENT            = ":"
 )
+
+// if true, check file if modified each time call an template render.
+// This will be an performance loss. TODO: Should be monitor file change and reparse if chagne.
+var ReloadTemplate = true

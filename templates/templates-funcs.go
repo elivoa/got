@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates-funcs.go] Elivoa @ Thursday, 2014-07-03 16:54:37>
+   Time-stamp: <[templates-funcs.go] Elivoa @ Wednesday, 2014-07-09 18:25:15>
 */
 package templates
 

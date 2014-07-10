@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-page.go] Elivoa @ Sunday, 2014-05-18 16:49:53>
+   Time-stamp: <[lifecircle-page.go] Elivoa @ Thursday, 2014-07-10 16:29:39>
 */
 package lifecircle
 
@@ -201,7 +201,7 @@ func FollowComponentByIds(seg *register.ProtonSegment, componentIds []string) *r
 			lowercasedId := strings.ToLower(componentId)
 			if !current.IsTemplateLoaded {
 				fmt.Println("   >> LoadTemplate ", lowercasedId, "")
-				if _, err := templates.LoadTemplates(current, false); err != nil {
+				if _, err := templates.LoadTemplates(current, config.ReloadTemplate); err != nil {
 					panic(err)
 				}
 			}
