@@ -67,5 +67,4 @@ func (c *TemplateStatus) OnTemplateDetail(templateKey string) *exit.Exit {
 	// panic(fmt.Sprintf("Template Not Found for %v", util.DecodeContext(templateKey)))
 	buffer.WriteString(fmt.Sprintf("\n\nTemplate Not Found for %v", util.DecodeContext(templateKey)))
 	return exit.RenderText(buffer.String())
-
 }

@@ -3,9 +3,9 @@ package lifecircle
 import (
 	"fmt"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/utils"
 	"got/core"
-	"got/debug"
 	"reflect"
 	"strconv"
 	"strings"
@@ -127,6 +127,7 @@ func (lcc *LifeCircleControl) injectComponentParameters(params []interface{}) *L
 	return lcc
 }
 
+// Inject parameters into component, including informalParameters.
 func (lcc *LifeCircleControl) injectComponentParametersTo(proton core.Protoner, params []interface{}) {
 	// log.Printf("-621- Component [%v]'s params is: ", seg.Name)
 	debugprint := false
@@ -137,20 +138,38 @@ func (lcc *LifeCircleControl) injectComponentParametersTo(proton core.Protoner, 
 		fmt.Println("\t~ END Params ~")
 	}
 
+	component, ok := proton.(core.Componenter)
+	if !ok {
+		panic("Proton is not Component when injectComponentPatameters.")
+	}
+	componentStructInfo := scache.GetCreate(reflect.TypeOf(proton), core.COMPONENT)
+
 	data := make(map[string][]string)
 	var key string // key is also field name.
 	for i, param := range params {
 		if i%2 == 0 { // it's key
 			if k, ok := param.(string); ok {
+				if k == "" {
+					panic("Component Parameter Key can't be empty!")
+				}
+				// After template translate, key is lowercased, here I Capitalize the
+				// first letter to make match key with component field for injection.
+				// TODO Make lowercased key map in structInfo to solve the loss of Cap.
 				key = fmt.Sprintf("%v%v", strings.ToUpper(k[0:1]), k[1:]) // Capitalized
 				proton.SetInjected(key, true)
 			} else {
 				panic("component parameter must be name,value pair.")
 			}
 		} else { // value
-			if key == "" || param == nil {
-				// panic("value is nil")
-				fmt.Println("value is nil", key, param)
+			if param == nil {
+				fmt.Println("ERROR: value is nil", key, param)
+				continue
+			}
+
+			// if it's informal parameters, put save them into informal parameters.
+			field := componentStructInfo.FieldInfo(key)
+			if nil == field { // it's informal parameters
+				component.AddInformalParameter(key, param)
 				continue
 			}
 
@@ -169,6 +188,7 @@ func (lcc *LifeCircleControl) injectComponentParametersTo(proton core.Protoner, 
 				}
 				injectField(v, key, param) // TO be continued....
 			}
+
 		}
 	}
 	if debugprint {

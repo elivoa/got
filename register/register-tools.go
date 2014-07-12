@@ -1,7 +1,7 @@
 package register
 
 import (
-	"got/debug"
+	"github.com/elivoa/got/debug"
 	"log"
 	"reflect"
 	"runtime"

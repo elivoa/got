@@ -1,6 +1,20 @@
 /**
-  Time-stamp: <[transform.go] Elivoa @ Sunday, 2014-05-18 11:42:39>
+
+Transform tapestry like html page into go-template like ones. Keep it functions well.
+
+  Time-stamp: <[transform.go] Elivoa @ Saturday, 2014-07-12 13:16:17>
   TODO remove this package.
+
+Tapestry template like components:
+  <t:a href="chedan" />
+
+
+
+
+
+
+
+
 */
 package transform
 
@@ -9,9 +23,9 @@ import (
 	"code.google.com/p/go.net/html"
 	"errors"
 	"fmt"
+	"github.com/elivoa/got/register"
 	"got/cache"
 	"got/core"
-	"github.com/elivoa/got/register"
 	"io"
 	"reflect"
 	"regexp"

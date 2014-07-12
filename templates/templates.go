@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Thursday, 2014-07-10 17:12:31>
+   Time-stamp: <[templates.go] Elivoa @ Friday, 2014-07-11 18:46:27>
 */
 package templates
 
@@ -106,6 +106,14 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 	} else if err != nil {
 		panic(err) // panic on other file error.
 	} else {
+
+		if false {
+			fmt.Println("\n==============================================")
+			fmt.Println("Cached Time  : ", registry.TemplateLastModifiedTime)
+			fmt.Println("fileinfo Time: ", fileInfo.ModTime())
+			fmt.Println("Are they eq? : ", fileInfo.ModTime() == registry.TemplateLastModifiedTime)
+		}
+		
 		// Normal case: file found and no error.
 		if reloadWhenFileChanges == true && registry.IsTemplateLoaded {
 			// if not the first time meet this template, process versions.

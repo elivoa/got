@@ -19,10 +19,10 @@ import (
 type Status struct {
 	core.Page
 
+	// parameters
+	Tab string `path-param:"1"` // tab
+
 	Modules *register.ModuleCache
-	// Pages      *register.ProtonSegment
-	// Components *register.ProtonSegment
-	// Tpls []*template.Template
 
 	// redirect to this page.
 	// TODO: 如何Inject一个page？ page的包名太长不好记怎么办？
@@ -56,6 +56,23 @@ func (p *Status) Components() template.HTML {
 	return template.HTML(html)
 }
 
+func (p *Status) SourceCache() template.HTML {
+	c := cache.SourceCache
+	for idx, v := range c.Structs {
+		fmt.Printf(">%d\t  %s:'%s.%s'\n", idx, core.KindLabels[v.ProtonKind], v.PackageName, v.StructName)
+	}
+	return template.HTML("")
+}
+
+func (p *Status) StructInfo() template.HTML {
+	c := cache.StructCache
+	html := c.String()
+	fmt.Println(html)
+	html = strings.Replace(html, " ", "&nbsp;", -1)
+	html = strings.Replace(html, "\n", "<br>", -1)
+	return template.HTML(html)
+}
+
 func PrintSourceCaches() {
 	source := cache.SourceCache
 	for k, v := range source.StructMap {
@@ -63,10 +80,18 @@ func PrintSourceCaches() {
 	}
 }
 
-func (p *Status) AfterRender() {
+func (p *Status) Style(tab string) string {
+	if p.Tab == tab {
+		return "active"
+	}
+	return ""
+}
+
+func (p *Status) OnTab(tab string) *exit.Exit {
+	return exit.Redirect(fmt.Sprintf("/got/status/%s", tab))
 }
 
 func (p *Status) OnGotoHome() *exit.Exit {
-	// return exit.Forward(p.IndexPage)
+	// return exit.Forward(p.IndexPage) //
 	return exit.Forward("/")
 }

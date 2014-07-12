@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- TODO: import css files in many other places. not only in static folder. -->
     <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css" type="text/css" media="screen" />
     <t:layout.gotheader title="Platform Status" />
   </head>
@@ -8,36 +9,54 @@
 
     <div class="container-fluid">
       <div class="page-header">
-        <div class="page-header">
-          <h2>GOT Framework (Go on Tapestry)</h2>
-        </div>
+        <h3>GOT Framework <small>(Go on Tapestry)</small></h3>
+      </div>
 
-        <div style="padding:8px;border:solid 1px red">
-          <t:a event="GotoHome" label="Goto Home"/>
-        </div>
+      <ul class="nav nav-tabs" role="tablist">
+        <!-- <li class="active"><a href="#">Home</a></li> -->
+        <li class="{{.Style `modules`}}"><t:a event="Tab" context="modules" label="Modules"/></li>
+        <li class="{{.Style `pages`}}"><t:a event="Tab" context="pages" label="Pages"/></li>
+        <li class="{{.Style `components`}}"><t:a event="Tab" context="components" label="Components"/></li>
+        <li class="{{.Style `mixins`}}"><t:a event="Tab" context="mixins" label="Mixins"/></li>
+        <li class="{{.Style `templates`}}"><t:a event="Tab" context="templates" label="Templates"/></li>
+        <li class="{{.Style `StructInfoCache`}}">
+          <t:a event="Tab" context="StructInfoCache" label="StructInfoCache"/>
+        </li>
+        <li class="{{.Style `StructInfo`}}">
+          <t:a event="Tab" context="StructInfo" label="StructInfo"/>
+        </li>
+      </ul>
 
-        <ul>
-          <li>Modules</li>
-          <li>Pages</li>
-          <li>Components</li>
-          <li>Mixins</li>
-          <li>Templates</li>
-        </ul>
-
+      <if t="eq .Tab `templates`">
         <t:got.templatestatus />
-
-        
+      </if>
+      
+      <if t="eq .Tab `pages`">
         <div name="Pages">
           <h4>Pages:</h4>
           {{.Pages}}
         </div>
-        
+      </if>
+      
+      <if t="eq .Tab `components`">
         <div name="Components">
           <h4>Components:</h4>
           {{.Components}}
         </div>
-        
-      </div>
+      </if>
+      
+      <if t="eq .Tab `StructInfoCache`">
+        <div name="StructInfoCache">
+          <h4>StructInfoCache: {{.SourceCache}}</h4>
+        </div>
+      </if>
+
+      <if t="eq .Tab `StructInfo`">
+        <div name="StructInfo">
+          <h4>StructInfo: {{.StructInfo}}</h4>
+        </div>
+      </if>
+
     </div>
 
   </body>

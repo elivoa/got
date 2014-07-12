@@ -13,6 +13,7 @@
 package parser
 
 import (
+	"fmt"
 	"github.com/elivoa/got/utils"
 	"got/core"
 	"strings"
@@ -104,7 +105,7 @@ func (t *StructInfo) ProtonPath() string {
 func (t *StructInfo) PrintEmbedTypes() {
 	if t.embeddedTypes != nil {
 		for _, e := range t.embeddedTypes {
-			e.String()
+			fmt.Println(e.String())
 		}
 	}
 }

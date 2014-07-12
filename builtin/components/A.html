@@ -1,2 +1,2 @@
-<a href="{{.Href}}" {{if .Onclick}} onclick={{.OnclickHtml}} {{end}}>{{.Label}}</a>
+<a href="{{.Href}}" {{.InformalParameterString | attr}}>{{.Label}}</a>
 <!-- TODO pass through other attributes.-->

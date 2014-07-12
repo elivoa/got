@@ -9,10 +9,10 @@ package lifecircle
 
 import (
 	"fmt"
+	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/utils"
 	"got/cache"
 	"got/core"
-	"got/debug"
 	"reflect"
 	"strings"
 	"sync"

@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-component.go] Elivoa @ Thursday, 2014-07-10 16:28:58>
+   Time-stamp: <[lifecircle-component.go] Elivoa @ Saturday, 2014-07-12 18:22:46>
 */
 package lifecircle
 
@@ -65,7 +65,7 @@ func ComponentLifeCircle(name string) func(...interface{}) interface{} {
 		// unused: get lcc from component; use method to get from controler.
 		// lcc := context.Get(container.Request(), config.LCC_OBJECT_KEY).(*LifeCircleControl)
 		lcc := containerLife.control // container's lcc has the same R and W.
-		life := lcc.componentFlow(containerLife, result.Segment.Proton, tid, params[2:])
+		life := lcc.componentFlow(containerLife, (core.Componenter)(result.Segment.Proton), tid, params[2:])
 		life.SetRegistry(result.Segment)
 
 		// templates renders in common flow()
@@ -94,25 +94,21 @@ func ComponentLifeCircle(name string) func(...interface{}) interface{} {
 //   component - current component base object.
 //   params - parameters in the component grammar.
 //
-// Note: I maintain StructCache here in the flow create func. This occured only when
-//       page or component are rendered. Directly post to a page can not invoke structcache init.
+// Note: I maintain StructCachep here in the flow create func. This occured only when
+//       page or component arep rendered. Directly post to a page can not invoke structcache init.
 //
 // TODO: Performance Improve to Component in Loops.
 //
-func (lcc *LifeCircleControl) componentFlow(containerLife *Life, componentSeed core.Componenter, tid string, params []interface{}) *Life {
-
-	fmt.Println("\n--------------------------------------------------------------------------------")
-	fmt.Println("tid is: ", tid)
-	for _, v := range params {
-		fmt.Println("param: ", v)
-	}
+func (lcc *LifeCircleControl) componentFlow(
+	containerLife *Life, componentSeed core.Componenter, tid string, params []interface{}) *Life {
 
 	if cflog.Debug() {
-		cflog.Printf("----- [Component flow] ------------------------%v",
-			"------------------------")
+		cflog.Printf("----- [Component flow] ------------------------------------------------")
 		cflog.Printf("- C - [Component Container] Type: %v, ComponentType:%v, tid:%s\n",
 			containerLife.rootType, reflect.TypeOf(componentSeed), tid)
 	}
+
+	// debug.InspectComponentParameters(tid, params)
 
 	// Store type in StructCache, Store instance in ProtonObject.
 	// Warrning: What if use component in page/component but it's not initialized?
@@ -120,19 +116,17 @@ func (lcc *LifeCircleControl) componentFlow(containerLife *Life, componentSeed c
 	//
 
 	// 1. cache in StructInfoCache. (application scope)
-	si := scache.GetCreate(containerLife.rootType, containerLife.kind)
-	if si == nil {
+	containerSI := scache.GetCreate(containerLife.rootType, containerLife.kind)
+	if containerSI == nil {
 		panic(fmt.Sprintf("StructInfo for %v can't be null!", containerLife.rootType))
 	}
 
 	// TODO: Is below useful? Can i remove these codes?
 
 	t := utils.GetRootType(componentSeed)
-	// tid, _ := determinComponentTid(params, t)
-	si.CacheEmbedProton(t, tid, componentSeed.Kind()) // TODO: is this useful?
+	containerSI.CacheEmbedProton(t, tid, componentSeed.Kind()) // TODO: is this useful?
 
 	// 2. store in proton's embed field. (request scope)
-	// containerLife := container.FlowLife().(*Life)
 	life, found := containerLife.embedmap[tid]
 	if !found {
 		// create component life!
@@ -141,11 +135,12 @@ func (lcc *LifeCircleControl) componentFlow(containerLife *Life, componentSeed c
 	} else {
 		// already exist, must be in a loop.
 		lcc.current = life
-		// already found. maybe this component is in a loop or range.
-		lcc.current.out.Reset()    // components in loop is one instance.
+		// already found. maybe this component is in a loop.
+		lcc.current.out.Reset()    // components in loop is one instance. reset after each use.
 		life.proton.IncLoopIndex() // increase loop index
 	}
 
+	// 3. inject parameters into component.
 	lcc.injectBasicTo(lcc.current.proton)
 	lcc.injectComponentParameters(params) // inject component parameters to current life
 	return lcc.current

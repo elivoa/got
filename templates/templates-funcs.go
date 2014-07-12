@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates-funcs.go] Elivoa @ Wednesday, 2014-07-09 18:25:15>
+   Time-stamp: <[templates-funcs.go] Elivoa @ Saturday, 2014-07-12 18:32:54>
 */
 package templates
 
@@ -29,6 +29,14 @@ func registerBuiltinFuncs(t *template.Template) {
 		"validtime": utils.ValidTime,
 
 		"encode": EncodeContext,
+
+		// steal
+		"attr": func(s string) template.HTMLAttr {
+			return template.HTMLAttr(s)
+		},
+		"safe": func(s string) template.HTML {
+			return template.HTML(s)
+		},
 	})
 }
 
