@@ -5,6 +5,7 @@ import (
 	"got/core"
 	"path"
 	"reflect"
+	"time"
 )
 
 // ________________________________________________________________________________
@@ -113,7 +114,7 @@ func (c *Configure) AddStaticResource(url string, path string) {
 // --------------------------------------------------------------------------------
 
 // TODO automatically get this. // no use
-var Domain string = "syd.com"
+var Domain string = "syd.com" // TODO goupi
 
 // Life circle related.
 var (
@@ -123,11 +124,6 @@ var (
 
 // framework level configs.
 var (
-	TAG_path_injection      = "path-param"
-	TAG_url_injection       = "query"
-	TAG_page_injection      = "page"
-	TAG_component_injection = "component"
-
 	SPLITER_BLOCK            = ":"
 	SPLITER_EMBED_COMPONENTS = "."
 	SPLITER_EVENT            = ":"
@@ -136,3 +132,22 @@ var (
 // if true, check file if modified each time call an template render.
 // This will be an performance loss. TODO: Should be monitor file change and reparse if chagne.
 var ReloadTemplate = true
+
+var (
+	// injection tag keywords:
+	TAG_path_injection      = "path-param"
+	TAG_url_injection       = "query"
+	TAG_page_injection      = "page"
+	TAG_component_injection = "component"
+
+	// value injection / value coercion
+	IgnoreInjectionParseError bool = true
+	ValidTimeFormats               = []string{"2006-01-02", "2006-01-02 15:04:05"}
+	DefaultTime                    = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+	DefaultTimeReflectValue        = reflect.ValueOf(DefaultTime)
+)
+
+// logic configs
+var (
+	LIST_PAGE_SIZE = 1
+)
