@@ -10,7 +10,6 @@ package lifecircle
 import (
 	"fmt"
 	"github.com/elivoa/got/debug"
-	"github.com/elivoa/got/utils"
 	"got/cache"
 	"got/core"
 	"reflect"
@@ -120,7 +119,7 @@ func (lcc *LifeCircleControl) InjectFormValues() {
 	// 	// data["Staff.Address"] = []string{""}
 	// }
 	// 3) decode
-	utils.SchemaDecoder.Decode(lcc.page.proton, data)
+	InjectValues(lcc.page.proton, data)
 
 	// debug print
 	if debug.FLAG_print_form_submit_details {

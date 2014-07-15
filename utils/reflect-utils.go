@@ -2,18 +2,9 @@ package utils
 
 import (
 	"fmt"
-	"github.com/gorilla/schema"
 	"reflect"
 	"strconv"
 )
-
-// global tools
-var SchemaDecoder = schema.NewDecoder()
-
-func init() {
-	// Empty velues are set to empty, not ignore as default.
-	SchemaDecoder.ZeroEmpty(true)
-}
 
 // _________________________________________
 func PrintAttributes(m interface{}) {

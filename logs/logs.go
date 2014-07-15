@@ -64,6 +64,10 @@ func Get(name string) *Logger {
 	}
 }
 
+var (
+	LOGGER_INJECTION_VALUE_COERCION = "InjectionValueCoercion"
+)
+
 func init() {
 	InitLogger("IOC:Inject", "", Trace)
 	InitLogger("GOT:PageFlow", "", Trace)
@@ -72,5 +76,5 @@ func init() {
 	InitLogger("ComponentFLow", "", Trace)
 	InitLogger("Route", "", Trace)
 	InitLogger("Return", "", Trace)
-
+	InitLogger(LOGGER_INJECTION_VALUE_COERCION, "", Trace)
 }

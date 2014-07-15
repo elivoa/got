@@ -73,9 +73,7 @@ func (lcc *LifeCircleControl) injectPathTo(proton core.Protoner) {
 			}
 		}
 	}
-	if len(values) > 0 {
-		utils.SchemaDecoder.Decode(proton, values)
-	}
+	InjectValues(proton, values)
 }
 
 func (lcc *LifeCircleControl) injectURLParameter() *LifeCircleControl {
@@ -86,7 +84,7 @@ func (lcc *LifeCircleControl) injectURLParameter() *LifeCircleControl {
 func (lcc *LifeCircleControl) injectURLParameterTo(proton core.Protoner) {
 	t := utils.GetRootType(proton)
 
-	values := make(map[string][]string) // used to inject
+	values := make(map[string][]string) // used to inject using gorilla
 	queries := lcc.r.URL.Query()
 
 	for i := 0; i < t.NumField(); i++ {
@@ -117,9 +115,7 @@ func (lcc *LifeCircleControl) injectURLParameterTo(proton core.Protoner) {
 		}
 
 	}
-	if len(values) > 0 {
-		utils.SchemaDecoder.Decode(proton, values)
-	}
+	InjectValues(proton, values)
 }
 
 func (lcc *LifeCircleControl) injectComponentParameters(params []interface{}) *LifeCircleControl {
@@ -144,8 +140,8 @@ func (lcc *LifeCircleControl) injectComponentParametersTo(proton core.Protoner, 
 	}
 	componentStructInfo := scache.GetCreate(reflect.TypeOf(proton), core.COMPONENT)
 
-	data := make(map[string][]string)
-	var key string // key is also field name.
+	data := make(map[string][]string) // used to inject with gorilla/schema
+	var key string                    // key is also field name.
 	for i, param := range params {
 		if i%2 == 0 { // it's key
 			if k, ok := param.(string); ok {
@@ -172,10 +168,19 @@ func (lcc *LifeCircleControl) injectComponentParametersTo(proton core.Protoner, 
 				component.AddInformalParameter(key, param)
 				continue
 			}
+			fmt.Println("-------------------------------------------------------------------------------")
+			fmt.Println("-------------------------------------------------------------------------------")
+			fmt.Println("-------------------------------------------------------------------------------")
+			fmt.Println("Field is ", field, " [", key, "]. ")
+			fmt.Println("field's type is : ", field.Type)
+			// if field.Type == reflect.TypeOf(time.Time) {
+
+			// }
 
 			// value, then set key to struct.
 			switch param.(type) {
 			case string:
+				// if type is string, use gorilla/schema to inject.
 				data[key] = []string{param.(string)}
 
 				if logger.Debug() {
@@ -194,10 +199,7 @@ func (lcc *LifeCircleControl) injectComponentParametersTo(proton core.Protoner, 
 	if debugprint {
 		debug.PrintFormMap("~ Component ~ inject component data", data)
 	}
-
-	if len(data) > 0 {
-		utils.SchemaDecoder.Decode(proton, data)
-	}
+	InjectValues(proton, data)
 }
 
 //
@@ -267,6 +269,26 @@ func (lcc *LifeCircleControl) injectHiddenThingsTo(proton core.Protoner) {
 				panic(fmt.Sprintf("Inject type not supported! %v", tagInfo.TagValue))
 			}
 		}
+	}
+}
+
+// inject value into object using gorilla.
+func InjectValues(proton core.Protoner, data map[string][]string) {
+	if nil == data || len(data) == 0 {
+		return
+	}
+	// if si := scache.GetStructInfo(reflect.TypeOf(proton)); si != nil {
+	// 	if fi := si.FieldInfo(proton); fi != nil {
+	// 		fmt.Println(fi)
+	// 	}
+	// }
+	// TODO just a temp fix
+
+	if _, ok := data["t:id"]; ok {
+		delete(data, "t:id")
+	}
+	if err := SchemaDecoder.Decode(proton, data); err != nil {
+		panic(err) // TODO:  more specific users.
 	}
 }
 

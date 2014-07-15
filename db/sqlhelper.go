@@ -11,8 +11,9 @@
   em.Update().Exec(name, class, ..., id)
   em.Update("time").Where("id", 5, "person", 6).Exec(time)
 
-
   TODO Count();
+
+>>DarkType
 */
 package db
 
@@ -36,6 +37,12 @@ func init() {
 	queryparserCache = make(map[string]*QueryParser)
 }
 
+// constants
+var (
+	ASC  = "asc"
+	DESC = "desc"
+)
+
 func RegisterEntity(name string, entity *Entity) {
 	if _, ok := entities[name]; ok {
 		panic(fmt.Sprintf("DB: Register duplicated entities for %s", name))
@@ -44,11 +51,17 @@ func RegisterEntity(name string, entity *Entity) {
 }
 
 // --------------------------------------------------------------------------------
+func NewQueryParser() *QueryParser {
+	return &QueryParser{
+		conditions: make([]*condition, 0),
+	}
+}
 
 // ________________________________________________________________________________
 // DAO Helper
 type Entity struct {
 	Table        string   // table name
+	Alias        string   // from 'table' as Alias
 	PK           string   // primary key field name
 	Fields       []string // field names
 	CreateFields []string // fields used in create things.
@@ -64,7 +77,8 @@ func (e *Entity) Create(queryName string) *QueryParser {
 }
 
 // 1st step: choose query type.
-
+// 两种用法之一：先从select开始。然后添加where等条件。这种方法不再开发了，为了兼容考虑留下这些方法。
+// 只有Select, Count, 参与这种。
 func (e *Entity) Select(fields ...string) *QueryParser {
 	return e.createQueryParser("select", fields...)
 }
@@ -77,6 +91,7 @@ func (e *Entity) Update(fields ...string) *QueryParser {
 	return e.createQueryParser("update", fields...)
 }
 
+// alias is sql
 func (e *Entity) RawQuery(sql string) *QueryParser {
 	return e.createQueryParser("sql", sql)
 }
@@ -89,10 +104,19 @@ func (e *Entity) Count() *QueryParser {
 	return e.createQueryParser("count")
 }
 
-func (e *Entity) Close() *QueryParser {
-	return e.createQueryParser("delete")
+// func (e *Entity) Close() *QueryParser {
+// 	return e.createQueryParser("delete")
+// }
+
+// Create一个QueryParser,可以从Where条件开始，添加各种其他条件。最后调用select或者是count的一种builder方法。
+func (e *Entity) NewQueryParser() *QueryParser {
+	return &QueryParser{
+		e:          e,
+		conditions: make([]*condition, 0),
+	}
 }
 
+// 兼容的方法
 func (e *Entity) createQueryParser(operation string, fields ...string) *QueryParser {
 	parser := &QueryParser{
 		e:          e,
@@ -123,17 +147,18 @@ func (e *Entity) NamedQuery(name string, createfunc func() *QueryParser) *QueryP
 type QueryParser struct {
 	e          *Entity
 	operation  string       // select, insert, update, insertorupdate, delete
-	fields     []string     // selected fields
+	fields     []string     // selected fields, only select clause use this
 	conditions []*condition // where 'id' = 1
 	limit      *gxl.Int     // limit 4
 	n          *gxl.Int     // limit 'limit','n'
-	orderby    string
+	orderby    string       // TODO change to field [asc|desc]
+	order      string       // asc | desc
 
-	prepared          bool
-	useCustomerFields bool
+	prepared          bool // status.
+	useCustomerFields bool // only select clause use this
 
-	sql    string // generated sql
-	values []interface{}
+	sql    string        // generated sql
+	values []interface{} // values in sequence used to inject into sql.
 }
 
 type condition struct {
@@ -142,21 +167,23 @@ type condition struct {
 	op     string        // and, or, andx, orx,
 }
 
+func (p *QueryParser) SetEntity(entity *Entity) *QueryParser {
+	p.e = entity
+	return p
+}
+
+func (p *QueryParser) Reset() *QueryParser {
+	p.sql = ""
+	p.values = []interface{}{}
+	p.prepared = false
+	return p
+}
+
 func (p *QueryParser) Fields(fields ...string) *QueryParser {
 	p.useCustomerFields = true
 	p.fields = fields
 	return p
 }
-
-// support map[string]interface{}
-// support interface{}...
-// func (p *QueryParser) Where__the_old_where(conditions ...interface{}) *QueryParser {
-// 	if len(conditions)%2 != 0 {
-// 		panic("Wrong numnber of parameters!")
-// 	}
-// 	p.where = conditions
-// 	return p
-// }
 
 func (p *QueryParser) Where(conditions ...interface{}) *QueryParser {
 	p.conditions = []*condition{}
@@ -215,8 +242,27 @@ func (p *QueryParser) In(field string, values ...interface{}) *QueryParser {
 	return p
 }
 
+// TODO change this to OrderBy2
 func (p *QueryParser) OrderBy(orderby string) *QueryParser {
 	p.orderby = orderby
+	return p
+}
+
+func (p *QueryParser) DefaultOrderBy(orderby string, order string) *QueryParser {
+	if p.orderby == "" {
+		p.OrderBy2(orderby, order)
+	}
+	return p
+}
+
+func (p *QueryParser) IsOrderBySet() bool {
+	return p.orderby == ""
+}
+
+// order: asc | desc
+func (p *QueryParser) OrderBy2(orderby string, order string) *QueryParser {
+	p.orderby = orderby
+	p.order = order
 	return p
 }
 
@@ -232,6 +278,13 @@ func (p *QueryParser) Limit(limit ...int) *QueryParser {
 
 	// p.debug_print_condition()
 
+	return p
+}
+
+func (p *QueryParser) DefaultLimit(limit ...int) *QueryParser {
+	if p.limit == nil {
+		p.Limit(limit...)
+	}
 	return p
 }
 
@@ -253,51 +306,34 @@ func (p *QueryParser) Prepare() *QueryParser {
 	var sql bytes.Buffer
 	switch p.operation {
 	case "sql":
+		// 1. The customized part, contains select .... from ... [join] , stoped before where
 		sql.WriteString(p.fields[0])
+		// 2. Where ... orderby ... limit...
+		p.appendCommonStatementsAfterSelect(&sql)
+
 	case "select":
 		sql.WriteString("SELECT ")
+		// fields
+		var fields []string = e.Fields
 		if p.useCustomerFields {
-			sql.WriteString(fieldString(p.fields))
-		} else {
-			sql.WriteString(fieldString(e.Fields))
+			fields = p.fields
 		}
+		sql.WriteString(fieldString(fields, e.Alias))
 
-		// from
-		sql.WriteString(" FROM `")
-		sql.WriteString(e.Table)
-		sql.WriteString("`")
+		// from <table>
+		sql.WriteString(fromStatString(e.Table, e.Alias)) // from `table` as alias
 
-		// add where condition, default only support and
-		if p.conditions != nil && len(p.conditions) > 0 {
-			sql.WriteString(" WHERE ")
-			p.values = appendWhereClouse(&sql, p.conditions...)
-		}
+		// after where in common select statements
+		p.appendCommonStatementsAfterSelect(&sql)
 
-		if p.orderby != "" {
-			sql.WriteString(" order by ")
-			sql.WriteString(p.orderby)
-		}
-
-		if p.limit != nil {
-			sql.WriteString(" limit ")
-			sql.WriteString(p.limit.String())
-			if p.n != nil {
-				sql.WriteString(",")
-				sql.WriteString(p.n.String())
-			}
-		}
 	case "count":
 		sql.WriteString("SELECT count(1)")
-
-		// from
-		sql.WriteString(" FROM `")
-		sql.WriteString(e.Table)
-		sql.WriteString("`")
+		sql.WriteString(fromStatString(e.Table, e.Alias)) // from `table` as alias
 
 		// add where condition, default only support and
 		if p.conditions != nil && len(p.conditions) > 0 {
 			sql.WriteString(" WHERE ")
-			p.values = appendWhereClouse(&sql, p.conditions...)
+			p.values = appendWhereClouse(&sql, e.Alias, p.conditions...)
 		}
 	case "insert":
 		// em.Insert().Exec(name, class, ...)
@@ -344,21 +380,20 @@ func (p *QueryParser) Prepare() *QueryParser {
 		if p.conditions == nil || len(p.conditions) == 0 {
 			sql.WriteString(fmt.Sprintf(" `%v` = ?", e.PK))
 		} else {
-			p.values = appendWhereClouse(&sql, p.conditions...)
+			p.values = appendWhereClouse(&sql, e.Alias, p.conditions...)
 		}
 
 	case "delete":
 		// em.Delete().Where("id", 5).Exec()
-		sql.WriteString("delete from `")
-		sql.WriteString(e.Table)
-		sql.WriteString("`")
+		sql.WriteString("delete ")
+		sql.WriteString(fromStatString(e.Table, e.Alias)) // from `table` as alias
 
 		// where
 		sql.WriteString(" WHERE ")
 		if p.conditions == nil || len(p.conditions) == 0 {
 			sql.WriteString(fmt.Sprintf(" `%v` = ?", e.PK))
 		} else {
-			p.values = appendWhereClouse(&sql, p.conditions...)
+			p.values = appendWhereClouse(&sql, e.Alias, p.conditions...)
 			// // TODO ... to be condinued....
 			// for i := 0; i < len(p.conditions); i = i + 2 {
 			// 	k, v := p.where[i].(string), p.where[i+1]
@@ -374,6 +409,39 @@ func (p *QueryParser) Prepare() *QueryParser {
 	p.sql = sql.String()
 	p.prepared = true
 	return p
+}
+
+// sql statements after where in a common select sql. Including where, orderby limit.
+func (p *QueryParser) appendCommonStatementsAfterSelect(sql *bytes.Buffer) {
+	// Where condition, default only support and
+	if p.conditions != nil && len(p.conditions) > 0 {
+		sql.WriteString(" WHERE ")
+		p.values = appendWhereClouse(sql, p.e.Alias, p.conditions...)
+	}
+
+	if p.orderby != "" {
+		sql.WriteString(" order by ")
+		if p.order == "" { // todo kill this
+			sql.WriteString(p.orderby)
+		} else { // leave this  // support OrderBy2
+			if p.e.Alias != "" {
+				sql.WriteString(p.e.Alias)
+				sql.WriteRune('.')
+			}
+			sql.WriteString(p.orderby)
+			sql.WriteRune(' ')
+			sql.WriteString(p.order)
+		}
+	}
+
+	if p.limit != nil {
+		sql.WriteString(" limit ")
+		sql.WriteString(p.limit.String())
+		if p.n != nil {
+			sql.WriteString(",")
+			sql.WriteString(p.n.String())
+		}
+	}
 }
 
 // deprecated. why not this?
@@ -458,7 +526,6 @@ func (p *QueryParser) Query(receiver func(*sql.Rows) (bool, error)) error {
 
 func (p *QueryParser) QueryInt() (int, error) {
 	var count int
-
 	if err := p.Query(
 		func(rows *sql.Rows) (bool, error) {
 			return false, rows.Scan(&count)
@@ -518,16 +585,43 @@ func debuglog(method string, format string, params ...interface{}) {
 }
 
 // helper methods
-func fieldString(fields []string) string {
+func fieldString(fields []string, alias string) string {
 	if fields == nil || len(fields) == 0 {
 		return "*"
 	}
-	return fmt.Sprintf("`%v`",
-		strings.Join(fields, "`, `"),
-	)
+	if alias != "" {
+		var buffer bytes.Buffer
+		for idx, field := range fields {
+			if idx > 0 {
+				buffer.WriteString(", ")
+			}
+			buffer.WriteRune('\'')
+			buffer.WriteString(alias)
+			buffer.WriteRune('.')
+			buffer.WriteString(field)
+			buffer.WriteRune('\'')
+		}
+		return buffer.String()
+	} else {
+		return fmt.Sprintf("`%v`",
+			strings.Join(fields, "`, `"),
+		)
+	}
 }
 
-func appendWhereClouse(sql *bytes.Buffer, conditions ...*condition) []interface{} {
+func fromStatString(table string, alias string) string {
+	var sql bytes.Buffer
+	sql.WriteString(" FROM `")
+	sql.WriteString(table)
+	sql.WriteString("`")
+	if alias != "" {
+		sql.WriteString(" as ")
+		sql.WriteString(alias)
+	}
+	return sql.String()
+}
+
+func appendWhereClouse(sql *bytes.Buffer, alias string, conditions ...*condition) []interface{} {
 	values := []interface{}{}
 	thefirst := true
 	sql.WriteString(" ")
@@ -545,11 +639,13 @@ func appendWhereClouse(sql *bytes.Buffer, conditions ...*condition) []interface{
 				}
 			}
 			if lenvalue == 1 {
-				sql.WriteString(fmt.Sprintf("`%v`=?", con.field))
+				sql.WriteString(stringFieldEqualsQuestion(alias, con.field)) // p.`x`=?
+				// sql.WriteString(fmt.Sprintf("`%v`=?", con.field))
 			} else if lenvalue > 1 {
 				sql.WriteString("(")
 				for idx, _ := range con.values {
-					sql.WriteString(fmt.Sprintf("`%v`=?", con.field))
+					sql.WriteString(stringFieldEqualsQuestion(alias, con.field))
+					// sql.WriteString(fmt.Sprintf("`%v`=?", con.field))
 					if idx < lenvalue-1 {
 						sql.WriteString(" ")
 						sql.WriteString(con.op)
@@ -567,7 +663,8 @@ func appendWhereClouse(sql *bytes.Buffer, conditions ...*condition) []interface{
 			if !thefirst {
 				sql.WriteString(" and ")
 			}
-			sql.WriteString(fmt.Sprintf("`%s` in (", con.field))
+			sql.WriteString(stringFieldWithAlisa(alias, con.field))
+			sql.WriteString(" in (")
 			for i := 0; i < lenvalue; i++ {
 				if i > 0 {
 					sql.WriteRune(',')
@@ -576,12 +673,12 @@ func appendWhereClouse(sql *bytes.Buffer, conditions ...*condition) []interface{
 			}
 			sql.WriteString(")")
 
-			fmt.Println("\n\n---------------------------------------------~~~~~~~~~~~~~~~~~--")
-			fmt.Println("<<<<<<|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-			fmt.Println("before ", values)
+			// fmt.Println("\n\n---------------------------------------------~~~~~~~~~~~~~~~~~--")
+			// fmt.Println("<<<<<<|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+			// fmt.Println("before ", values)
 			values = append(values, con.values...)
-			fmt.Println("after ", values)
-			fmt.Println("values: ", con.values)
+			// fmt.Println("after ", values)
+			// fmt.Println("values: ", con.values)
 
 		case "range":
 			if lenvalue == 0 || lenvalue > 2 {
@@ -591,14 +688,14 @@ func appendWhereClouse(sql *bytes.Buffer, conditions ...*condition) []interface{
 				sql.WriteString(" and ")
 			}
 			sql.WriteString("(")
-			sql.WriteString(fmt.Sprintf("`%v`>=?", con.field))
+			sql.WriteString(fmt.Sprintf("%s>=?", stringFieldWithAlisa(alias, con.field)))
 			if lenvalue > 1 {
-				sql.WriteString(fmt.Sprintf(" and `%v`<?", con.field))
+				sql.WriteString(fmt.Sprintf(" and %s<?", stringFieldWithAlisa(alias, con.field)))
 			}
 			sql.WriteString(")")
 			values = append(values, con.values...)
 
-		case "sql": // customized sql
+		case "sql": // condition's customized sql
 			if !thefirst {
 				sql.WriteString(" and ")
 			}
@@ -609,4 +706,48 @@ func appendWhereClouse(sql *bytes.Buffer, conditions ...*condition) []interface{
 	}
 	sql.WriteString(" ")
 	return values
+}
+
+func stringFieldWithAlisa(alias string, field string) string {
+	if alias == "" {
+		return fmt.Sprintf("`%s`", field)
+	} else {
+		return fmt.Sprintf("%s.`%s`", alias, field)
+	}
+}
+
+func stringFieldEqualsQuestion(alias string, field string) string {
+	// fmt.Sprintf("`%v`=?", con.field)
+	if alias == "" {
+		return fmt.Sprintf("`%v`=?", field)
+	} else {
+		return fmt.Sprintf("%s.`%v`=?", alias, field)
+	}
+}
+
+// 先输入Where等条件，最后再从QueryParser来select或者count的方法。
+
+func (qp *QueryParser) Select(fields ...string) *QueryParser {
+	return qp.setSelectQueryParser("select", fields...)
+}
+
+func (qp *QueryParser) RawQuery(sql string) *QueryParser {
+	return qp.setSelectQueryParser("sql", sql)
+}
+
+func (qp *QueryParser) Delete() *QueryParser {
+	return qp.setSelectQueryParser("delete")
+}
+
+func (qp *QueryParser) Count() (int, error) {
+	return qp.setSelectQueryParser("count").QueryInt()
+}
+
+func (qp *QueryParser) setSelectQueryParser(operation string, fields ...string) *QueryParser {
+	qp.operation = operation
+	qp.fields = fields
+	if nil != fields && len(fields) > 0 {
+		qp.useCustomerFields = true // only select clause use this
+	}
+	return qp
 }

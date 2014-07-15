@@ -1,5 +1,12 @@
 /*
-   Time-stamp: <[templates-funcs.go] Elivoa @ Saturday, 2014-07-12 18:32:54>
+Functions used in tempalte.
+Time-stamp: <[templates-funcs.go] Elivoa @ Sunday, 2014-07-13 18:46:09>
+
+This is a full list:
+
+datetime   : 2006-01-02 15:04:05
+date       : 2006-01-02
+
 */
 package templates
 
@@ -19,8 +26,10 @@ func registerBuiltinFuncs(t *template.Template) {
 		// deprecated
 		"eq": equas,
 
-		// new
-		"formattime":     FormatTime,
+		"formattime": FormatTime,
+		"datetime":   DateTime,
+		"date":       Date,
+
 		"prettytime":     BeautyTime,
 		"prettyday":      gxl.PrettyDay,
 		"prettycurrency": PrettyCurrency,
@@ -55,6 +64,14 @@ func FormatTime(format string, t time.Time) string {
 
 func BeautyTime(t time.Time) string {
 	return t.Format("2006-01-02 15:04:05")
+}
+
+func DateTime(t time.Time) string {
+	return t.Format("2006-01-02 15:04:05")
+}
+
+func Date(t time.Time) string {
+	return t.Format("2006-01-02")
 }
 
 func PrettyCurrency(d float64) string {
