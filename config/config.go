@@ -149,5 +149,5 @@ var (
 
 // logic configs
 var (
-	LIST_PAGE_SIZE = 1
+	LIST_PAGE_SIZE = 20
 )

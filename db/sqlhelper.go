@@ -243,27 +243,27 @@ func (p *QueryParser) In(field string, values ...interface{}) *QueryParser {
 }
 
 // TODO change this to OrderBy2
-func (p *QueryParser) OrderBy(orderby string) *QueryParser {
+// func (p *QueryParser) OrderBy(orderby string) *QueryParser {
+// 	p.orderby = orderby
+// 	return p
+// }
+
+// order: asc | desc
+func (p *QueryParser) OrderBy(orderby string, order string) *QueryParser {
 	p.orderby = orderby
+	p.order = order
 	return p
 }
 
 func (p *QueryParser) DefaultOrderBy(orderby string, order string) *QueryParser {
 	if p.orderby == "" {
-		p.OrderBy2(orderby, order)
+		p.OrderBy(orderby, order)
 	}
 	return p
 }
 
 func (p *QueryParser) IsOrderBySet() bool {
 	return p.orderby == ""
-}
-
-// order: asc | desc
-func (p *QueryParser) OrderBy2(orderby string, order string) *QueryParser {
-	p.orderby = orderby
-	p.order = order
-	return p
 }
 
 // e.g.: .Limit(1,10)

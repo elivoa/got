@@ -24,9 +24,13 @@ func init() {
 	SchemaDecoder.RegisterConverter(time.Now(), convertTime)
 }
 
+// string into time.Time
 func convertTime(value string) reflect.Value {
 	for _, format := range config.ValidTimeFormats {
 		if t, err := time.Parse(format, value); err == nil {
+			if coercionLogger.Debug() {
+				coercionLogger.Printf("Translate '%s' into [%v]", value, t)
+			}
 			return reflect.ValueOf(t)
 		}
 	}

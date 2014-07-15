@@ -111,15 +111,28 @@ func (lcc *LifeCircleControl) InjectFormValues() {
 		debug.PrintFormMap("~ 2 ~ gorilla/schema Data (Difference is array.)", data)
 	}
 
-	// {
-	// 	fmt.Println("--------- debug print -------------")
-	// 	fmt.Println("Staff.Address: ", data["Staff.Address"])
-	// 	fmt.Println("Staff.Address: len()", len(data["Staff.Address"]))
-	// 	fmt.Println("Staff.Address: [1]", "<<", data["Staff.Address"][0], ">>")
-	// 	// data["Staff.Address"] = []string{""}
-	// }
 	// 3) decode
 	InjectValues(lcc.page.proton, data)
+
+	// { // debug print // TODO finish debug.InspectDeeply()
+	// 	fmt.Println("--------- debug print -------------")
+	// 	debug.DebugPrintVariable(v)
+
+	// 	vv := v
+	// 	if vv.Kind() == reflect.Ptr {
+	// 		vv = vv.Elem()
+	// 	}
+	// 	vv = vv.FieldByName("Search")
+	// 	if vv.Kind() == reflect.Ptr {
+	// 		vv = vv.Elem()
+	// 	}
+
+	// 	for i := 0; i < vv.NumField(); i++ {
+	// 		f := vv.Field(i)
+	// 		fmt.Println(">>> ", f, " || value is: ", f.Interface())
+	// 	}
+
+	// }
 
 	// debug print
 	if debug.FLAG_print_form_submit_details {
