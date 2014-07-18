@@ -2,7 +2,9 @@ package route
 
 import (
 	"fmt"
+	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/core/lifecircle"
+	"github.com/elivoa/got/coreservice/sessions"
 	"github.com/elivoa/got/errorhandler"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/register"
@@ -61,7 +63,6 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 		printAccessFooter(r)
 	}()
-
 	// --------  Routing...  --------------------------------------------------------------
 
 	// 3. let'sp find the right pages.
@@ -75,12 +76,41 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 	// TODO Later: Create New page object every request? howto share some page object? see tapestry5.
 
-	var lcc = lifecircle.NewPageFlow(w, r, result.Segment)
+	var lcc *lifecircle.LifeCircleControl
+
+	// Check if this is an page request after redirect.
+	// if has verification code, this is a redirect page and with some data.
+	pageRedirectVerificationKeys, ok := r.URL.Query()[config.VERIFICATION_CODE_KEY]
+	if ok && len(pageRedirectVerificationKeys) > 0 {
+		fmt.Println("********************************************************************************")
+		fmt.Println("********************************************************************************")
+
+		var flash_session_key = config.PAGE_REDIRECT_KEY + pageRedirectVerificationKeys[0]
+		sessionId := sessions.SessionId(r, w) // called when needed.
+		if targetPageInterface, ok := sessions.GetOk(sessionId, flash_session_key); ok {
+			fmt.Println("key is ", flash_session_key)
+			fmt.Println("target page interface is ", targetPageInterface)
+			if targetPage, ok := targetPageInterface.(core.Pager); ok {
+				lcc = lifecircle.NewPageFlowFromExistingPage(w, r, targetPage)
+				fmt.Println("successfully get targetpage and continue. TODO:!!!!! here is a memory leak!")
+
+				// remove targetpage from session. OR will memery leak!!
+				// sessions.Delete(sessionId, flash_session_key)
+			}
+		}
+		fmt.Println("********************************************************************************")
+		fmt.Println("********************************************************************************")
+	}
+
+	// Normal request page flow, create then flow.
+	if lcc == nil {
+		lcc = lifecircle.NewPageFlow(w, r, result.Segment)
+	}
+
 	lcc.SetParameters(result.Parameters)
-	// lcc.SetPageUrl(result.PageUrl)     // ?
 	lcc.SetEventName(result.EventName) // ?
 
-	// print some information.
+	// Done: print some information.
 	defer func() {
 		fmt.Println("----------------------------")
 		fmt.Println("Describe the page structure:")
@@ -89,6 +119,7 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 		// fmt.Println(result)
 	}()
 
+	// Process result & returns.
 	if !result.IsEventCall() {
 		// page render flow
 		lcc.PageFlow()

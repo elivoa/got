@@ -1,5 +1,5 @@
 /*
-  Time-stamp: <[got.go] Elivoa @ Tuesday, 2014-06-17 20:16:50>
+  Time-stamp: <[got.go] Elivoa @ Thursday, 2014-07-17 13:03:12>
 
   TODO:
     - Add Hooks: OnAppStart, AfterAppStart, ...
@@ -15,6 +15,7 @@ import (
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route"
 	"github.com/elivoa/got/utils"
+	"github.com/gorilla/context"
 	"got/core"
 	"net/http"
 )
@@ -40,7 +41,7 @@ func BuildStart() {
 	// generate proton register sourcecode and compile and run.
 	timer := utils.NewTimer()
 	fmt.Println("> Generating startup codes...")
-	
+
 	app, err := parser.HackSource(Config.Modules)
 	if err != nil {
 		panic(fmt.Sprintf("build error: %v", err.Error()))
@@ -69,7 +70,7 @@ func printRegisteredModulePaths() {
 	}
 }
 
-// <<< called by generated code, start the server.
+// <<< called by generated code, start the server. (called by generated/main.go)
 func Start() {
 	welcome()
 
@@ -109,7 +110,9 @@ func Start() {
 	http.HandleFunc("/", route.RouteHandler)
 
 	fmt.Println(">> got started...")
-	http.ListenAndServe(fmt.Sprintf(":%v", Config.Port), nil)
+
+	// The second parameter is to clear gorilla/session to prevent memory leak
+	http.ListenAndServe(fmt.Sprintf(":%v", Config.Port), context.ClearHandler(http.DefaultServeMux))
 }
 
 // welcome print welcome message to screen.

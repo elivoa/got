@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle.go] Elivoa @ Monday, 2014-06-23 21:12:59>
+   Time-stamp: <[lifecircle.go] Elivoa @ Friday, 2014-07-18 15:36:07>
 */
 
 package lifecircle
@@ -89,12 +89,29 @@ func newControl(w http.ResponseWriter, r *http.Request) *LifeCircleControl {
 }
 
 // createPage set the root page to lcc(LifeCircleControl).
-func (lcc *LifeCircleControl) createPage(seed core.Protoner) *Life {
+func (lcc *LifeCircleControl) createPageLife(seed core.Protoner) *Life {
 	life := newLife(seed)
 	life.control = lcc
 	lcc.page = life
 	lcc.current = life
 	debuglog("-710- [flow] New LifeCircleControl: %v[%v].", life.kind, life.name)
+	return life
+}
+
+// create page by existing page value.
+func (lcc *LifeCircleControl) createPageLifeFromExistingPage(page core.Pager) *Life {
+	life := &Life{}
+	life.v = reflect.ValueOf(page) // utils.GetRootValue(page) // newProtonInstance(seed)
+	life.proton = life.v.Interface().(core.Protoner)
+	life.name = fmt.Sprint(reflect.TypeOf(life.proton).Elem()) // remove dependence of fmt
+	life.rootType = utils.GetRootType(page)
+	life.kind = life.proton.Kind()
+	life.proton.SetFlowLife(life)
+
+	life.control = lcc
+	lcc.page = life
+	lcc.current = life
+	debuglog("-710- [flow] New LifeCircleControl by page: %v[%v].", life.kind, life.name)
 	return life
 }
 

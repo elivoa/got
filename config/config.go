@@ -118,20 +118,22 @@ var Domain string = "syd.com" // TODO goupi
 
 // Life circle related.
 var (
-	LCC_OBJECT_KEY = "__lifecircle_control_key__"
-	LCC_REFERER    = "__LCC_REFERER__"
+	SESSIONID_KEY         = "JSESSIONID"
+	SESSION_TIMEOUT       = 3000  // s
+	VERIFICATION_CODE_KEY = "_vc" // return page redirect verification key
+	// SESSION_USED          = "__SESSION_USED_NEED_JSESSIONID__"
+
+	LCC_OBJECT_KEY    = "__lifecircle_control_key__"
+	LCC_REFERER       = "__LCC_REFERER__"
+	PAGE_REDIRECT_KEY = "__page_redirect__"
 )
 
-// framework level configs.
+// framework level configs. Don't chagne these.
 var (
 	SPLITER_BLOCK            = ":"
 	SPLITER_EMBED_COMPONENTS = "."
 	SPLITER_EVENT            = ":"
 )
-
-// if true, check file if modified each time call an template render.
-// This will be an performance loss. TODO: Should be monitor file change and reparse if chagne.
-var ReloadTemplate = true
 
 var (
 	// injection tag keywords:
@@ -151,3 +153,7 @@ var (
 var (
 	LIST_PAGE_SIZE = 20
 )
+
+// if true, check file if modified each time call an template render.
+// This will be an performance loss. TODO: Should be monitor file change and reparse if chagne.
+var ReloadTemplate = true

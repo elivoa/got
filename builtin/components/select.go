@@ -1,7 +1,7 @@
 package components
 
 import (
-	"github.com/elivoa/got/core/error"
+	"github.com/elivoa/got/core/exception"
 	"got/core"
 )
 
@@ -35,7 +35,7 @@ func (c *Select) New() *Select {
 
 func (c *Select) Setup() {
 	if nil == c.Data && nil == c.ArrayData {
-		panic(error.NewCoreErrorf("Option Data Not Found in Select component, name: %s", c.Name))
+		panic(exception.NewCoreErrorf("Option Data Not Found in Select component, name: %s", c.Name))
 	}
 }
 

@@ -1,20 +1,23 @@
 // 这是由于route包的循环引用，所以将一些帮助方法移动到此处。
+/*
+Can return to these targets
+  redirect::/order/list             // redirect to another URL
+  template::person-list             // specific template location, not the default one.
+  error::error message.             // TODO panic
+  forward::/some/page               // TODO forward
+  forward::InjectedPage             // forward to injected page, value is page instance.
+  text::directly_render_some_text   // render text output
+  json::directly_render_some_json   // render json output
+
+*/
 package exit
 
 import ()
 
 // Exit to you.
 type Exit struct {
-	/*
-	 * redirect::/order/list             // redirect to another URL
-	 * template::person-list             // specific template location, not the default one.
-	 * error::error message.             // TODO panic
-	 * forward::/some/page               // TODO forward
-	 * text::directly_render_some_text   // render text output
-	 * json::directly_render_some_json   // render json output
-	 */
 	ExitType string
-	Value    interface{}
+	Value    interface{} // stores values
 }
 
 func (r *Exit) IsBreakExit() bool {

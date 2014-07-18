@@ -1,18 +1,23 @@
 /*
-   Time-stamp: <[lifecircle-return.go] Elivoa @ Saturday, 2014-07-12 00:29:09>
+   Time-stamp: <[lifecircle-return.go] Elivoa @ Friday, 2014-07-18 14:56:22>
 */
 package lifecircle
 
 import (
 	"errors"
 	"fmt"
+	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/coreservice"
+	"github.com/elivoa/got/coreservice/sessions"
 	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/utils"
 	"got/core"
+	"math/rand"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -121,24 +126,56 @@ func (lcc *LifeCircleControl) HandleBreakReturn() {
 		return
 	}
 	switch r.ExitType {
+
 	case "text":
 		lcc.return_text("text/plain", r.Value)
+
 	case "json":
 		lcc.return_text("text/json", r.Value)
+
 	case "redirect":
-		// TODO: support redirect to page.
-		// debuglog("-904- [route:return] redirect to '%v'", url)
-		http.Redirect(lcc.w, lcc.r, r.Value.(string), http.StatusFound)
+		if str, ok := r.Value.(string); ok {
+			http.Redirect(lcc.w, lcc.r, str, http.StatusFound)
+			return
+		}
+		// redirect to page.
+		if targetPage, ok := r.Value.(core.Pager); ok {
+			if pageflowLogger.Debug() {
+				pageflowLogger.Printf("[Redirect] Page redirect to PageInstance. %s", targetPage)
+			}
+			var verificationCode = rand.Intn(99999) // generate validation code.
+			var strVerificationCode = strconv.Itoa(verificationCode)
+			url := coreservice.Url.GenerateUrlByPage(targetPage)
+			url = coreservice.Url.AppendVerificationCode(url, strVerificationCode) // append code
+
+			// set target page to sesson.flash
+			session := sessions.ShortCookieSession(lcc.r)
+			var flash_session_key = config.PAGE_REDIRECT_KEY + strVerificationCode
+			sessionId := sessions.SessionId(lcc.r, lcc.w)
+			sessions.Set(sessionId, flash_session_key, targetPage) // set to session.
+			http.Redirect(lcc.w, lcc.r, url, http.StatusFound)     // redirect to page's url
+
+			if pageflowLogger.Debug() {
+				fmt.Println(session.Values[flash_session_key])
+				fmt.Println(targetPage)
+				pageflowLogger.Printf("[Redirect] Set target page into flashes with key: %s",
+					flash_session_key)
+				pageflowLogger.Printf("[Redirect] Redirect URL is: %s", url)
+			}
+			return
+		}
+
 	case "forward":
 		// Now only support forward to page.
 		// TODO suppport forward to an URL.
 
-		if page, ok := r.Value.(core.Pager); ok {
+		// forward to InjectedPage,
+		if targetPage, ok := r.Value.(core.Pager); ok {
 			// Forward to a page object, render this page as pager.
 			if pageflowLogger.Debug() {
-				pageflowLogger.Printf("[Forward] Page forward to PageInstance. %s", page)
+				pageflowLogger.Printf("[Forward] Page forward to PageInstance. %s", targetPage)
 			}
-			if pagelife, ok := page.FlowLife().(*Life); ok {
+			if pagelife, ok := targetPage.FlowLife().(*Life); ok {
 				if pageflowLogger.Trace() {
 					pageflowLogger.Printf("[Forward] Page's Life is %s", pagelife)
 				}
@@ -147,6 +184,7 @@ func (lcc *LifeCircleControl) HandleBreakReturn() {
 				// newlcc.SetPageUrl(lcc.r.URL.Path)
 				newlcc.PageFlow()
 			} else {
+				// error case
 				debug.DebugPrintVariable(pagelife)
 				panic(">>>> can't find life")
 			}

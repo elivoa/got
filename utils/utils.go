@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/build"
 	"log"
+	"math/rand"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -12,6 +13,10 @@ import (
 	"strings"
 	"time"
 )
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
 
 func CurrentPackagePath() string {
 	// get base path

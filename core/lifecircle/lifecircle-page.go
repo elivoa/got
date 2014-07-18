@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-page.go] Elivoa @ Thursday, 2014-07-10 16:29:39>
+   Time-stamp: <[lifecircle-page.go] Elivoa @ Friday, 2014-07-18 16:04:10>
 */
 package lifecircle
 
@@ -9,6 +9,8 @@ import (
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/templates"
+	"github.com/elivoa/got/utils"
+	"got/core"
 	"net/http"
 	"reflect"
 	"strings"
@@ -23,9 +25,27 @@ func NewPageFlow(w http.ResponseWriter, r *http.Request, registry *register.Prot
 		panic("Can't parse page!")
 	}
 	lcc := newControl(w, r)
-	lcc.createPage(page)
+	lcc.createPageLife(page)
 	lcc.page.SetRegistry(registry)
 	return lcc
+}
+
+func NewPageFlowFromExistingPage(w http.ResponseWriter, r *http.Request, page core.Pager) *LifeCircleControl {
+	page.ResetRender()
+
+	var pageType = utils.GetRootType(page)
+	if registry, ok := register.PageTypeMap[pageType]; !ok {
+		panic(fmt.Sprintf("page config not found for page %v", page))
+	} else {
+		// init page cache[structinfo].
+		if si := scache.GetPageX(pageType); si == nil {
+			panic("Can't parse page!")
+		}
+		lcc := newControl(w, r)
+		lcc.createPageLifeFromExistingPage(page)
+		lcc.page.SetRegistry(registry)
+		return lcc
+	}
 }
 
 // Page Render Flow: (Entrance 1)    new -> path -> url ->

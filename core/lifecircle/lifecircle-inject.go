@@ -3,6 +3,7 @@ package lifecircle
 import (
 	"fmt"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/coreservice/coercion"
 	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/utils"
 	"got/core"
@@ -287,7 +288,7 @@ func InjectValues(proton core.Protoner, data map[string][]string) {
 	if _, ok := data["t:id"]; ok {
 		delete(data, "t:id")
 	}
-	if err := SchemaDecoder.Decode(proton, data); err != nil {
+	if err := coercion.SchemaDecoder.Decode(proton, data); err != nil {
 		panic(err) // TODO:  more specific users.
 	}
 }
