@@ -54,3 +54,21 @@ func timeCoercion(value string) reflect.Value {
 	}
 	return reflect.ValueOf(*t) // t is an address.
 }
+
+func TimeToString(t time.Time) string {
+	if h, m, s := t.Clock(); h+m+s == 0 {
+		return Date(t)
+	} else {
+		return DateTime(t)
+	}
+}
+
+// two helper method
+func DateTime(t time.Time) string {
+	return t.Format("2006-01-02 15:04:05")
+}
+
+// two helper method
+func Date(t time.Time) string {
+	return t.Format("2006-01-02")
+}

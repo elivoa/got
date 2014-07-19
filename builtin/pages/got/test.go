@@ -1,7 +1,7 @@
 package got
 
 import (
-	"got/core"
+	"github.com/elivoa/got/core"
 )
 
 // TODO Pagelookup: got/test == got/test.go:[TEST]

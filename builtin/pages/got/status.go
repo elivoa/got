@@ -3,10 +3,10 @@ package got
 import (
 	"errors"
 	"fmt"
+	"github.com/elivoa/got/cache"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route/exit"
-	"got/cache"
-	"got/core"
 	"html/template"
 	"strings"
 	// page "syd/pages"

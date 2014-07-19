@@ -7,7 +7,7 @@ import (
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/utils"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"strings"
 )
 

@@ -6,7 +6,7 @@ import (
 	"github.com/elivoa/got/coreservice/coercion"
 	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/utils"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"reflect"
 	"strconv"
 	"strings"

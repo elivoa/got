@@ -7,7 +7,7 @@
 package components
 
 import (
-	"got/core"
+	"github.com/elivoa/got/core"
 	"path/filepath"
 )
 

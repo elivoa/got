@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/elivoa/got/config"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"io"
 	"math/rand"
 	"mime/multipart"

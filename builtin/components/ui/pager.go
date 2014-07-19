@@ -1,13 +1,13 @@
 /*
 Got UI package -- provide basic UI components.
-Time-stamp: <[pager.go] Elivoa @ Tuesday, 2014-07-01 18:13:21>
+Time-stamp: <[pager.go] Elivoa @ Saturday, 2014-07-19 18:12:56>
 */
 package ui
 
 import (
 	"bytes"
 	"fmt"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"strconv"
 	"strings"
 )

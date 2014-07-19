@@ -18,7 +18,7 @@ import (
 	"go/parser"
 	"go/scanner"
 	"go/token"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"log"
 	"os"
 	"path/filepath"

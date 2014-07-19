@@ -15,7 +15,7 @@ package parser
 import (
 	"fmt"
 	"github.com/elivoa/got/utils"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"strings"
 	"sync"
 )

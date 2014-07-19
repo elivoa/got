@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-page.go] Elivoa @ Friday, 2014-07-18 16:04:10>
+   Time-stamp: <[lifecircle-page.go] Elivoa @ Saturday, 2014-07-19 18:12:56>
 */
 package lifecircle
 
@@ -10,7 +10,7 @@ import (
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/templates"
 	"github.com/elivoa/got/utils"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"net/http"
 	"reflect"
 	"strings"

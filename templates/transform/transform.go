@@ -2,7 +2,7 @@
 
 Transform tapestry like html page into go-template like ones. Keep it functions well.
 
-  Time-stamp: <[transform.go] Elivoa @ Saturday, 2014-07-12 13:16:17>
+  Time-stamp: <[transform.go] Elivoa @ Saturday, 2014-07-19 18:11:19>
   TODO remove this package.
 
 Tapestry template like components:
@@ -23,9 +23,9 @@ import (
 	"code.google.com/p/go.net/html"
 	"errors"
 	"fmt"
+	"github.com/elivoa/got/cache"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/register"
-	"got/cache"
-	"got/core"
 	"io"
 	"reflect"
 	"regexp"

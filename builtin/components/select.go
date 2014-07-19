@@ -2,7 +2,7 @@ package components
 
 import (
 	"github.com/elivoa/got/core/exception"
-	"got/core"
+	"github.com/elivoa/got/core"
 )
 
 /*

@@ -6,7 +6,7 @@ import (
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/util"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"strings"
 )
 

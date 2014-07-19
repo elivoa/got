@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle.go] Elivoa @ Friday, 2014-07-18 15:36:07>
+   Time-stamp: <[lifecircle.go] Elivoa @ Saturday, 2014-07-19 18:11:31>
 */
 
 package lifecircle
@@ -8,12 +8,12 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/utils"
 	"github.com/gorilla/context"
-	"got/core"
 	"log"
 	"net/http"
 	"path"

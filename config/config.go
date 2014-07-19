@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"path"
 	"reflect"
 	"time"

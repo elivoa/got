@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-return.go] Elivoa @ Friday, 2014-07-18 14:56:22>
+   Time-stamp: <[lifecircle-return.go] Elivoa @ Saturday, 2014-07-19 18:12:56>
 */
 package lifecircle
 
@@ -13,7 +13,7 @@ import (
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/utils"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"math/rand"
 	"net/http"
 	"reflect"
@@ -132,6 +132,21 @@ func (lcc *LifeCircleControl) HandleBreakReturn() {
 
 	case "json":
 		lcc.return_text("text/json", r.Value)
+
+	case "download":
+		if pair, ok := r.Value.([]interface{}); ok && len(pair) == 3 {
+			mime := pair[0].(string)
+			filename := pair[1].(string)
+			content := pair[2]
+
+			// now we only return 1 result.
+			lcc.w.Header().Add("content-type", mime)
+			lcc.w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+			lcc.w.Write([]byte(fmt.Sprint(content)))
+
+		} else {
+			panic("exit.download format error!")
+		}
 
 	case "redirect":
 		if str, ok := r.Value.(string); ok {

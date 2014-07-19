@@ -2,17 +2,16 @@ package route
 
 import (
 	"fmt"
+	"github.com/elivoa/got/cache"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/core/lifecircle"
 	"github.com/elivoa/got/coreservice/sessions"
 	"github.com/elivoa/got/errorhandler"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/register"
-	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/templates"
 	"github.com/gorilla/context"
-	"got/cache"
-	"got/core"
 	"net/http"
 	"reflect"
 	"strings"
@@ -190,17 +189,3 @@ func RegisterProton(pkg string, name string, modulePkg string, proton core.Proto
 		panic(fmt.Sprint("........ [Error...] Can't register non proton struct! ", si))
 	}
 }
-
-// --------------------------------------------------------------------------------
-// Exit Helper;;
-// These methods are copied to github.com/elivoa/got/route/exit package. To solve circle import.
-
-func TrueExit() *exit.Exit                   { return &exit.Exit{ExitType: "bool", Value: true} }
-func FalseExit() *exit.Exit                  { return &exit.Exit{ExitType: "bool", Value: false} }
-func Bool(b bool) *exit.Exit                 { return &exit.Exit{ExitType: "bool", Value: b} }
-func Redirect(url interface{}) *exit.Exit    { return &exit.Exit{ExitType: "redirect", Value: url} }
-func Forward(url interface{}) *exit.Exit     { return &exit.Exit{ExitType: "forward", Value: url} }
-func Template(tpl interface{}) *exit.Exit    { return &exit.Exit{ExitType: "template", Value: tpl} }
-func RenderText(text interface{}) *exit.Exit { return &exit.Exit{ExitType: "text", Value: text} }
-func RenderJson(json interface{}) *exit.Exit { return &exit.Exit{ExitType: "json", Value: json} }
-func Error(err interface{}) *exit.Exit       { return &exit.Exit{ExitType: "error", Value: err} }

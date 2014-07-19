@@ -2,7 +2,7 @@ package register
 
 import (
 	"fmt"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"sync"
 )
 

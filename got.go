@@ -1,5 +1,5 @@
 /*
-  Time-stamp: <[got.go] Elivoa @ Thursday, 2014-07-17 13:03:12>
+  Time-stamp: <[got.go] Elivoa @ Saturday, 2014-07-19 18:12:51>
 
   TODO:
     - Add Hooks: OnAppStart, AfterAppStart, ...
@@ -16,7 +16,7 @@ import (
 	"github.com/elivoa/got/route"
 	"github.com/elivoa/got/utils"
 	"github.com/gorilla/context"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"net/http"
 )
 

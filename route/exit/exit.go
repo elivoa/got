@@ -45,3 +45,7 @@ func Template(tpl interface{}) *Exit    { return &Exit{"template", tpl} }
 func RenderText(text interface{}) *Exit { return &Exit{"text", text} }
 func RenderJson(json interface{}) *Exit { return &Exit{"json", json} }
 func Error(err interface{}) *Exit       { return &Exit{"error", err} }
+
+func DownloadFile(mime string, filename string, data interface{}) *Exit {
+	return &Exit{"download", []interface{}{mime, filename, data}}
+}

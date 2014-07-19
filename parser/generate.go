@@ -9,9 +9,9 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/debug"
 	"github.com/robfig/revel"
-	"got/core"
 	"os"
 	"os/exec"
 	"path"
@@ -391,7 +391,7 @@ import (
     "fmt"
     _got "github.com/elivoa/got"
     "github.com/elivoa/got/register"
-    "got/cache"
+	"github.com/elivoa/got/cache"
 	{{range $k, $v := $.ImportPaths}}
     {{$v}} "{{$k}}"{{end}}
 )

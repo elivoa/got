@@ -1,6 +1,6 @@
 /*
 Functions used in tempalte.
-Time-stamp: <[templates-funcs.go] Elivoa @ Tuesday, 2014-07-15 15:52:38>
+Time-stamp: <[templates-funcs.go] Elivoa @ Friday, 2014-07-18 18:23:27>
 
 This is a full list:
 
@@ -11,6 +11,7 @@ date       : 2006-01-02
 package templates
 
 import (
+	"github.com/elivoa/got/coreservice/coercion"
 	"github.com/elivoa/got/util"
 	"github.com/elivoa/got/utils"
 	"github.com/elivoa/gxl"
@@ -76,11 +77,7 @@ func Date(t time.Time) string {
 }
 
 func SmartDateTime(t time.Time) string {
-	if h, m, s := t.Clock(); h+m+s == 0 {
-		return Date(t)
-	} else {
-		return DateTime(t)
-	}
+	return coercion.TimeToString(t)
 }
 
 func PrettyCurrency(d float64) string {

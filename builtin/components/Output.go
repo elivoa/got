@@ -7,7 +7,7 @@ package components
 
 import (
 	"fmt"
-	"got/core"
+	"github.com/elivoa/got/core"
 )
 
 type Output struct {

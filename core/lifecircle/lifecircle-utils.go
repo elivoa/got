@@ -3,7 +3,7 @@ package lifecircle
 import (
 	"fmt"
 	"github.com/elivoa/got/debug"
-	"got/core"
+	"github.com/elivoa/got/core"
 	"reflect"
 	"strings"
 )

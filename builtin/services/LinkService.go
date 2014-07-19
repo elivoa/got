@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/elivoa/got/core/lifecircle"
-	"got/core"
+	"github.com/elivoa/got/core"
 )
 
 type LinkService struct {
