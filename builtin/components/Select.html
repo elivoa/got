@@ -1,4 +1,4 @@
-<select name="{{.Name}}">
+<select name="{{.Name}}" {{.InformalParameterString | attr}}>
   <if t=".AllowEmpty">
     <option>{{.Header}}</option>
   </if>

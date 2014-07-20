@@ -2,8 +2,8 @@ package components
 
 import (
 	bs "github.com/elivoa/got/builtin/services" // builtin services
-	"github.com/elivoa/got/core/lifecircle"
 	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/core/lifecircle"
 )
 
 /*

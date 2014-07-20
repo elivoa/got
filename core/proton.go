@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 )
 
 // GOT Kind
@@ -228,7 +229,11 @@ func (c *Proton) InformalParameterString() string {
 	var buffer bytes.Buffer
 	if nil != c.informalParameters {
 		for key, value := range c.informalParameters.Data {
-			buffer.WriteString(fmt.Sprintf("%s=\"%v\" ", key, value))
+			if value == nil || value == "" {
+				buffer.WriteString(fmt.Sprintf("%s ", strings.ToLower(key)))
+			} else {
+				buffer.WriteString(fmt.Sprintf("%s=\"%v\" ", strings.ToLower(key), value))
+			}
 		}
 	}
 	return buffer.String()
