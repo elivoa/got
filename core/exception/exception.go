@@ -30,3 +30,28 @@ func NewCoercionError(message string) *CoercionError {
 func NewCoercionErrorf(message string, v ...interface{}) *CoercionError {
 	return &CoercionError{CoreError{Message: fmt.Sprintf(message, v)}}
 }
+
+// --------------------------------------------------------------------------------
+
+// login error
+type PageNotFoundError struct{ CoreError }
+
+func NewPageNotFoundError(message string) *PageNotFoundError {
+	return &PageNotFoundError{CoreError{Message: message}}
+}
+
+func NewPageNotFoundErrorf(message string, v ...interface{}) *PageNotFoundError {
+	return &PageNotFoundError{CoreError{Message: fmt.Sprintf(message, v)}}
+}
+
+// --------------------------------------------------------------------------------
+// login error
+type AccessDeniedError struct{ CoreError }
+
+func NewAccessDeniedError(message string) *AccessDeniedError {
+	return &AccessDeniedError{CoreError{Message: message}}
+}
+
+func NewAccessDeniedErrorf(message string, v ...interface{}) *AccessDeniedError {
+	return &AccessDeniedError{CoreError{Message: fmt.Sprintf(message, v)}}
+}

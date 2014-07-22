@@ -2,16 +2,18 @@ package route
 
 import (
 	"fmt"
+	"github.com/elivoa/got/route/exit"
 	"log"
 	"net/http"
 	rd "runtime/debug"
 	"strings"
 )
 
-func RedirectDispatch(targets ...string) (string, string) {
+// return the first non-empty target.
+func RedirectDispatch(targets ...string) *exit.Exit {
 	for _, target := range targets {
-		if strings.Trim(target, " ") != "" {
-			return "redirect", target
+		if strings.TrimSpace(target) != "" {
+			return exit.Redirect(target)
 		}
 	}
 	panic("Can't Dispatch any of these redirects.")

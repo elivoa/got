@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	pBuiltin "github.com/elivoa/got/builtin/pages"
+	"github.com/elivoa/got/core/exception"
 	"github.com/elivoa/got/core/lifecircle"
 	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/route/exit"
@@ -28,7 +29,6 @@ import (
 	"net/http"
 	"reflect"
 	rd "runtime/debug"
-	"syd/exceptions"
 )
 
 var handlers map[reflect.Type]HandlerPair
@@ -40,9 +40,13 @@ func init() {
 	// TODO should move this to generate?
 
 	// AddHandler("string-panic-handler", reflect.TypeOf(""), Handle500)
-	AddHandler("page not found", reflect.TypeOf(exceptions.PageNotFoundError{}), Handle404)
-	AddHandler("access denied", reflect.TypeOf(exceptions.AccessDeniedError{}), HandleAccessDeniedError)
-	AddHandler("not login", reflect.TypeOf(exceptions.LoginError{}), RedirectHandler("/account/login"))
+	AddHandler("page not found", reflect.TypeOf(exception.PageNotFoundError{}), Handle404)
+	AddHandler("Core Error", reflect.TypeOf(exception.CoreError{}), Handle500)
+	AddHandler("access denied", reflect.TypeOf(exception.AccessDeniedError{}), HandleAccessDeniedError)
+
+	// register by application
+	// AddHandler("not login", reflect.TypeOf(exceptions.LoginError{}), RedirectHandler("/account/login"))
+
 	// register errors.errorString; this is common error
 	AddHandler("error handler", reflect.TypeOf(errors.New("TEST")).Elem(), Handle500)
 }
@@ -96,8 +100,8 @@ func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 			}
 			fmt.Println("----  What is Expected Error?")
 		}
+		Handle500(w, r, err)
 		panic(err)
-		// return Handle500()
 	}
 }
 
@@ -137,6 +141,7 @@ ERR   ER   ER   OR   RO   OR
 `)
 	fmt.Println("500 Error Page: error is")
 	printError(err)
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 
 	pageObj := lifecircle.CreatePage(w, r, reflect.TypeOf(pBuiltin.Error500{}))
 	if pageObj != nil {

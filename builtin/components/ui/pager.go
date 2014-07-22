@@ -1,6 +1,6 @@
 /*
 Got UI package -- provide basic UI components.
-Time-stamp: <[pager.go] Elivoa @ Saturday, 2014-07-19 18:12:56>
+Time-stamp: <[pager.go] Elivoa @ Tuesday, 2014-07-22 10:34:05>
 */
 package ui
 
@@ -130,10 +130,14 @@ func (p *Pager) CreateLastPagerLink() string {
 }
 
 func (p *Pager) PageCursorMessage() string {
+	end := p.Current + p.PageItems
+	if end > p.Total {
+		end = p.Total
+	}
 	if p.Lang == "en" {
-		return fmt.Sprintf("%d - %d，Total %d items.", p.Current, p.Current+p.PageItems, p.Total)
+		return fmt.Sprintf("%d - %d，Total %d items.", p.Current, end, p.Total)
 	} else {
-		return fmt.Sprintf("第%d - %d条，共%d条", p.Current, p.Current+p.PageItems, p.Total)
+		return fmt.Sprintf("第%d - %d条，共%d条", p.Current, end, p.Total)
 	}
 }
 

@@ -1,6 +1,6 @@
 /*
 Functions used in tempalte.
-Time-stamp: <[templates-funcs.go] Elivoa @ Friday, 2014-07-18 18:23:27>
+Time-stamp: <[templates-funcs.go] Elivoa @ Tuesday, 2014-07-22 12:47:07>
 
 This is a full list:
 
@@ -11,6 +11,7 @@ date       : 2006-01-02
 package templates
 
 import (
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/coreservice/coercion"
 	"github.com/elivoa/got/util"
 	"github.com/elivoa/got/utils"
@@ -20,36 +21,76 @@ import (
 	"time"
 )
 
-// TODO open this to developer to register global functions.
-func registerBuiltinFuncs(t *template.Template) {
-	// init functions
-	t.Funcs(template.FuncMap{
-		// deprecated
-		"eq": equas,
+// something to register func map;
+var funcMapRegister = template.FuncMap{
+	// deprecated
+	"eq": equas,
 
-		"formattime":    FormatTime,
-		"datetime":      DateTime,
-		"date":          Date,
-		"smartdatetime": SmartDateTime,
+	// date & time
+	"formattime":    FormatTime,
+	"datetime":      DateTime,
+	"date":          Date,
+	"smartdatetime": SmartDateTime,
 
-		"prettytime":     BeautyTime,
-		"prettyday":      gxl.PrettyDay,
-		"prettycurrency": PrettyCurrency,
+	"prettytime":     BeautyTime,
+	"prettyday":      gxl.PrettyDay,
+	"prettycurrency": PrettyCurrency,
 
-		"now":       func() time.Time { return time.Now() },
-		"validtime": utils.ValidTime,
+	"now":       func() time.Time { return time.Now() },
+	"validtime": utils.ValidTime,
 
-		"encode": EncodeContext,
+	// system
+	"refer":  GetReferUrl, // get page's refer url, usually used to go back.
+	"encode": EncodeContext,
 
-		// steal
-		"attr": func(s string) template.HTMLAttr {
-			return template.HTMLAttr(s)
-		},
-		"safe": func(s string) template.HTML {
-			return template.HTML(s)
-		},
-	})
+	// steal from stackflow
+	"attr": func(s string) template.HTMLAttr { return template.HTMLAttr(s) },
+	"safe": func(s string) template.HTML { return template.HTML(s) },
 }
+
+func RegisterFunc(funcName string, funcValue interface{}) {
+	if TemplateInitialized == true {
+		panic("Can't call RegisterFunc() after template is initialized.")
+	}
+	funcMapRegister[funcName] = funcValue
+}
+
+// TODO open this to developer to register global functions.
+// func registerBuiltinFuncs(t *template.Template) {
+// 	// init functions
+// 	t.Funcs(funcMapRegister)
+// }
+
+// // TODO open this to developer to register global functions.
+// func registerBuiltinFuncs(t *template.Template) {
+// 	// init functions
+// 	t.Funcs(template.FuncMap{
+// 		// deprecated
+// 		"eq": equas,
+
+// 		"formattime":    FormatTime,
+// 		"datetime":      DateTime,
+// 		"date":          Date,
+// 		"smartdatetime": SmartDateTime,
+
+// 		"prettytime":     BeautyTime,
+// 		"prettyday":      gxl.PrettyDay,
+// 		"prettycurrency": PrettyCurrency,
+
+// 		"now":       func() time.Time { return time.Now() },
+// 		"validtime": utils.ValidTime,
+
+// 		"encode": EncodeContext,
+
+// 		// steal
+// 		"attr": func(s string) template.HTMLAttr {
+// 			return template.HTMLAttr(s)
+// 		},
+// 		"safe": func(s string) template.HTML {
+// 			return template.HTML(s)
+// 		},
+// 	})
+// }
 
 /*_______________________________________________________________________________
   Tempalte Functions
@@ -91,4 +132,8 @@ func PrettyCurrency(d float64) string {
 // c/text ==> c__text
 func EncodeContext(s string) string {
 	return util.EncodeContext(s)
+}
+
+func GetReferUrl(page core.Protoner) string {
+	return page.Request().URL.RequestURI()
 }

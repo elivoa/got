@@ -2,7 +2,7 @@
 
 Transform tapestry like html page into go-template like ones. Keep it functions well.
 
-  Time-stamp: <[transform.go] Elivoa @ Saturday, 2014-07-19 18:11:19>
+  Time-stamp: <[transform.go] Elivoa @ Tuesday, 2014-07-22 14:20:27>
   TODO remove this package.
 
 Tapestry template like components:
@@ -474,7 +474,7 @@ func (t *Transformater) transformComponent(node *Node, componentName []byte, ele
 
 	if attrs != nil {
 		for key, val := range attrs {
-			// write key, all capitlize
+			// write key. e.g.: "ParameterName"
 			node.html.WriteString(" \"")
 			// get which is cached.
 			fi := si.FieldInfo(key)
@@ -485,49 +485,70 @@ func (t *Transformater) transformComponent(node *Node, componentName []byte, ele
 			}
 			node.html.WriteString("\" ")
 
-			// TODO: Auto-detect literal or functional
-			// Value transform: for name="_some_value_", we transform it into:
-			//   ~ before ~           ~ after ~             ~ note ~
-			//   ".Name"              .Name                // start form . or $
-			//   "literal:....."      "...."               // literal prefix
-			//	 "abcd"               "abcd"               // auto detect plan text
-			//	 ".Name+'_'+.Id"      (print .Name '_' .Id)// special
-			//   "/xxx/{{.ID}}"       (print "/xxx/" .Id)
-			//
-			//   TODO support more prefix...
-			//
-			// if value starts from . or $ , treate this as property. others as string
-			switch {
-			case len(val) > 0 && (val[0] == '.' || val[0] == '$' || val[0] == '('):
-				node.html.Write(val)
-			case len(val) > 5 && bytes.Equal(val[0:5], []byte("print")):
-				node.html.WriteString("(")
-				node.html.Write(val)
-				node.html.WriteString(")")
-			case len(val) > 8 && bytes.Equal(val[0:8], []byte("literal:")):
-				node.html.WriteString(" \"")
-				node.html.Write(bytes.Replace(val[8:], []byte{'"'}, []byte{'\\', '"'}, 0))
-				node.html.WriteString("\"")
-			case printValueRegex.Match(val): // if is "/xxx/{{.ID}}"
-				result := printValueRegex.FindSubmatch(val)
-				// for _, r := range result {
-				// 	fmt.Println(r)
-				// }
-				if len(result) == 3 { // translate to (print "/xxx/" .ID)
-					node.html.WriteString(" (print \"")
-					node.html.Write(result[1])
-					node.html.WriteString("\" ")
-					node.html.Write(result[2])
-					node.html.WriteString(")")
-				}
-			default:
-				node.html.WriteString(" \"")
-				node.html.Write(bytes.Replace(val, []byte{'"'}, []byte{'\\', '"'}, 0))
-				node.html.WriteString("\"")
-			}
+			// write value, with autodetected transform.
+			t.appendComponentParameter(&node.html, val)
 		}
 	}
 	node.html.WriteString("}}")
+	return nil
+}
+
+// Auto-detect literal or functional
+// if value starts from . or $ , treate this as property. others as string
+//
+// Value transform: for name="_some_value_", we transform it into:
+//   ~ before ~           ~ after ~             ~ note ~
+//   ".Name"              .Name                // start form . or $
+//   "literal:....."      "...."               // literal prefix
+//	 "abcd"               "abcd"               // auto detect as plan text
+//	 ".Name+'_'+.Id"      (print .Name '_' .Id)// special string join
+//   "/xxx/{{.ID}}"       (print "/xxx/" .Id)  // special string format
+//   "{refer .}"          refer .              // not string.
+//
+//
+//   TODO support more prefix...
+//
+func (t *Transformater) appendComponentParameter(buffer *bytes.Buffer, val []byte) error {
+	val = bytes.TrimSpace(val)
+	switch {
+	case len(val) > 0 && (val[0] == '.' || val[0] == '$' || val[0] == '('):
+		buffer.Write(val)
+
+	case len(val) > 5 && bytes.Equal(val[0:5], []byte("print")):
+		buffer.WriteString("(")
+		buffer.Write(val)
+		buffer.WriteString(")")
+
+	case len(val) > 8 && bytes.Equal(val[0:8], []byte("literal:")):
+		buffer.WriteString(" \"")
+		buffer.Write(bytes.Replace(val[8:], []byte{'"'}, []byte{'\\', '"'}, 0))
+		buffer.WriteString("\"")
+
+	case len(val) > 1 && (val[0] == '{' && val[1] != '{' && val[len(val)-1] == '}'):
+		buffer.WriteString("(")
+		buffer.Write(val[1 : len(val)-1])
+		buffer.WriteString(")")
+
+	// case len(val) > 0 && (val[0] == '[' && val[len(val)-1] == ']'):
+	// TODO array of value.
+
+	case printValueRegex.Match(val): // if is "/xxx/{{.ID}}"
+		result := printValueRegex.FindSubmatch(val)
+		// for _, r := range result {
+		// 	fmt.Println(r)
+		// }
+		if len(result) == 3 { // translate to (print "/xxx/" .ID)
+			buffer.WriteString(" (print \"")
+			buffer.Write(result[1])
+			buffer.WriteString("\" ")
+			buffer.Write(result[2])
+			buffer.WriteString(")")
+		}
+	default:
+		buffer.WriteString(" \"")
+		buffer.Write(bytes.Replace(val, []byte{'"'}, []byte{'\\', '"'}, 0))
+		buffer.WriteString("\"")
+	}
 	return nil
 }
 

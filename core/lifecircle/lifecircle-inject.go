@@ -172,7 +172,7 @@ func (lcc *LifeCircleControl) injectComponentParametersTo(proton core.Protoner, 
 			// fmt.Println("-------------------------------------------------------------------------------")
 			// fmt.Println("-------------------------------------------------------------------------------")
 			// fmt.Println("-------------------------------------------------------------------------------")
-			fmt.Println("---------- Field is ", field, " [", key, "]. ")
+			// fmt.Println("---------- Field is ", field, " [", key, "]. ")
 			// fmt.Println("field's type is : ", field.Type)
 			// if field.Type == reflect.TypeOf(time.Time) {
 

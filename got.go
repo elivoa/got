@@ -1,5 +1,5 @@
 /*
-  Time-stamp: <[got.go] Elivoa @ Saturday, 2014-07-19 18:12:51>
+  Time-stamp: <[got.go] Elivoa @ Monday, 2014-07-21 02:58:34>
 
   TODO:
     - Add Hooks: OnAppStart, AfterAppStart, ...
@@ -11,12 +11,13 @@ import (
 	"fmt"
 	"github.com/elivoa/got/builtin"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/parser"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route"
+	"github.com/elivoa/got/templates"
 	"github.com/elivoa/got/utils"
 	"github.com/gorilla/context"
-	"github.com/elivoa/got/core"
 	"net/http"
 )
 
@@ -105,6 +106,9 @@ func Start() {
 			http.StripPrefix(pair[0], http.FileServer(http.Dir(pair[1]))),
 		)
 	}
+
+	// Template initialize
+	templates.FinalInitialize()
 
 	// got url matcher
 	http.HandleFunc("/", route.RouteHandler)

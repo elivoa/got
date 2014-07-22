@@ -35,7 +35,7 @@ func init() {
 
 // LongSession returns Long-lived Cookie based Session
 func LongCookieSession(r *http.Request) *sessions.Session {
-	if session, err := longliveCookieStore.Get(r, "GOTSession"); err != nil {
+	if session, err := longliveCookieStore.Get(r, "session"); err != nil {
 		fmt.Printf("Error occured %v\n", err)
 		panic(err)
 	} else {
@@ -45,7 +45,7 @@ func LongCookieSession(r *http.Request) *sessions.Session {
 
 // ShortSession returns Short-lived Cookie based Session
 func ShortCookieSession(r *http.Request) *sessions.Session {
-	if session, err := ephemeron.Get(r, "GOTSession"); err != nil {
+	if session, err := ephemeron.Get(r, "ephemeron"); err != nil {
 		fmt.Printf("Error occured %v\n", err)
 		panic(err)
 	} else {

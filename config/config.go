@@ -126,6 +126,8 @@ var (
 	LCC_OBJECT_KEY    = "__lifecircle_control_key__"
 	LCC_REFERER       = "__LCC_REFERER__"
 	PAGE_REDIRECT_KEY = "__page_redirect__"
+
+	USER_TOKEN_SESSION_KEY string = "USER_TOKEN_SESSION_KEY"
 )
 
 // framework level configs. Don't chagne these.

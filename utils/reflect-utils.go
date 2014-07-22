@@ -55,7 +55,10 @@ func ReflectPrintAttribute(m interface{}) {
 	Attributes(m)
 }
 
-var nilValue = reflect.ValueOf(nil)
+var (
+	nilValue    = reflect.ValueOf(nil)
+	emptyString = reflect.ValueOf("")
+)
 
 // cache this, use gorilla/schema's method. method delegation.
 func Coercion(value string, t reflect.Type) (reflect.Value, error) {
@@ -81,12 +84,17 @@ func Coercion(value string, t reflect.Type) (reflect.Value, error) {
 		}
 		return reflect.ValueOf(floatValue), nil
 	default:
-		panic(fmt.Sprintf("Coercion error, type %vnot supported.", t))
+		panic(fmt.Sprintf("Coercion error, type %v not supported.", t))
 	}
 }
 
 func CoercionNil(t reflect.Type) reflect.Value {
-	return nilValue
+	switch t.Kind() {
+	case reflect.String:
+		return emptyString
+	default:
+		return nilValue
+	}
 }
 
 // ________________________________________________________________________________

@@ -12,7 +12,10 @@ Can return to these targets
 */
 package exit
 
-import ()
+import (
+	"fmt"
+	"github.com/elivoa/got/core/exception"
+)
 
 // Exit to you.
 type Exit struct {
@@ -48,4 +51,25 @@ func Error(err interface{}) *Exit       { return &Exit{"error", err} }
 
 func DownloadFile(mime string, filename string, data interface{}) *Exit {
 	return &Exit{"download", []interface{}{mime, filename, data}}
+}
+
+// ----------- additional functions -------------
+func RedirectFirstValid(targets ...interface{}) *Exit {
+	if len(targets) <= 0 {
+		panic(exception.NewCoreError("Not enough parameters in exit.RedirectFirstValid()"))
+	}
+	for _, target := range targets {
+		switch target.(type) {
+		case string:
+			fmt.Println(">>. is string")
+			if target.(string) != "" {
+				return &Exit{"redirect", target}
+			}
+		case interface{}:
+			if target != nil {
+				return &Exit{"redirect", target}
+			}
+		}
+	}
+	return nil
 }

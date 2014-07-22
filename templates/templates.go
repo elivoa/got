@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Friday, 2014-07-11 18:46:27>
+   Time-stamp: <[templates.go] Elivoa @ Tuesday, 2014-07-22 14:25:14>
 */
 package templates
 
@@ -19,6 +19,14 @@ import (
 
 var logTemplate = logs.Get("Log Template")
 
+var TemplateInitialized bool = false
+
+func FinalInitialize() {
+	TemplateInitialized = true
+	Engine.template.Funcs(funcMapRegister)
+}
+
+// Engine instance.
 var Engine = NewTemplateEngine()
 
 type TemplateEngine struct {
@@ -31,8 +39,6 @@ func NewTemplateEngine() *TemplateEngine {
 		// TODO: use better way to init.
 		template: template.New("-"),
 	}
-
-	registerBuiltinFuncs(e.template) // Register built-in templates.
 	return e
 }
 
@@ -55,6 +61,15 @@ func (e *TemplateEngine) RegisterComponent(componentKey string, componentFunc in
 
 // RenderTemplate render template into writer.
 func (e *TemplateEngine) RenderTemplate(w io.Writer, key string, p interface{}) error {
+
+	// // cache some panic
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		fmt.Println("\n\n====== Panic Occured When rendering template. =============")
+	// 		panic(err)
+	// 	}
+	// }()
+
 	// TODO: process key, with versions.
 	err := Engine.template.ExecuteTemplate(w, key, p)
 	if err != nil {
@@ -113,7 +128,7 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 			fmt.Println("fileinfo Time: ", fileInfo.ModTime())
 			fmt.Println("Are they eq? : ", fileInfo.ModTime() == registry.TemplateLastModifiedTime)
 		}
-		
+
 		// Normal case: file found and no error.
 		if reloadWhenFileChanges == true && registry.IsTemplateLoaded {
 			// if not the first time meet this template, process versions.
@@ -152,6 +167,9 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 	trans.Parse(r) // then trans has components
 
 	registry.ContentTransfered = trans.RenderToString()
+
+	// fmt.Println("\n\n\n\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	// fmt.Println(registry.ContentTransfered)
 
 	// append components
 	if nil != trans.Components && len(trans.Components) > 0 {
