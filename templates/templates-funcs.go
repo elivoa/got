@@ -1,6 +1,6 @@
 /*
 Functions used in tempalte.
-Time-stamp: <[templates-funcs.go] Elivoa @ Tuesday, 2014-07-22 12:47:07>
+Time-stamp: <[templates-funcs.go] Elivoa @ Saturday, 2014-07-26 12:35:19>
 
 This is a full list:
 
@@ -38,6 +38,9 @@ var funcMapRegister = template.FuncMap{
 
 	"now":       func() time.Time { return time.Now() },
 	"validtime": utils.ValidTime,
+
+	// strings
+	"truncate": utils.TrimTruncate,
 
 	// system
 	"refer":  GetReferUrl, // get page's refer url, usually used to go back.

@@ -150,3 +150,12 @@ func FirstNonempty(targets ...string) string {
 	}
 	return ""
 }
+
+func TrimTruncate(length int, suffix string, str string) string {
+	str = strings.TrimSpace(str)
+	fmt.Println("truncate: ", length, suffix, str)
+	if len(str) > length+len(suffix)+1 {
+		return fmt.Sprintf("%s %s", str[:length], suffix)
+	}
+	return str
+}
