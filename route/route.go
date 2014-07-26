@@ -165,10 +165,10 @@ func lookup(url string /*, referer *lifecircle.LifeCircleControl*/) *register.Lo
    Example:
       route.RegisterProton("syd/components/layout", "HeaderNav", "syd", &layout.HeaderNav{})
 */
-func RegisterProton(pkg string, name string, modulePkg string, proton core.Protoner) {
-	si, ok := cache.SourceCache.StructMap[fmt.Sprintf("%v.%v", pkg, name)]
+func RegisterProton(pkgPrefix string, name string, modulePkg string, proton core.Protoner) {
+	si, ok := cache.SourceCache.StructMap[fmt.Sprintf("%v.%v", pkgPrefix, name)]
 	if !ok {
-		panic(fmt.Sprintf("struct info not found: %v.%v ", pkg, name))
+		panic(fmt.Sprintf("struct info not found: %v.%v ", pkgPrefix, name))
 	}
 
 	switch proton.Kind() {

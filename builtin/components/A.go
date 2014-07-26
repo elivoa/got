@@ -30,7 +30,8 @@ type A struct {
 	// TODO: Component inject can inject normal things array into []interface{}
 	// Not only support one string parameter
 	// Context   []interface{} // just like things in tapestry.
-	Context string // just like things in tapestry.
+	Context    string // just like things in tapestry.
+	Parameters string // simple only append to url.
 
 	// passthrough properties
 	Href string // A's href
@@ -51,6 +52,10 @@ func (c *A) Setup() {
 		c.Href = c.LinkService.GenerateEventUrlIgnoreComponent(c.Event, 1, c.Context)
 	} else if c.Page != "" { // page link
 		c.Href = c.LinkService.GeneratePageUrlWithContext(c.Page, c.Context)
+	}
+
+	if c.Parameters != "" {
+		c.Href = c.Href + "?" + c.Parameters
 	}
 
 	// 1 means remove last component A

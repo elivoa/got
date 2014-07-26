@@ -141,3 +141,12 @@ func ToNullInt64Array(int64Array []int64) []sql.NullInt64 {
 	}
 	return nullarray
 }
+
+func FirstNonempty(targets ...string) string {
+	for _, target := range targets {
+		if target != "" {
+			return target
+		}
+	}
+	return ""
+}

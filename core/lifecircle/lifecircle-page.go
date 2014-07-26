@@ -1,16 +1,16 @@
 /*
-   Time-stamp: <[lifecircle-page.go] Elivoa @ Saturday, 2014-07-19 18:12:56>
+   Time-stamp: <[lifecircle-page.go] Elivoa @ Friday, 2014-07-25 15:57:07>
 */
 package lifecircle
 
 import (
 	"fmt"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/templates"
 	"github.com/elivoa/got/utils"
-	"github.com/elivoa/got/core"
 	"net/http"
 	"reflect"
 	"strings"
@@ -210,9 +210,8 @@ func (lcc *LifeCircleControl) EventCall(result *register.LookupResult) *LifeCirc
 
 }
 
-func FollowComponentByIds(seg *register.ProtonSegment, componentIds []string) *register.ProtonSegment {
-	fmt.Println("\n7788: alsdjflajsdlfj")
-	current := seg
+func FollowComponentByIds(rootSeg *register.ProtonSegment, componentIds []string) *register.ProtonSegment {
+	current := rootSeg
 	if componentIds != nil {
 		for idx, componentId := range componentIds {
 			// if component not exists, load and parse it.
@@ -220,7 +219,12 @@ func FollowComponentByIds(seg *register.ProtonSegment, componentIds []string) *r
 
 			lowercasedId := strings.ToLower(componentId)
 			if !current.IsTemplateLoaded {
-				fmt.Println("   >> LoadTemplate ", lowercasedId, "")
+				fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+				fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+				fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+				fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+				fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+				fmt.Println("   >> LoadTemplate ", lowercasedId, " >> ", current)
 				if _, err := templates.LoadTemplates(current, config.ReloadTemplate); err != nil {
 					panic(err)
 				}

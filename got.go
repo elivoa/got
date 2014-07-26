@@ -1,5 +1,5 @@
 /*
-  Time-stamp: <[got.go] Elivoa @ Monday, 2014-07-21 02:58:34>
+  Time-stamp: <[got.go] Elivoa @ Friday, 2014-07-25 16:20:46>
 
   TODO:
     - Add Hooks: OnAppStart, AfterAppStart, ...
@@ -86,13 +86,13 @@ func Start() {
 			continue
 		}
 
-		fmt.Println("!> GOT: Register Module ", key)
+		fmt.Println("!> GOT: Register Module: ", key)
 		if module.Register != nil {
 			module.Register()
 		}
 	}
 	// register startup module
-	fmt.Println("!> GOT: Register Startup Module ", startupModuleKey)
+	fmt.Println("!> GOT: Register Module: ", startupModuleKey, "(Startup)")
 	if startupModule.Register != nil {
 		startupModule.Register()
 	}

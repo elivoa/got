@@ -69,12 +69,12 @@ var (
 )
 
 func init() {
-	InitLogger("IOC:Inject", "", Trace)
+	InitLogger("IOC:Inject", "", Info)
 	InitLogger("GOT:PageFlow", "", Trace)
 	InitLogger("GOT:EventCall", "", Trace)
-	InitLogger("URL Lookup", "", Trace)
+	InitLogger("URL Lookup", "", Info)
 	InitLogger("ComponentFLow", "", Trace)
 	InitLogger("Route", "", Trace)
-	InitLogger("Return", "", Trace)
+	InitLogger("Return", "", Info)
 	InitLogger(LOGGER_INJECTION_VALUE_COERCION, "", Trace)
 }

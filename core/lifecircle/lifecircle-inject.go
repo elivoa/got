@@ -3,10 +3,10 @@ package lifecircle
 import (
 	"fmt"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/coreservice/coercion"
 	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/utils"
-	"github.com/elivoa/got/core"
 	"reflect"
 	"strconv"
 	"strings"
@@ -259,7 +259,8 @@ func (lcc *LifeCircleControl) injectHiddenThingsTo(proton core.Protoner) {
 			case "page":
 				if pageObj := CreatePage(lcc.w, lcc.r, t); pageObj != nil {
 					page := pageObj.(core.Pager)
-					page.SetInjected(f.Name, true)
+					// page.SetInjected(f.Name, true)
+					lcc.current.proton.SetInjected(f.Name, true)
 					v := utils.GetRootValue(proton)
 					fieldValue := v.FieldByName(f.Name)
 					fieldValue.Set(reflect.ValueOf(page)) // set new page into value.

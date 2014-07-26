@@ -9,7 +9,6 @@ import (
 	"github.com/elivoa/got/route/exit"
 	"html/template"
 	"strings"
-	// page "syd/pages"
 )
 
 // TODO render blocks as tree structure.
@@ -23,10 +22,6 @@ type Status struct {
 	Tab string `path-param:"1"` // tab
 
 	Modules *register.ModuleCache
-
-	// redirect to this page.
-	// TODO: 如何Inject一个page？ page的包名太长不好记怎么办？
-	// IndexPage *page.Index `inject:"page"` //:"something that can't be emptys"`
 }
 
 func (p *Status) SetupRender() *exit.Exit {
@@ -37,14 +32,18 @@ func (p *Status) SetupRender() *exit.Exit {
 		panic(errors.New("CheDan ====== "))
 	}
 
-	// p.Tpls = templates.Templates.Templates()
 	p.Modules = register.Modules
-	// p.Pages = &register.Pages
 
 	return nil
 }
 
 func (p *Status) Pages() template.HTML {
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+	register.Pages.PrintALL()
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 	html := register.Pages.StringTree("<br>")
 	html = strings.Replace(html, " ", "&nbsp;", -1)
 	return template.HTML(html)

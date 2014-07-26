@@ -8,6 +8,7 @@ import (
 	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/parser"
+	"github.com/elivoa/got/utils"
 	"log"
 	"path"
 	"path/filepath"
@@ -165,7 +166,7 @@ func (s *ProtonSegment) Module() *core.Module {
 //   order/create/OrderCreateDetail
 // TODO: alias not correct.
 //
-func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) (selectors [][]string) {
+func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) [][]string {
 
 	// TODO segment has structinfo
 	src := si.ModulePackage
@@ -175,7 +176,8 @@ func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) (selectors [
 	}
 	segments = append(segments, si.StructName)
 
-	dlog("-___- [Register %v] %v::%v url:%v", pathMap[p.Kind()], src, segments, si)
+	dlog("-___- [Register %v] %v::%v", pathMap[p.Kind()], src, segments)
+	dlog("-___- [%v's URL is] %v", pathMap[p.Kind()], si)
 
 	// add to registerc
 	var (
@@ -200,7 +202,7 @@ func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) (selectors [
 				Parent: currentSeg,
 				Level:  idx,
 			}
-			dlog("!!!! add path to structure: seg: %v\n", seg) // ------------------
+			// dlog("!!!! add path to structure: seg: %v\n", seg) // ------------------
 			currentSeg.AddChild(segment.Name, segment)
 		}
 		currentSeg = segment
@@ -225,13 +227,14 @@ func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) (selectors [
 	// Match origin paths: /order/create/OrderCreateIndex, in this example we can ignore
 	// prefix 'Order' and the ignore 'Create', and 'Index' can be automatically ignored.
 	for _, p := range prevSegs {
-		// dlog("+++ strings.HasPrefix: %v, %v = %v\n", shortLowerSeg, p, strings.HasPrefix(shortLowerSeg, p))
+		// dlog("prevSegs  =  ", prevSegs)
+		// dlog("+++ strings.HasPrefix: %v, %v = %v\n", p, shortLowerSeg, strings.HasPrefix(shortLowerSeg, p))
 		if strings.HasPrefix(shortLowerSeg, p) {
-			shortSeg = shortSeg[len(p):]
-			shortLowerSeg = shortLowerSeg[len(p):]
-			if shortSeg != "" { // e.g. order/create/OrderCreateIndex
+			shortSeg = strings.TrimSpace(shortSeg[len(p):])
+			shortLowerSeg = strings.TrimSpace(shortLowerSeg[len(p):])
+			if shortSeg != "" && shortSeg != p { // e.g. order/create/OrderCreateIndex
 				finalSegs = append(finalSegs, shortSeg)
-				dlog("!!! p:%v, add to final: %v\n", p, shortSeg)
+				dlog("!!!!!!!!!!!!!! p:%v, add to final: %v >> %v\n", p, shortSeg, finalSegs)
 			}
 		}
 	}
@@ -240,10 +243,11 @@ func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) (selectors [
 	// TODO kill this.
 	// /order/Create[Order] - ignore [Order]
 	if strings.HasSuffix(lowerSeg, prevSeg) {
-		dlog("+++ Match suffix, \n") // ------------------------------------------
+		dlog("+++ Match suffix, \n")
 		s := seg[:len(seg)-len(prevSeg)]
 		if s != "" {
-			finalSegs = append(finalSegs, s)
+			finalSegs = append(finalSegs, s) // ?? nothing reach here?
+			dlog("!!!!!!!!!!!!!! [SUFFIX] p:%v, add to final: %v >> %v\n", p, shortSeg, finalSegs)
 		} else {
 			// fallback TODO
 			// currentSeg.Src = src
@@ -257,8 +261,7 @@ func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) (selectors [
 	// /order/Order[Index] - fall back to /order/
 	// /api/suggest/Suggest - fall back to /api/suggest
 	if p.Kind() == core.PAGE && strings.HasSuffix(shortLowerSeg, "index") {
-		dlog("+++ Match Index, \n") // ------------------------------------------
-
+		// dlog("+++ Match Index, \n")
 		var trimlen = len(shortLowerSeg) - len("index")
 		if trimlen >= 0 {
 			shortSeg = shortSeg[:trimlen]
@@ -269,14 +272,19 @@ func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) (selectors [
 	// Fallback if needed.
 	if shortSeg == "" {
 		// e.g.: /api/suggest/Suggest --> /api/suggest
-		dlog("+++++ Fallback.\n") // ------------------------------------------
+		// dlog("+++++ Fallback.\n") // ------------------------------------------
 		currentSeg.Proton = p
 		currentSeg.StructInfo = si
 	} else {
-		// e.g.: /order/OrderDetailIndex --> /order/detail
-		finalSegs = append(finalSegs, shortSeg)
+		if shortSeg != seg && (len(finalSegs) <= 1 || shortSeg == finalSegs[len(finalSegs)-2]) {
+			// e.g.: /order/OrderDetailIndex --> /order/detail
+			finalSegs = append(finalSegs, shortSeg)
+			dlog("!!!!!!!!!!!!!! [NO-fallback] add-to-final: %v;; seg:%s \n", finalSegs, seg)
+		}
 	}
 
+	dlog(">>>>> FinalSegs: %v\n", finalSegs) // ------------------------------------------
+	finalSegs = utils.SortStringByLength(finalSegs)
 	dlog(">>>>> FinalSegs: %v\n", finalSegs) // ------------------------------------------
 
 	// 4. finally add segment struct to chains.
@@ -288,6 +296,8 @@ func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) (selectors [
 		Proton:     p,
 		StructInfo: si,
 	}
+
+	selectors := [][]string{} // finally return this to register components.
 
 	for _, s := range finalSegs {
 		currentSeg.AddChild(s, segment) // link segment together.
@@ -308,8 +318,9 @@ func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) (selectors [
 	case core.MIXIN:
 		MixinTypeMap[reflect.TypeOf(p).Elem()] = segment
 	}
+
 	// dlog(">>>>> Selectors: %v\n", selectors)
-	return
+	return selectors
 }
 
 // ----  Lookup & Results  ------------------------------------------------------------------------------
@@ -475,30 +486,41 @@ func (s *ProtonSegment) String() string {
 	if s.StructInfo != nil {
 		path = s.StructInfo.ImportPath
 	}
-	return fmt.Sprintf("%-20v (%v)[%v]", s.Name, length, path)
+	return fmt.Sprintf("N%d%v (%v)[%v]", len(s.Alias), s.Alias, length, path)
+	// return fmt.Sprintf("%-20v (%v)[%v]", s.Name, length, path)
+}
+
+func (s *ProtonSegment) ToString(name string) string {
+	length, path := ".", "--"
+	if len(s.Children) > 0 {
+		length = fmt.Sprint(len(s.Children))
+	}
+	if s.StructInfo != nil {
+		path = s.StructInfo.ImportPath
+	}
+	return fmt.Sprintf("%-20v (%v)[%v]", name, length, path)
 	// return fmt.Sprintf("%-20v (%v)[%v]", s.Name, length, path)
 }
 
 // print all details
-func (s *ProtonSegment) PrintALL() string {
+func (s *ProtonSegment) PrintALL() {
 	s.print(s)
-	return ""
 }
 
 func (s *ProtonSegment) StringTree(newline string) string {
 	var out bytes.Buffer // = bytes.NewBuffer([]byte{})
-	s.treeSegment(&out, s, newline)
+	s.treeSegment(&out, "root", s, newline)
 	return out.String()
 }
 
-func (s *ProtonSegment) treeSegment(out *bytes.Buffer, segment *ProtonSegment, newline string) {
-	out.WriteString(fmt.Sprintf("+ %v >> %v%s", segment, segment.StructInfo, newline))
-	for _, seg := range s.Children {
+func (s *ProtonSegment) treeSegment(out *bytes.Buffer, segmentName string, segment *ProtonSegment, newline string) {
+	out.WriteString(fmt.Sprintf("+ %v >> %v%s", segment.ToString(segmentName), segment.StructInfo, newline))
+	for segName, seg := range s.Children {
 		for i := 0; i <= seg.Level; i++ {
 			out.WriteString("  ")
 		}
 		if seg != nil {
-			seg.treeSegment(out, seg, newline)
+			seg.treeSegment(out, segName, seg, newline)
 		}
 	}
 }
