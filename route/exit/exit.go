@@ -56,7 +56,7 @@ func DownloadFile(mime string, filename string, data interface{}) *Exit {
 // ----------- additional functions -------------
 func RedirectFirstValid(targets ...interface{}) *Exit {
 	if len(targets) <= 0 {
-		panic(exception.NewCoreError("Not enough parameters in exit.RedirectFirstValid()"))
+		panic(exception.NewCoreError(nil, "Not enough parameters in exit.RedirectFirstValid()"))
 	}
 	for _, target := range targets {
 		switch target.(type) {

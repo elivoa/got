@@ -158,4 +158,7 @@ var (
 
 // if true, check file if modified each time call an template render.
 // This will be an performance loss. TODO: Should be monitor file change and reparse if chagne.
-var ReloadTemplate = true
+var (
+	ProductionMode = false // full debug information when debug.
+	ReloadTemplate = true
+)

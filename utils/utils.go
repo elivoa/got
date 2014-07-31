@@ -159,3 +159,18 @@ func TrimTruncate(length int, suffix string, str string) string {
 	}
 	return str
 }
+
+func PageCursorMessage(current, total, pageItems int, lang string) string {
+	if total == 0 {
+		return ""
+	}
+	end := current + pageItems
+	if end > total {
+		end = total
+	}
+	if lang == "en" {
+		return fmt.Sprintf("%d - %d，Total %d items.", current+1, end, total)
+	} else {
+		return fmt.Sprintf("第%d - %d条，共%d条", current+1, end, total)
+	}
+}

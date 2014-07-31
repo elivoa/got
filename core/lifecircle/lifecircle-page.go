@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-page.go] Elivoa @ Friday, 2014-07-25 15:57:07>
+   Time-stamp: <[lifecircle-page.go] Elivoa @ Saturday, 2014-07-26 23:59:41>
 */
 package lifecircle
 
@@ -54,8 +54,8 @@ func (lcc *LifeCircleControl) PageFlow() *LifeCircleControl {
 	// Inject
 	lcc.injectBasic().injectPath().injectURLParameter().injectHiddenThings()
 
-	// add lcc object to request.
-	lcc.SetToRequest(config.LCC_OBJECT_KEY, lcc)
+	// add lcc object to request. :: move to router
+	// lcc.SetToRequest(config.LCC_OBJECT_KEY, lcc)
 
 	// Acitvate() in Tapestry5 is used to receive parameters in path.
 	// I use Tag `path:"#"` to do the same thing. Here Activate() receives no parameters.
@@ -78,7 +78,7 @@ func (lcc *LifeCircleControl) PageFlow() *LifeCircleControl {
 			// Save lcc in request scope. There are two approaches:
 			//   1. First is set lcc to request data store.(now)
 			//   2. The other way is set to the proton object. component can get $ object.
-			lcc.SetToRequest(config.LCC_OBJECT_KEY, lcc)
+			// lcc.SetToRequest(config.LCC_OBJECT_KEY, lcc) // set in router
 
 			// universial flow
 			lcc.rendering = true

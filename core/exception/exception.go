@@ -2,20 +2,47 @@ package exception
 
 import (
 	"fmt"
+	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/debug"
 )
 
 // TODO: common error.
 
 type CoreError struct {
-	Message string
-	Reason  string
+	Message  string
+	Reason   string
+	innererr error  // embed error
+	stack    []byte // embed error's stack trace
 }
 
-func (e *CoreError) Error() string { return e.Message }
+func (e *CoreError) Error() string     { return e.Message }
+func (e *CoreError) InnerError() error { return e.innererr }
+func (e *CoreError) Stack() []byte     { return e.stack }
 
-func NewCoreError(message string) *CoreError { return &CoreError{Message: message} }
-func NewCoreErrorf(message string, v ...interface{}) *CoreError {
-	return &CoreError{Message: fmt.Sprintf(message, v)}
+// Create Core Error, Usages:
+//   NewCoreError(nil, "some error")   // message: "some error"
+//   NewCoreError(nil, "ERR: %s", "A") // message: "ERR: A"; formated message.
+//   NewCoreError(innerErr, nil)       // use the same message as innerErr.
+//   NewCoreError(innerErr, "msg")     // the same as no innerErr
+//
+func NewCoreError(innerErr error, message string, v ...interface{}) *CoreError {
+	var msg string
+	if nil != v && len(v) > 0 {
+		msg = fmt.Sprintf(msg, v...)
+	} else if message == "" {
+		msg = innerErr.Error()
+	} else {
+		msg = message
+	}
+
+	e := &CoreError{
+		Message:  msg,
+		innererr: innerErr,
+	}
+	if config.ProductionMode == false {
+		e.stack = debug.Stack()
+	}
+	return e
 }
 
 // --------------------------------------------------------------------------------
@@ -28,7 +55,7 @@ func NewCoercionError(message string) *CoercionError {
 }
 
 func NewCoercionErrorf(message string, v ...interface{}) *CoercionError {
-	return &CoercionError{CoreError{Message: fmt.Sprintf(message, v)}}
+	return &CoercionError{CoreError{Message: fmt.Sprintf(message, v...)}}
 }
 
 // --------------------------------------------------------------------------------
@@ -41,7 +68,7 @@ func NewPageNotFoundError(message string) *PageNotFoundError {
 }
 
 func NewPageNotFoundErrorf(message string, v ...interface{}) *PageNotFoundError {
-	return &PageNotFoundError{CoreError{Message: fmt.Sprintf(message, v)}}
+	return &PageNotFoundError{CoreError{Message: fmt.Sprintf(message, v...)}}
 }
 
 // --------------------------------------------------------------------------------
@@ -53,5 +80,5 @@ func NewAccessDeniedError(message string) *AccessDeniedError {
 }
 
 func NewAccessDeniedErrorf(message string, v ...interface{}) *AccessDeniedError {
-	return &AccessDeniedError{CoreError{Message: fmt.Sprintf(message, v)}}
+	return &AccessDeniedError{CoreError{Message: fmt.Sprintf(message, v...)}}
 }

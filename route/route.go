@@ -50,8 +50,7 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 			// fmt.Println("\n===================================")
 
 			// Give control to ErrorHandler if panic occurs.
-			b := errorhandler.Process(w, r, err)
-			if !b {
+			if b := errorhandler.Process(w, r, err); b == false {
 				panic(err)
 			}
 			// TODO: How to ignore the error.
@@ -94,7 +93,7 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("successfully get targetpage and continue. TODO:!!!!! here is a memory leak!")
 
 				// remove targetpage from session. OR will memery leak!!
-				// sessions.Delete(sessionId, flash_session_key)
+				sessions.Delete(sessionId, flash_session_key)
 			}
 		}
 		fmt.Println("********************************************************************************")
@@ -105,9 +104,11 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	if lcc == nil {
 		lcc = lifecircle.NewPageFlow(w, r, result.Segment)
 	}
-
 	lcc.SetParameters(result.Parameters)
 	lcc.SetEventName(result.EventName) // ?
+
+	// set lcc to session
+	lcc.SetToRequest(config.LCC_OBJECT_KEY, lcc)
 
 	// Done: print some information.
 	defer func() {

@@ -1,13 +1,13 @@
 /*
 Got UI package -- provide basic UI components.
-Time-stamp: <[pager.go] Elivoa @ Tuesday, 2014-07-22 10:34:05>
+Time-stamp: <[pager.go] Elivoa @ Monday, 2014-07-28 15:28:23>
 */
 package ui
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/utils"
 	"strconv"
 	"strings"
 )
@@ -130,15 +130,7 @@ func (p *Pager) CreateLastPagerLink() string {
 }
 
 func (p *Pager) PageCursorMessage() string {
-	end := p.Current + p.PageItems
-	if end > p.Total {
-		end = p.Total
-	}
-	if p.Lang == "en" {
-		return fmt.Sprintf("%d - %d，Total %d items.", p.Current, end, p.Total)
-	} else {
-		return fmt.Sprintf("第%d - %d条，共%d条", p.Current, end, p.Total)
-	}
+	return utils.PageCursorMessage(p.Current, p.Total, p.PageItems, p.Lang)
 }
 
 // deprecated, try to use GeneratePageNumbers instead

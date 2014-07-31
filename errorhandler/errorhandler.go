@@ -40,8 +40,8 @@ func init() {
 	// TODO should move this to generate?
 
 	// AddHandler("string-panic-handler", reflect.TypeOf(""), Handle500)
-	AddHandler("page not found", reflect.TypeOf(exception.PageNotFoundError{}), Handle404)
 	AddHandler("Core Error", reflect.TypeOf(exception.CoreError{}), Handle500)
+	AddHandler("page not found", reflect.TypeOf(exception.PageNotFoundError{}), Handle404)
 	AddHandler("access denied", reflect.TypeOf(exception.AccessDeniedError{}), HandleAccessDeniedError)
 
 	// register by application
@@ -70,7 +70,15 @@ func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 	if true { // Debug print
 		fmt.Println("\n________________________________________________________________________________")
 		fmt.Println("---- DEBUG: ErrorHandler >> Meet An Error --------------------------------------")
-		debug.DebugPrintVariable(err)
+		// fmt.Println(reflect.TypeOf(err))
+		if e, ok := err.(error); ok {
+			fmt.Println(debug.StackString(e))
+		} else if s, ok := err.(string); ok {
+			err = fmt.Errorf(s)
+			debug.DebugPrintVariable(err)
+		} else {
+			debug.DebugPrintVariable(err)
+		}
 		fmt.Println("--------------------------------------------------------------------------------")
 		fmt.Println("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --")
 		fmt.Println("")
@@ -85,6 +93,10 @@ func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 			if lcc, ok := lifecircle.CurrentLifecircleControl(r); ok {
 				lcc.HandleExternalReturn(result)
 				return true
+			} else {
+				fmt.Println("--------------------------------------------")
+				fmt.Println("Current life circle conrol not found!!")
+				fmt.Println("--------------------------------------------")
 			}
 		}
 		return false
@@ -101,7 +113,8 @@ func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 			fmt.Println("----  What is Expected Error?")
 		}
 		Handle500(w, r, err)
-		panic(err)
+		return true
+		// panic(err)
 	}
 }
 
@@ -150,6 +163,7 @@ ERR   ER   ER   OR   RO   OR
 			return exit.Forward(page)
 		}
 	}
+	fmt.Println("Can't be here!")
 	return exit.Redirect("/error500")
 }
 
