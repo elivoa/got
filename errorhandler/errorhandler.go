@@ -85,21 +85,10 @@ func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 	}
 
 	t := utils.GetRootType(err)
+	var handlerResult *exit.Exit
 	if handlerPair, ok := handlers[t]; ok {
 		// Handler found, process
-		result := handlerPair.handler(w, r, err)
-		if nil != result {
-			// get current lcc object from request.
-			if lcc, ok := lifecircle.CurrentLifecircleControl(r); ok {
-				lcc.HandleExternalReturn(result)
-				return true
-			} else {
-				fmt.Println("--------------------------------------------")
-				fmt.Println("Current life circle conrol not found!!")
-				fmt.Println("--------------------------------------------")
-			}
-		}
-		return false
+		handlerResult = handlerPair.handler(w, r, err)
 	} else {
 		// common error
 		// TODO: change this into environment settings.
@@ -112,10 +101,25 @@ func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 			}
 			fmt.Println("----  What is Expected Error?")
 		}
-		Handle500(w, r, err)
-		return true
-		// panic(err)
+
+		// handle all other exceptions with 500.;; **** should return false.
+		handlerResult = Handle500(w, r, err)
 	}
+
+	// handle result
+	if nil != handlerResult {
+		// get current lcc object from request.
+		if lcc, ok := lifecircle.CurrentLifecircleControl(r); ok {
+			lcc.HandleExternalReturn(handlerResult)
+			return true
+		} else {
+			fmt.Println("--------------------------------------------")
+			fmt.Println("Current life circle conrol not found!!")
+			fmt.Println("--------------------------------------------")
+		}
+	}
+	return false
+
 }
 
 // struct

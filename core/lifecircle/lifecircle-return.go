@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-return.go] Elivoa @ Saturday, 2014-07-19 18:12:56>
+   Time-stamp: <[lifecircle-return.go] Elivoa @ Thursday, 2014-08-07 19:11:08>
 */
 package lifecircle
 
@@ -7,13 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/coreservice"
 	"github.com/elivoa/got/coreservice/sessions"
 	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/utils"
-	"github.com/elivoa/got/core"
 	"math/rand"
 	"net/http"
 	"reflect"
@@ -51,7 +51,7 @@ var logReturn = logs.Get("Return")
 // event call returns, should be locally
 func SmartReturn(returns []reflect.Value) *exit.Exit {
 
-	// debuglog("... - [route.Return] handle return  '%v'", returns)
+	debuglog("... - [route.Return] handle return  '%v'", returns)
 
 	// returns nothing equals return true
 	if returns == nil || len(returns) == 0 {
@@ -196,7 +196,7 @@ func (lcc *LifeCircleControl) HandleBreakReturn() {
 				}
 				// page flow
 				newlcc := pagelife.control
-				// newlcc.SetPageUrl(lcc.r.URL.Path)
+				newlcc.isForward = true // disable form submit.
 				newlcc.PageFlow()
 			} else {
 				// error case

@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-page.go] Elivoa @ Saturday, 2014-07-26 23:59:41>
+   Time-stamp: <[lifecircle-page.go] Elivoa @ Thursday, 2014-08-07 19:11:41>
 */
 package lifecircle
 
@@ -64,7 +64,7 @@ func (lcc *LifeCircleControl) PageFlow() *LifeCircleControl {
 	//
 	returns := SmartReturn(lcc.page.call("Activate"))
 	if returns.IsReturnsTrue() {
-		if lcc.r.Method == "POST" {
+		if lcc.r.Method == "POST" && lcc.isForward == false {
 			// >> Form post flow
 			// Note: Now only support post to page.
 			//       TODO: support to submit to component.

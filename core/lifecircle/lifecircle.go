@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle.go] Elivoa @ Saturday, 2014-07-19 18:11:31>
+   Time-stamp: <[lifecircle.go] Elivoa @ Thursday, 2014-08-07 19:10:44>
 */
 
 package lifecircle
@@ -55,6 +55,8 @@ type LifeCircleControl struct {
 	rendering bool       // set to false to stop render.
 	returns   *exit.Exit //
 	Err       error      // error if something error. TODO change to MultiError.
+
+	isForward bool // if true, ignore form submit.
 }
 
 // Life is a Page, Component, or others in the page render lifecircle.

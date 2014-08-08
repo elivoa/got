@@ -35,31 +35,23 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 	printAccessHeader(r)
 
-	// refererlcc, ok := lifecircle.CurrentLifecircleControl(r)
-	// if !ok {
-	// lcc.HandleExternalReturn(result)
-	// do nothing if referer is null.
-	// }
-
 	// --------  Error Handling  --------------------------------------------------------------
 	defer func() {
 		if err := recover(); err != nil {
 
-			fmt.Println("\n====== Panic Occured. =============")
-			// debug.Error(err.(error))
-			// fmt.Println("\n===================================")
+			fmt.Println("\n============= Panic Occured. =============")
 
 			// Give control to ErrorHandler if panic occurs.
 			if b := errorhandler.Process(w, r, err); b == false {
 				panic(err)
 			}
-			// TODO: How to ignore the error.
 		}
 
 		// clear request scope data store.:: should clear context here? Where to?
 		context.Clear(r)
 
 		printAccessFooter(r)
+		// this route is ended here.
 	}()
 	// --------  Routing...  --------------------------------------------------------------
 

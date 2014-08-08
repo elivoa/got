@@ -217,6 +217,12 @@ func (p *QueryParser) Or(field string, values ...interface{}) *QueryParser {
 	return p
 }
 
+// Now only support "and like".
+func (p *QueryParser) Like(field string, values ...interface{}) *QueryParser {
+	p.conditions = append(p.conditions, &condition{field: field, values: values, op: "like"})
+	return p
+}
+
 func (p *QueryParser) Range(field string, values ...interface{}) *QueryParser {
 	p.conditions = append(p.conditions, &condition{field: field, values: values, op: "range"})
 	return p
@@ -386,7 +392,7 @@ func (p *QueryParser) Prepare() *QueryParser {
 	case "delete":
 		// em.Delete().Where("id", 5).Exec()
 		sql.WriteString("delete ")
-		sql.WriteString(fromStatString(e.Table, e.Alias)) // from `table` as alias
+		sql.WriteString(fromStatString(e.Table, "")) // delete don't need alias.
 
 		// where
 		sql.WriteString(" WHERE ")
@@ -482,12 +488,14 @@ func (p *QueryParser) QueryOne(receiver func(*sql.Row) error) error {
 func (p *QueryParser) Query(receiver func(*sql.Rows) (bool, error)) error {
 	p.Prepare()
 
-	debuglog("Query", "\"%v\"", p.sql)
-	if false {
-		fmt.Println("================= p.values in sql is =============")
-		for _, v := range p.values {
-			fmt.Println(v)
+	if true {
+		fmt.Println("================= SQL Statement and it's values =================")
+		debuglog("Query", "\"%v\"", p.sql)
+		fmt.Print("Param: ")
+		for idx, v := range p.values {
+			fmt.Printf("[%d:%v] ", idx, v)
 		}
+		fmt.Print("")
 	}
 
 	// 1. get connection
@@ -680,6 +688,17 @@ func appendWhereClouse(sql *bytes.Buffer, alias string, conditions ...*condition
 			// fmt.Println("after ", values)
 			// fmt.Println("values: ", con.values)
 
+		case "like":
+			if lenvalue == 0 {
+				break
+			}
+			if !thefirst {
+				sql.WriteString(" and ")
+			}
+			sql.WriteString(stringFieldWithAlisa(alias, con.field))
+			sql.WriteString(" like ?")
+			values = append(values, con.values...)
+
 		case "range":
 			if lenvalue == 0 || lenvalue > 2 {
 				panic("Where clause must only have 1 or 2 values.")
@@ -708,6 +727,7 @@ func appendWhereClouse(sql *bytes.Buffer, alias string, conditions ...*condition
 	return values
 }
 
+// output c.`field` or `field`
 func stringFieldWithAlisa(alias string, field string) string {
 	if alias == "" {
 		return fmt.Sprintf("`%s`", field)

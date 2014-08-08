@@ -44,7 +44,10 @@ func StackString(err error) string {
 		} else {
 			e = nil
 			if depth == 1 {
-				buf.Write(debug.Stack())
+				s := debug.Stack()
+				if s != nil {
+					buf.Write(s)
+				}
 			}
 		}
 		depth++
