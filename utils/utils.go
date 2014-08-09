@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/build"
 	"log"
+	"math"
 	"math/rand"
 	"path"
 	"path/filepath"
@@ -173,4 +174,8 @@ func PageCursorMessage(current, total, pageItems int, lang string) string {
 	} else {
 		return fmt.Sprintf("第%d - %d条，共%d条", current+1, end, total)
 	}
+}
+
+func Floor(n float32) float32 {
+	return float32(math.Floor(float64(n)*100) / 100)
 }
