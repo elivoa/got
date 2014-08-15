@@ -5,6 +5,7 @@ import (
 	"github.com/elivoa/got/cache"
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/core/exception"
 	"github.com/elivoa/got/core/lifecircle"
 	"github.com/elivoa/got/coreservice/sessions"
 	"github.com/elivoa/got/errorhandler"
@@ -15,7 +16,6 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
-	"syd/exceptions"
 )
 
 var (
@@ -61,7 +61,7 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 		logRoute.Printf("Lookup(%s) is:\n%v", url, result)
 	}
 	if result == nil && !result.IsValid() {
-		panic(exceptions.NewPageNotFoundError(fmt.Sprintf("Page %s not found!", r.URL.Path)))
+		panic(exception.NewPageNotFoundError(fmt.Sprintf("Page %s not found!", r.URL.Path)))
 	}
 
 	// TODO Later: Create New page object every request? howto share some page object? see tapestry5.
