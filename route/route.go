@@ -144,7 +144,7 @@ func lookup(url string /*, referer *lifecircle.LifeCircleControl*/) *register.Lo
 		panic(fmt.Sprintf("Error: seg.Proton is null. seg: %v", result.Segment))
 	}
 	if result.Segment.Proton == nil {
-		panic(&exceptions.PageNotFoundError{Message: "Page Not found for"})
+		panic(exception.NewPageNotFoundErrorf("Page Not found for"))
 	}
 	return result
 }
