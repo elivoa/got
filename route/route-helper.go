@@ -9,6 +9,14 @@ import (
 	"strings"
 )
 
+func GetRefererFromURL(request *http.Request) string {
+	var referer = request.URL.Query()["referer"]
+	if referer != nil && len(referer) > 0 {
+		return referer[0]
+	}
+	return ""
+}
+
 // return the first non-empty target.
 func RedirectDispatch(targets ...string) *exit.Exit {
 	for _, target := range targets {

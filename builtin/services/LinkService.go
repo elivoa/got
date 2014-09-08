@@ -1,11 +1,13 @@
-package service
+package services
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/elivoa/got/core/lifecircle"
 	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/core/lifecircle"
 )
+
+var Link = new(LinkService)
 
 type LinkService struct {
 	core.Service
@@ -37,6 +39,30 @@ func (s *LinkService) GeneratePageUrlWithContext(page string, contexts ...interf
 		}
 	}
 	return buffer.String()
+}
+
+func (s *LinkService) GeneratePageUrlWithContextAndQueryParameters(page string,
+	parameters map[string]interface{}, contexts ...interface{}) string {
+
+	fmt.Println("TODO finish this function's design!")
+
+	url := s.GeneratePageUrlWithContext(page, contexts)
+
+	if nil != parameters && len(parameters) > 0 {
+		var buffer bytes.Buffer
+		var index = 0
+		for key, value := range parameters {
+			if index > 0 {
+				buffer.WriteRune('&')
+			}
+			buffer.WriteString(key)
+			buffer.WriteRune('=')
+			buffer.WriteString(fmt.Sprint(value))
+			index += 1
+		}
+		url = url + "?" + buffer.String()
+	}
+	return url
 }
 
 // for common use.

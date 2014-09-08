@@ -514,7 +514,6 @@ func (p *QueryParser) Query(receiver func(*sql.Rows) (bool, error)) error {
 
 	// 3. execute
 	rows, err := stmt.Query(p.values...)
-	// defer CloseRows(rows)
 	if err != nil {
 		return err
 	}
