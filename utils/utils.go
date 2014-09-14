@@ -130,7 +130,6 @@ func Capitalize(s string) string {
 var valid_earliest_time time.Time
 
 func ValidTime(t time.Time) bool {
-	fmt.Println(t)
 	return t.After(valid_earliest_time)
 }
 

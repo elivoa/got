@@ -46,7 +46,7 @@ func (s *LinkService) GeneratePageUrlWithContextAndQueryParameters(page string,
 
 	fmt.Println("TODO finish this function's design!")
 
-	url := s.GeneratePageUrlWithContext(page, contexts)
+	url := s.GeneratePageUrlWithContext(page, contexts...)
 
 	if nil != parameters && len(parameters) > 0 {
 		var buffer bytes.Buffer

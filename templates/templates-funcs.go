@@ -1,6 +1,6 @@
 /*
 Functions used in tempalte.
-Time-stamp: <[templates-funcs.go] Elivoa @ Saturday, 2014-08-09 18:52:21>
+Time-stamp: <[templates-funcs.go] Elivoa @ Thursday, 2014-09-11 00:15:40>
 
 This is a full list:
 
@@ -27,10 +27,11 @@ var funcMapRegister = template.FuncMap{
 	"eq": equas,
 
 	// date & time
-	"formattime":    FormatTime,
-	"datetime":      DateTime,
-	"date":          Date,
-	"smartdatetime": SmartDateTime,
+	"formattime":         FormatTime,
+	"datetime":           DateTime,
+	"date":               Date,
+	"smartdatetime":      SmartDateTime,
+	"smartvaliddatetime": SmartValidDateTime,
 
 	"prettytime":       BeautyTime,
 	"prettyday":        gxl.PrettyDay,
@@ -122,6 +123,14 @@ func Date(t time.Time) string {
 }
 
 func SmartDateTime(t time.Time) string {
+	return coercion.TimeToString(t)
+}
+
+// if time is invalid such as 0001-00-00..., return empty
+func SmartValidDateTime(t time.Time) string {
+	if !utils.ValidTime(t) {
+		return ""
+	}
 	return coercion.TimeToString(t)
 }
 

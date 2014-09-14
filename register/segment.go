@@ -40,6 +40,10 @@ var conf = config.Config
 // 2. Each kind of page has one ProtonSegment instance. (one path)
 // TODO
 //   - refactor this.
+//   - change to SegmentNode and SegmentCore, Note contains parent and chindren,
+//     core contains inportant and unique information. Such as IsTemplateLoaded,
+//     OR it will fail when parse tempalte.
+//
 //
 type ProtonSegment struct {
 	// as a tree node

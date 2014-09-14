@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Tuesday, 2014-07-22 14:25:14>
+   Time-stamp: <[templates.go] Elivoa @ Wednesday, 2014-09-10 23:53:51>
 */
 package templates
 
@@ -124,6 +124,7 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 
 		if false {
 			fmt.Println("\n==============================================")
+			fmt.Println("Registry is  :", registry)
 			fmt.Println("Cached Time  : ", registry.TemplateLastModifiedTime)
 			fmt.Println("fileinfo Time: ", fileInfo.ModTime())
 			fmt.Println("Are they eq? : ", fileInfo.ModTime() == registry.TemplateLastModifiedTime)
@@ -181,31 +182,59 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 		}
 	}
 
-	// parse tempalte
-	if err = parseTemplate(registry.Identity(), registry.ContentTransfered); err != nil {
-		// TODO: Detailed template parse Error page.
-		panic(err)
-		// panic(fmt.Sprintf("Error when parse template %x", identity))
-	}
+	// fmt.Println("\n\n\n\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	// fmt.Println("parse tempalte: ", registry.Identity())
 
-	blocks := trans.RenderBlocks() // blocks found in template.
-	if blocks != nil {
-		registry.Blocks = map[string]*register.Block{}
-		for blockId, html := range blocks {
-			block := &register.Block{
-				ID:                blockId,
-				ContentTransfered: html,
-			}
-			registry.Blocks[blockId] = block
-			blockKey := fmt.Sprintf("%s%s%s", registry.Identity(), config.SPLITER_BLOCK, blockId)
-			if err = parseTemplate(blockKey, block.ContentTransfered); err != nil {
-				panic(fmt.Sprintf("Error when parse template %x", blockKey))
-			}
+	// parse tempalte
+
+	if _, ok := register.TemplateKeyMap.Keymap[registry.Identity()]; ok {
+		// cached templates
+		fmt.Println("\n\n\n\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+		fmt.Println("cached templates, ignore", registry.Identity())
+	} else {
+		// if not cached.
+		if err = parseTemplate(registry.Identity(), registry.ContentTransfered); err != nil {
+			panic(err)
+
+			if false { // ----------- HIDDEN THINGS ----------------------
+				// ~~ temp ignore the followings. ~~
+				if strings.Index(err.Error(), "redefinition of template") > 0 {
+					if logTemplate.Info() {
+						logTemplate.Printf("[ParseTemplate] ERROR:%v", err)
+					}
+					err = nil
+					// return false, nil
+					// return
+					// ignore all then return. because all tempalte are already registered.
+
+				} else {
+					// TODO: Detailed template parse Error page.
+					panic(err)
+					// panic(fmt.Sprintf("Error when parse template %x", identity))
+				}
+			} // ----------- HIDDEN THINGS ----------------------
 
 		}
+
+		blocks := trans.RenderBlocks() // blocks found in template.
+		if blocks != nil {
+			registry.Blocks = map[string]*register.Block{}
+			for blockId, html := range blocks {
+				block := &register.Block{
+					ID:                blockId,
+					ContentTransfered: html,
+				}
+				registry.Blocks[blockId] = block
+				blockKey := fmt.Sprintf("%s%s%s", registry.Identity(), config.SPLITER_BLOCK, blockId)
+				if err = parseTemplate(blockKey, block.ContentTransfered); err != nil {
+					panic(fmt.Sprintf("Error when parse template %x", blockKey))
+				}
+
+			}
+		}
+		// add to cache
+		register.TemplateKeyMap.Keymap[registry.Identity()] = registry
 	}
-	// add to cache
-	register.TemplateKeyMap.Keymap[registry.Identity()] = registry
 	return
 }
 
