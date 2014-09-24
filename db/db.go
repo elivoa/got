@@ -1,7 +1,7 @@
 /*
  This is the latest version of db
 
- Time-stamp: <[db.go] Elivoa @ Saturday, 2014-05-24 18:22:27>
+ Time-stamp: <[db.go] Elivoa @ Tuesday, 2014-09-23 22:50:31>
 */
 package db
 
@@ -18,7 +18,7 @@ var connections int = 0
 // Connect create a connection to database
 func Connect() (*sql.DB, error) {
 	var c = config.Config
-	connstring := fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=true&loc=Local&timeout=30s",
+	connstring := fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=true&loc=UTC&timeout=30s",
 		c.DBUser, c.DBPassword, c.DBName)
 	conn, err := sql.Open("mysql", connstring)
 	if err != nil {

@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle.go] Elivoa @ Thursday, 2014-08-07 19:10:44>
+   Time-stamp: <[lifecircle.go] Elivoa @ Sunday, 2014-09-21 00:59:34>
 */
 
 package lifecircle
@@ -380,7 +380,7 @@ func (lcc *LifeCircleControl) _callEventWithURLParameters(name string, contexts 
 			}
 		}
 
-		debuglog("-730- [flow] Call Event: %v::%v%v().", lcc.page.name, name, contexts)
+		// debuglog("-730- [flow] Call Event: %v::%v%v().", lcc.page.name, name, contexts)
 		lcc.returns = SmartReturn(method.Call(parameters))
 		lcc.HandleBreakReturn()
 		return true

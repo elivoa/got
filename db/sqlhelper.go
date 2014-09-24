@@ -718,6 +718,7 @@ func appendWhereClouse(sql *bytes.Buffer, alias string, conditions ...*condition
 				sql.WriteString(" and ")
 			}
 			sql.WriteString(con.field)
+			values = append(values, con.values...)
 		}
 
 		thefirst = false
