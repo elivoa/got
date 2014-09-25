@@ -43,6 +43,22 @@ func Get(sessionId string, key interface{}) interface{} {
 	return nil
 }
 
+func GetString(sessionId string, key interface{}) string {
+	if ifValue := Get(sessionId, key); ifValue != nil {
+		return ifValue.(string)
+	} else {
+		return ""
+	}
+}
+
+func GetInt(sessionId string, key interface{}) int {
+	if ifValue := Get(sessionId, key); ifValue != nil {
+		return ifValue.(int)
+	} else {
+		return 0
+	}
+}
+
 // GetOk returns stored value and presence state like multi-value return of map access.
 func GetOk(sessionId string, key interface{}) (interface{}, bool) {
 	mutex.RLock()

@@ -82,3 +82,16 @@ func NewAccessDeniedError(message string) *AccessDeniedError {
 func NewAccessDeniedErrorf(message string, v ...interface{}) *AccessDeniedError {
 	return &AccessDeniedError{CoreError{Message: fmt.Sprintf(message, v...)}}
 }
+
+// --------------------------------------------------------------------------------
+type TimeZoneNotFoundError struct {
+	CoreError
+}
+
+func NewTimeZoneNotFoundError(message string) *TimeZoneNotFoundError {
+	return &TimeZoneNotFoundError{CoreError{Message: message}}
+}
+
+func NewTimeZoneNotFoundErrorf(message string, v ...interface{}) *TimeZoneNotFoundError {
+	return &TimeZoneNotFoundError{CoreError{Message: fmt.Sprintf(message, v...)}}
+}

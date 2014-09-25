@@ -1,6 +1,6 @@
 /*
 Functions used in tempalte.
-Time-stamp: <[templates-funcs.go] Elivoa @ Thursday, 2014-09-11 00:15:40>
+Time-stamp: <[templates-funcs.go] Elivoa @ Friday, 2014-09-26 02:21:06>
 
 This is a full list:
 
