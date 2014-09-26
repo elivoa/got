@@ -128,6 +128,7 @@ var (
 	PAGE_REDIRECT_KEY = "__page_redirect__"
 
 	USER_TOKEN_SESSION_KEY string = "USER_TOKEN_SESSION_KEY"
+	TIMEZONE_SESSION_KEY          = "USER_TIMEZONE_KEY"
 )
 
 // framework level configs. Don't chagne these.
