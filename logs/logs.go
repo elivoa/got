@@ -73,8 +73,9 @@ func init() {
 	InitLogger("GOT:PageFlow", "", Trace)
 	InitLogger("GOT:EventCall", "", Trace)
 	InitLogger("URL Lookup", "", Info)
-	InitLogger("ComponentFLow", "", Trace)
+	InitLogger("ComponentFLow", "", Error)
 	InitLogger("Route", "", Trace)
 	InitLogger("Return", "", Info)
+	InitLogger("Log Template", "", Error)
 	InitLogger(LOGGER_INJECTION_VALUE_COERCION, "", Trace)
 }

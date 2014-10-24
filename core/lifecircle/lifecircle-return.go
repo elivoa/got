@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-return.go] Elivoa @ Thursday, 2014-08-07 19:11:08>
+   Time-stamp: <[lifecircle-return.go] Elivoa @ Monday, 2014-10-20 19:53:07>
 */
 package lifecircle
 
@@ -51,7 +51,7 @@ var logReturn = logs.Get("Return")
 // event call returns, should be locally
 func SmartReturn(returns []reflect.Value) *exit.Exit {
 
-	debuglog("... - [route.Return] handle return  '%v'", returns)
+	// debuglog("... - [route.Return] handle return  '%v'", returns)
 
 	// returns nothing equals return true
 	if returns == nil || len(returns) == 0 {

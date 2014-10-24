@@ -7,6 +7,7 @@ import (
 	"github.com/elivoa/got/coreservice/coercion"
 	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/utils"
+	"github.com/gorilla/schema"
 	"reflect"
 	"strconv"
 	"strings"
@@ -289,8 +290,17 @@ func InjectValues(proton core.Protoner, data map[string][]string) {
 	if _, ok := data["t:id"]; ok {
 		delete(data, "t:id")
 	}
+	fmt.Printf("converting %v into %v\n", data, proton)
 	if err := coercion.SchemaDecoder.Decode(proton, data); err != nil {
-		panic(err) // TODO:  more specific users.
+		if multierr, ok := err.(schema.MultiError); ok {
+			fmt.Println("\n\n\n============== This is an MultiError =====================")
+			for errkey, e := range multierr {
+				fmt.Printf("> %s : %v\n", errkey, e)
+			}
+			panic(multierr)
+		} else {
+			panic(err) // TODO:  more specific users.
+		}
 	}
 }
 

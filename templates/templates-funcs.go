@@ -1,6 +1,6 @@
 /*
 Functions used in tempalte.
-Time-stamp: <[templates-funcs.go] Elivoa @ Friday, 2014-09-26 02:21:06>
+Time-stamp: <[templates-funcs.go] Elivoa @ Monday, 2014-10-13 12:19:41>
 
 This is a full list:
 
@@ -45,8 +45,9 @@ var funcMapRegister = template.FuncMap{
 	"truncate": utils.TrimTruncate,
 
 	// system
-	"refer":  GetReferUrl, // get page's refer url, usually used to go back.
-	"encode": EncodeContext,
+	"refer":   GetReferUrl, // get page's refer url, usually used to go back.
+	"referer": GetReferUrl, // get page's refer url, usually used to go back.
+	"encode":  EncodeContext,
 
 	// steal from stackflow
 	"attr": func(s string) template.HTMLAttr { return template.HTMLAttr(s) },

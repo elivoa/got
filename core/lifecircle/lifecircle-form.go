@@ -33,7 +33,7 @@ func (lcc *LifeCircleControl) InjectFormValues() {
 
 	// debug print
 	if debug.FLAG_print_form_submit_details && lcc.page.kind == core.PAGE {
-		debug.PrintFormMap("~ 1 ~ Request.Form", lcc.r.Form)
+		debug.PrintFormMap("~ 1 ~ Request.Form", lcc.r.PostForm)
 	}
 
 	// 为了迎合gorilla/schema的奇葩要求，这里需要转换格式为：FormData
@@ -50,7 +50,7 @@ func (lcc *LifeCircleControl) InjectFormValues() {
 	// 2) Parse array in form
 	data := map[string][]string{} // stores transfered FormData
 
-	for path, formValue := range lcc.r.Form {
+	for path, formValue := range lcc.r.PostForm {
 
 		// Get something from cache.
 		// is path in name Attribute need translate to "x.y.1.z" format
