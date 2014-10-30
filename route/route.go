@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 )
 
 var (
@@ -31,6 +32,12 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	// 1. skip special resources. TODO Expand to config. // TODO better this
 	if url == "/favicon.ico" {
 		return
+	}
+
+	var starttime time.Time
+	if config.ROUTE_PRINT_TIME {
+		fmt.Println(">>> Start Logging time. now is: ", time.Now())
+		starttime = time.Now()
 	}
 
 	printAccessHeader(r)
@@ -50,7 +57,11 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 		// clear request scope data store.:: should clear context here? Where to?
 		context.Clear(r)
 
+		if config.ROUTE_PRINT_TIME {
+			fmt.Println(">>> Request Execution Time: ", time.Now().Sub(starttime))
+		}
 		printAccessFooter(r)
+
 		// this route is ended here.
 	}()
 	// --------  Routing...  --------------------------------------------------------------

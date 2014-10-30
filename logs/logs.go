@@ -78,4 +78,5 @@ func init() {
 	InitLogger("Return", "", Info)
 	InitLogger("Log Template", "", Error)
 	InitLogger(LOGGER_INJECTION_VALUE_COERCION, "", Trace)
+	InitLogger("SQL:Print", "", Trace)
 }

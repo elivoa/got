@@ -21,11 +21,14 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"github.com/elivoa/got/logs"
 	"github.com/elivoa/gxl"
 	"strings"
 )
 
 // ________________________________________
+
+var sqllogger = logs.Get("SQL:Print")
 
 // Entities cache.
 // TODO: thread safe? need lock?
@@ -488,14 +491,14 @@ func (p *QueryParser) QueryOne(receiver func(*sql.Row) error) error {
 func (p *QueryParser) Query(receiver func(*sql.Rows) (bool, error)) error {
 	p.Prepare()
 
-	if true {
-		fmt.Println("================= SQL Statement and it's values =================")
-		debuglog("Query", "\"%v\"", p.sql)
-		fmt.Print("Param: ")
+	if sqllogger.Info() {
+		sqllogger.Printf("------------- SQL ----------------\n  %s\n", p.sql)
+		// fmt.Println("================= SQL Statement and it's values =================")
+		// debuglog("Query", "\"%v\"", p.sql)
+		sqllogger.Print("  Param: \n")
 		for idx, v := range p.values {
-			fmt.Printf("[%d:%v] ", idx, v)
+			sqllogger.Printf("[%d: %v] ", idx, v)
 		}
-		fmt.Print("")
 	}
 
 	// 1. get connection

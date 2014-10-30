@@ -290,7 +290,7 @@ func InjectValues(proton core.Protoner, data map[string][]string) {
 	if _, ok := data["t:id"]; ok {
 		delete(data, "t:id")
 	}
-	fmt.Printf("converting %v into %v\n", data, proton)
+	// fmt.Printf("converting %v into %v\n", data, proton)
 	if err := coercion.SchemaDecoder.Decode(proton, data); err != nil {
 		if multierr, ok := err.(schema.MultiError); ok {
 			fmt.Println("\n\n\n============== This is an MultiError =====================")

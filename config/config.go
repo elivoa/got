@@ -131,7 +131,8 @@ var (
 	TIMEZONE_SESSION_KEY          = "USER_TIMEZONE_KEY"
 )
 
-// framework level configs. Don't chagne these.
+// Framework level configs.
+// Warrning: Change this will affact all templates. Don't chagne these.
 var (
 	SPLITER_BLOCK            = ":"
 	SPLITER_EMBED_COMPONENTS = "."
@@ -162,4 +163,9 @@ var (
 var (
 	ProductionMode = false // full debug information when debug.
 	ReloadTemplate = true
+)
+
+// Debug Output Settings;
+var (
+	ROUTE_PRINT_TIME = true
 )
