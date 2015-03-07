@@ -39,14 +39,21 @@ func (r *Exit) IsReturnsFalse() bool { return r.ExitType == "bool" && r.Value ==
 
 // ---- Exit Helper 1 --------
 
-func TrueExit() *Exit                   { return &Exit{"bool", true} }
-func FalseExit() *Exit                  { return &Exit{"bool", false} }
+var (
+	_trueExit  = &Exit{"bool", true}
+	_falseExit = &Exit{"bool", false}
+)
+
+func TrueExit() *Exit                   { return _trueExit }
+func FalseExit() *Exit                  { return _falseExit }
 func Bool(b bool) *Exit                 { return &Exit{"bool", b} }
 func Redirect(url interface{}) *Exit    { return &Exit{"redirect", url} }
 func Forward(url interface{}) *Exit     { return &Exit{"forward", url} }
 func Template(tpl interface{}) *Exit    { return &Exit{"template", tpl} }
-func RenderText(text interface{}) *Exit { return &Exit{"text", text} }
-func RenderJson(json interface{}) *Exit { return &Exit{"json", json} }
+func RenderText(text interface{}) *Exit { return &Exit{"text", text} } // use Text
+func RenderJson(json interface{}) *Exit { return &Exit{"json", json} } // use Json
+func Text(text interface{}) *Exit       { return &Exit{"text", text} }
+func Json(json interface{}) *Exit       { return &Exit{"json", json} }
 func Error(err interface{}) *Exit       { return &Exit{"error", err} }
 
 func DownloadFile(mime string, filename string, data interface{}) *Exit {
