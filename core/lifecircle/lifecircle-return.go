@@ -1,9 +1,10 @@
 /*
-   Time-stamp: <[lifecircle-return.go] Elivoa @ Monday, 2014-10-20 19:53:07>
+   Time-stamp: <[lifecircle-return.go] Elivoa @ Wednesday, 2015-03-25 15:10:09>
 */
 package lifecircle
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/elivoa/got/config"
@@ -132,6 +133,15 @@ func (lcc *LifeCircleControl) HandleBreakReturn() {
 
 	case "json":
 		lcc.return_text("text/json", r.Value)
+
+	case "marshaljson":
+		// marshal object into json.
+		jsonbytes, err := json.Marshal(r.Value)
+		if err != nil {
+			panic(err)
+		}
+		jsonstr := string(jsonbytes)
+		lcc.return_text("text/json", jsonstr)
 
 	case "download":
 		if pair, ok := r.Value.([]interface{}); ok && len(pair) == 3 {

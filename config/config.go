@@ -133,6 +133,8 @@ var (
 
 // Framework level configs.
 // Warrning: Change this will affact all templates. Don't chagne these.
+
+// TODO need some examples.
 var (
 	SPLITER_BLOCK            = ":"
 	SPLITER_EMBED_COMPONENTS = "."

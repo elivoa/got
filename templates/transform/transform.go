@@ -2,7 +2,7 @@
 
 Transform tapestry like html page into go-template like ones. Keep it functions well.
 
-  Time-stamp: <[transform.go] Elivoa @ Tuesday, 2014-07-22 14:20:27>
+  Time-stamp: <[transform.go] Elivoa @ Friday, 2015-03-20 13:11:50>
   TODO remove this package.
 
 Tapestry template like components:
@@ -152,7 +152,6 @@ func (t *Transformater) Parse(reader io.Reader) *Transformater {
 				parent.closed = true
 				parent = parent.parent
 			} else {
-				// fmt.Println(">>>+++++++ ", node)
 
 				node.parent = parent // only set parent will not link the node to the tree.
 				temp := node
@@ -169,7 +168,6 @@ func (t *Transformater) Parse(reader io.Reader) *Transformater {
 						break
 					} else {
 						if temp.children != nil {
-							// fmt.Println("    > ++++++++++++++++++ move children up!", temp)
 							// tp := []*Node{}
 							for _, c := range temp.children {
 								// fmt.Println("      > move <<< ", c.tagName, ";", c.html.String(), ">>>")
@@ -572,13 +570,6 @@ func (t *Transformater) RenderBlocks() map[string]string {
 
 // variables
 var printValueRegex, _ = regexp.Compile("^(.*){{(.*)}}$")
-
-// func (t *Transformater) Render() string {
-// 	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-// 	fmt.Println(t.b.String())
-// 	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=+++")
-// 	return t.b.String()
-// }
 
 // ---- utils --------------------------------------------------------------------------------
 

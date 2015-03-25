@@ -54,6 +54,7 @@ func RenderText(text interface{}) *Exit { return &Exit{"text", text} } // use Te
 func RenderJson(json interface{}) *Exit { return &Exit{"json", json} } // use Json
 func Text(text interface{}) *Exit       { return &Exit{"text", text} }
 func Json(json interface{}) *Exit       { return &Exit{"json", json} }
+func MarshalJson(inf interface{}) *Exit { return &Exit{"marshaljson", inf} } // add 2015-03-25
 func Error(err interface{}) *Exit       { return &Exit{"error", err} }
 
 func DownloadFile(mime string, filename string, data interface{}) *Exit {

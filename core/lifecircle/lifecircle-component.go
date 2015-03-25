@@ -1,17 +1,17 @@
 /*
-   Time-stamp: <[lifecircle-component.go] Elivoa @ Saturday, 2014-07-19 18:12:56>
+   Time-stamp: <[lifecircle-component.go] Elivoa @ Monday, 2015-03-23 15:55:34>
 */
 package lifecircle
 
 import (
 	"fmt"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/templates"
 	"github.com/elivoa/got/utils"
-	"github.com/elivoa/got/core"
 	"html/template"
 	"path"
 	"reflect"
