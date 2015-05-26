@@ -157,13 +157,15 @@ var (
 
 // logic configs
 var (
-	LIST_PAGE_SIZE = 20
+	LIST_PAGE_SIZE = 20 // items list per-page.
 )
 
 // if true, check file if modified each time call an template render.
 // This will be an performance loss. TODO: Should be monitor file change and reparse if chagne.
 var (
 	ProductionMode = false // full debug information when debug.
+
+	// Reload templates need more work to finish.
 	ReloadTemplate = true
 )
 

@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Wednesday, 2014-09-10 23:53:51>
+   Time-stamp: <[templates.go] Elivoa @ Sunday, 2015-05-24 23:43:26>
 */
 package templates
 
@@ -23,7 +23,7 @@ var TemplateInitialized bool = false
 
 func FinalInitialize() {
 	TemplateInitialized = true
-	Engine.template.Funcs(funcMapRegister)
+	Engine.template.Funcs(buildFuncMap())
 }
 
 // Engine instance.

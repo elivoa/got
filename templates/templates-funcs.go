@@ -1,6 +1,6 @@
 /*
 Functions used in tempalte.
-Time-stamp: <[templates-funcs.go] Elivoa @ Monday, 2014-10-13 12:19:41>
+Time-stamp: <[templates-funcs.go] Elivoa @ Sunday, 2015-05-24 23:56:51>
 
 This is a full list:
 
@@ -22,38 +22,81 @@ import (
 )
 
 // something to register func map;
-var funcMapRegister = template.FuncMap{
-	// deprecated
-	"eq": equas,
+var funcMapRegister = template.FuncMap{}
 
-	// date & time
-	"formattime":         FormatTime,
-	"datetime":           DateTime,
-	"date":               Date,
-	"smartdatetime":      SmartDateTime,
-	"smartvaliddatetime": SmartValidDateTime,
-
-	"prettytime":       BeautyTime,
-	"prettyday":        gxl.PrettyDay,
-	"prettycurrency":   PrettyCurrency,
-	"prettycurrency32": PrettyCurrency32,
-
-	"now":       func() time.Time { return time.Now() },
-	"validtime": utils.ValidTime,
-
-	// strings
-	"truncate": utils.TrimTruncate,
-
-	// system
-	"refer":   GetReferUrl, // get page's refer url, usually used to go back.
-	"referer": GetReferUrl, // get page's refer url, usually used to go back.
-	"encode":  EncodeContext,
-
-	// steal from stackflow
-	"attr": func(s string) template.HTMLAttr { return template.HTMLAttr(s) },
-	"safe": func(s string) template.HTML { return template.HTML(s) },
+func buildFuncMap() template.FuncMap {
+	addToFuncMac(
+		registerDateTimeFunc(),
+		registerSystemFunc(),
+		registerMathFunc(),
+		registerMiscFunc(),
+	)
+	return funcMapRegister
 }
 
+func addToFuncMac(fms ...template.FuncMap) {
+	if nil != fms {
+		for _, fm := range fms {
+			if nil != fm {
+				for k, v := range fm {
+					funcMapRegister[k] = v
+				}
+			}
+		}
+	}
+}
+
+func registerDateTimeFunc() template.FuncMap {
+	return template.FuncMap{
+		"formattime":         FormatTime,
+		"datetime":           DateTime,
+		"date":               Date,
+		"smartdatetime":      SmartDateTime,
+		"smartvaliddatetime": SmartValidDateTime,
+		"smartvaliddate":     SmartValidDate,
+
+		"prettytime":       BeautyTime,
+		"prettyday":        gxl.PrettyDay,
+		"prettycurrency":   PrettyCurrency,
+		"prettycurrency32": PrettyCurrency32,
+
+		"now":       func() time.Time { return time.Now() },
+		"validtime": utils.ValidTime,
+	}
+}
+
+func registerSystemFunc() template.FuncMap {
+	return template.FuncMap{
+		"refer":   GetReferUrl, // get page's refer url, usually used to go back.
+		"referer": GetReferUrl, // get page's refer url, usually used to go back.
+		"encode":  EncodeContext,
+	}
+}
+
+func registerMiscFunc() template.FuncMap {
+	return template.FuncMap{
+		// steal from stackflow
+		"attr": func(s string) template.HTMLAttr { return template.HTMLAttr(s) },
+		"safe": func(s string) template.HTML { return template.HTML(s) },
+
+		// deprecated
+		"eq": equas,
+
+		// strings
+		"truncate": utils.TrimTruncate,
+	}
+}
+
+func registerMathFunc() template.FuncMap {
+	return template.FuncMap{
+		"opposite":        func(n int) int { return -n },
+		"opposite64":      func(n int64) int64 { return -n },
+		"oppositefloat64": func(n float64) float64 { return -n },
+	}
+}
+
+// Provide customized function by calling this function in Module
+// Can override built-in functions.
 func RegisterFunc(funcName string, funcValue interface{}) {
 	if TemplateInitialized == true {
 		panic("Can't call RegisterFunc() after template is initialized.")
@@ -133,6 +176,14 @@ func SmartValidDateTime(t time.Time) string {
 		return ""
 	}
 	return coercion.TimeToString(t)
+}
+
+// if time is invalid such as 0001-00-00..., return empty
+func SmartValidDate(t time.Time) string {
+	if !utils.ValidTime(t) {
+		return ""
+	}
+	return coercion.Date(t)
 }
 
 func PrettyCurrency(d float64) string {

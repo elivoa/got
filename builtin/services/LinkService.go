@@ -1,3 +1,8 @@
+/*
+GOT framework builtin services.
+
+Time-stamp: <[LinkService.go] Elivoa @ Wednesday, 2015-04-22 16:31:53>
+*/
 package services
 
 import (
@@ -5,6 +10,9 @@ import (
 	"fmt"
 	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/core/lifecircle"
+	"github.com/elivoa/got/coreservice/coercion"
+	"github.com/elivoa/got/utils"
+	"time"
 )
 
 var Link = new(LinkService)
@@ -52,13 +60,36 @@ func (s *LinkService) GeneratePageUrlWithContextAndQueryParameters(page string,
 		var buffer bytes.Buffer
 		var index = 0
 		for key, value := range parameters {
-			if index > 0 {
-				buffer.WriteRune('&')
+			var (
+				strValue string
+				usethis  bool = true
+			)
+			switch value.(type) {
+			case time.Time:
+				t := value.(time.Time)
+				if utils.IsValidTime(t) {
+					strValue = coercion.DateTime(t)
+				} else {
+					strValue = ""
+					usethis = false
+				}
+			default:
+				if nil == value {
+					usethis = false
+				} else {
+					strValue = fmt.Sprint(value)
+				}
 			}
-			buffer.WriteString(key)
-			buffer.WriteRune('=')
-			buffer.WriteString(fmt.Sprint(value))
-			index += 1
+
+			if usethis {
+				if index > 0 {
+					buffer.WriteRune('&')
+				}
+				buffer.WriteString(key)
+				buffer.WriteRune('=')
+				buffer.WriteString(strValue)
+				index += 1
+			}
 		}
 		url = url + "?" + buffer.String()
 	}

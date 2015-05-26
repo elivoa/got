@@ -129,7 +129,12 @@ func Capitalize(s string) string {
 
 var valid_earliest_time time.Time
 
+// deprecated, use IsValidTime instead.
 func ValidTime(t time.Time) bool {
+	return t.After(valid_earliest_time)
+}
+
+func IsValidTime(t time.Time) bool {
 	return t.After(valid_earliest_time)
 }
 
@@ -177,4 +182,15 @@ func PageCursorMessage(current, total, pageItems int, lang string) string {
 
 func Floor(n float32) float32 {
 	return float32(math.Floor(float64(n)*100) / 100)
+}
+
+// TODO need doc.
+func NatureTimeRange(years, months, days int) (start, end time.Time) {
+	natureEnd := time.Now().AddDate(0, 0, 1).UTC().Truncate(time.Hour * 24)
+	natureStart := natureEnd.AddDate(years, months, days-1)
+	return natureStart, natureEnd
+}
+
+func NatureTimeTodayEnd() (t time.Time) {
+	return time.Now().AddDate(0, 0, 1).UTC().Truncate(time.Hour * 24)
 }
