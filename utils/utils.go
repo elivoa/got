@@ -68,7 +68,7 @@ func CurrentBasePath() string {
 		panic("Can't get current path!")
 	}
 	currentPath := path.Join(path.Dir(file))
-	fmt.Println("currentpath is : ", currentPath)
+	//	fmt.Println("currentpath is : ", currentPath)
 	return BasePath(currentPath)
 	// for _, gopath := range filepath.SplitList(build.Default.GOPATH) {
 	// 	srcPath := filepath.Join(gopath, "src")

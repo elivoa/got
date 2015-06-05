@@ -28,7 +28,6 @@ func NewApp(binPath string) *App {
 // Return a command to run the app server using the current configuration.
 func (a *App) Cmd() AppCmd {
 	// fmt.Println("binarypath is ", a.BinaryPath)
-	fmt.Println("port is ", a.Port)
 	a.cmd = NewAppCmd(a.BinaryPath, a.Port)
 	return a.cmd
 }

@@ -1,5 +1,5 @@
 /*
-  Time-stamp: <[got.go] Elivoa @ Friday, 2014-07-25 16:20:46>
+  Time-stamp: <[got.go] Elivoa @ Friday, 2015-06-05 23:17:49>
 
   TODO:
     - Add Hooks: OnAppStart, AfterAppStart, ...
@@ -53,8 +53,6 @@ func BuildStart() {
 	// TODO: Make my own startup codes.
 	app.Port = config.Config.Port
 
-	fmt.Println("TODO: Why port can't be set correctly.   // set app.port to ", config.Config.Port)
-
 	fmt.Println("\n>>>> Run Application")
 
 	appcmd := app.Cmd()
@@ -76,6 +74,8 @@ func Start() {
 	welcome()
 
 	// processing modules
+	fmt.Println("\n!> GOT: Register Modules:")
+
 	var startupModuleKey string
 	var startupModule *core.Module
 	for key, module := range register.Modules.Map() {
@@ -86,22 +86,22 @@ func Start() {
 			continue
 		}
 
-		fmt.Println("!> GOT: Register Module: ", key)
+		fmt.Printf("    [Module] %s\n", key)
 		if module.Register != nil {
 			module.Register()
 		}
 	}
 	// register startup module
-	fmt.Println("!> GOT: Register Module: ", startupModuleKey, "(Startup)")
+	fmt.Printf("    [Module] %s (Startup)\n", startupModuleKey)
 	if startupModule.Register != nil {
 		startupModule.Register()
 	}
 
-	fmt.Println("\n!> GOT:  Register static file paths:\n----------------------------------------")
+	fmt.Println("\n!> GOT: Register static file paths:")
 
 	// mapping static paths.
 	for _, pair := range config.Config.StaticResources {
-		fmt.Printf("\t%s -> %s (dir: %s)\n", pair[0], pair[1], http.Dir(pair[1]))
+		fmt.Printf("    [Static Path] %s -> %s (dir: %s)\n", pair[0], pair[1], http.Dir(pair[1]))
 		http.Handle(pair[0],
 			http.StripPrefix(pair[0], http.FileServer(http.Dir(pair[1]))),
 		)
@@ -113,7 +113,8 @@ func Start() {
 	// got url matcher
 	http.HandleFunc("/", route.RouteHandler)
 
-	fmt.Println(">> got started...")
+	fmt.Printf("\n>> Server Started. Port:%d\n", Config.Port)
+	fmt.Printf("%s ❯ ", startupModuleKey)
 
 	// The second parameter is to clear gorilla/session to prevent memory leak
 	http.ListenAndServe(fmt.Sprintf(":%v", Config.Port), context.ClearHandler(http.DefaultServeMux))
@@ -123,10 +124,9 @@ func Start() {
 func welcome() {
 	fmt.Println("")
 	fmt.Println("``````````````````````````````````````````````````")
-	fmt.Println("`  GOT WebFramework     (EARLY BUILD 3)          `")
+	fmt.Println("`  GOT WebFramework     (EARLY BUILD 4)          `")
 	fmt.Println("`                                                `")
 	fmt.Println("``````````````````````````````````````````````````")
-	fmt.Printf("Server Started, Listen localhost:%v\n\n", Config.Port)
 	// PrintRegistry()
 }
 
