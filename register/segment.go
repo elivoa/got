@@ -122,7 +122,7 @@ func (s *ProtonSegment) generateIdentity() string {
 		s.StructInfo.StructName,
 	}
 	if s.templateVersion > 0 {
-		term = append(term, "::v", strconv.Itoa(s.templateVersion))
+		term = append(term, "^v", strconv.Itoa(s.templateVersion))
 	}
 	return strings.Join(term, "")
 }

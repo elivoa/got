@@ -18,9 +18,8 @@
     <range source=".PageNumbers">
       <if test="$.IsCurrentPage .">
         <a href="{{$.CreatePagerLink .}}" class="cur">{{.PageNumber}}</a>
-        <else>
-          <a href="{{$.CreatePagerLink .}}">{{.PageNumber}}</a>
-        </else>
+        <else />
+        <a href="{{$.CreatePagerLink .}}">{{.PageNumber}}</a>
       </if>
     </range>
   </span>
