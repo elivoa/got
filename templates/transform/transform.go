@@ -1,17 +1,13 @@
-/**
-
+/*
 Transform tapestry like html page into go-template like ones. Keep it functions well.
 
-  Time-stamp: <[transform.go] Elivoa @ Friday, 2015-03-20 13:11:50>
+  Time-stamp: <[transform.go] Elivoa @ Tuesday, 2015-06-16 13:23:13>
   TODO remove this package.
+  TODO Doc this well.
+  TODO Error Report: add line and column when error occured.
 
 Tapestry template like components:
   <t:a href="chedan" />
-
-
-
-
-
 
 
 
@@ -91,6 +87,8 @@ func (t *Transformater) Parse(reader io.Reader) *Transformater {
 	t.tree = root
 	parent := root
 
+	t.blocks = map[string]*Node{} // init for blocks;
+
 	for {
 		tt := z.Next()
 
@@ -141,6 +139,10 @@ func (t *Transformater) Parse(reader io.Reader) *Transformater {
 				node.html.WriteString("{{end}}")
 			case "hide":
 				node.html.WriteString("*/}}")
+			case "body":
+				// At the end of body, append a component to process page bootstrap things.
+				node.html.Write(zraw)
+				// TODO append document
 			default:
 				node.html.Write(zraw)
 			}
@@ -180,67 +182,25 @@ func (t *Transformater) Parse(reader io.Reader) *Transformater {
 				}
 			}
 
-		// case html.CommentToken:
-		// 	// ignore all comments
+		// case html.CommentToken: // ignore all comments
+		// case html.DoctypeToken: // ignore
 		// case html.DoctypeToken:
-		// 	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", z.Raw())
+		// 	node.html.Write(zraw)
 		case html.ErrorToken:
-			if z.Err().Error() == "EOF" {
+			if z.Err().Error() == "EOF" { // END parsing template.
 
-				// here is the entrance
-				// get blocks from tree.
+				// the second step parsing tempalte; parse t:bock and t:imports;
 				t.parseBlocks()
 
 				return t
 			} else {
 				panic(z.Err().Error())
 			}
-		// case html.DoctypeToken:
-		// 	node.html.Write(zraw)
 		default:
 			node.html.Write(zraw)
 			parent.AddChild(node)
 		}
 	}
-	// can't be here
-	return t
-}
-
-func (t *Transformater) parseBlocks() {
-	t.blocks = map[string]*Node{}
-	t._parseBlocks(t.tree)
-}
-
-func (t *Transformater) _parseBlocks(n *Node) {
-	if n == nil {
-		return
-	}
-	// TODO do something
-	if n.tagName == "t:block" {
-		var found bool = false
-		var id string
-		if n.attrs != nil {
-			for k, v := range n.attrs {
-				if strings.ToLower(k) == "id" {
-					id = string(v)
-					found = true
-					break
-				}
-			}
-		}
-		if !found {
-			panic("Can't find `id` attribute in t:block tag!")
-		}
-
-		t.blocks[id] = n.Detach()
-	} else {
-		if n.children != nil {
-			for _, node := range n.children {
-				t._parseBlocks(node)
-			}
-		}
-	}
-
 }
 
 // processing every start tag()
@@ -255,6 +215,7 @@ func (t *Transformater) processStartTag(node *Node) bool {
 	// collect information
 	bname, hasAttr := t.z.TagName()
 	node.tagName = string(bname) // performance
+
 	var (
 		iscomopnent   bool
 		componentName []byte
@@ -288,6 +249,7 @@ func (t *Transformater) processStartTag(node *Node) bool {
 		}
 		node.attrs = attrs
 	}
+	
 	if iscomopnent {
 		if err = t.transformComponent(node, componentName, elementName, attrs); err == nil {
 			return true
@@ -305,12 +267,10 @@ func (t *Transformater) processStartTag(node *Node) bool {
 		node.html.WriteString("{{else}}")
 	case "hide":
 		node.html.WriteString("{{/*")
-	case "t:import":
-		node.html.WriteString("----------")
-	case "t:block":
-		t.renderBlock(node, attrs)
-	case "t:delegate":
-		t.renderDelegate(node, attrs)
+	case "t:import", "t:block":
+		// process these blocks in the next step;
+	// case "t:delegate":
+	// 	t.renderDelegate(node, attrs)
 	default:
 		if err != nil {
 			panic(err)
@@ -320,8 +280,49 @@ func (t *Transformater) processStartTag(node *Node) bool {
 	return true
 }
 
-func (t *Transformater) renderBlock(node *Node, attrs map[string][]byte) {
-	node.html.WriteString("||delegate some one||")
+// parse blocks 需要解析第二遍；
+// TODO 解析t:imports
+func (t *Transformater) parseBlocks() {
+	t.blocks = map[string]*Node{}
+	t._parseBlocks(t.tree)
+}
+
+func (t *Transformater) _parseBlocks(n *Node) {
+	if n == nil {
+		return
+	}
+	// TODO do something
+	if n.tagName == "t:block" {
+		var foundId bool = false
+		var id string
+		if n.attrs != nil {
+			for k, v := range n.attrs {
+				// TODO add another parameters;
+				if strings.ToLower(k) == "id" {
+					id = string(v)
+					foundId = true
+					break
+				}
+			}
+		}
+		if !foundId {
+			panic("Can't find `id` attribute in t:block tag!")
+		}
+
+		// check id conflict
+		if _, ok := t.blocks[id]; ok {
+			panic(fmt.Sprintf("Block ID Conflict, ID: %s", id))
+		} else {
+			t.blocks[id] = n.Detach()
+		}
+	} else {
+		// go in next
+		if n.children != nil {
+			for _, node := range n.children {
+				t._parseBlocks(node)
+			}
+		}
+	}
 
 }
 

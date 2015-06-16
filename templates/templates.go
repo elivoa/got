@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Sunday, 2015-05-24 23:43:26>
+   Time-stamp: <[templates.go] Elivoa @ Tuesday, 2015-06-16 17:33:20>
 */
 package templates
 
@@ -72,6 +72,15 @@ func (e *TemplateEngine) RenderTemplate(w io.Writer, key string, p interface{}) 
 
 	// TODO: process key, with versions.
 	err := Engine.template.ExecuteTemplate(w, key, p)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *TemplateEngine) RenderBlock(w io.Writer, templateIdentity, blockId string, p interface{}) error {
+	blockKey := fmt.Sprintf("%s%s%s", templateIdentity, config.SPLITER_BLOCK, blockId)
+	err := Engine.template.ExecuteTemplate(w, blockKey, p)
 	if err != nil {
 		return err
 	}
@@ -226,6 +235,7 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 				}
 				registry.Blocks[blockId] = block
 				blockKey := fmt.Sprintf("%s%s%s", registry.Identity(), config.SPLITER_BLOCK, blockId)
+				// fmt.Println("--++", blockKey)
 				if err = parseTemplate(blockKey, block.ContentTransfered); err != nil {
 					panic(fmt.Sprintf("Error when parse template %x", blockKey))
 				}

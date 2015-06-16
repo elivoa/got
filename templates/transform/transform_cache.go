@@ -1,5 +1,6 @@
 /*
 Template cache that contains structor path of protons.
+
 e.g.: /got/status contains TemplateStatus (default id is TemplateStatus).
 */
 package transform

@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle.go] Elivoa @ Sunday, 2014-09-21 00:59:34>
+   Time-stamp: <[lifecircle.go] Elivoa @ Tuesday, 2015-06-16 15:16:48>
 */
 
 package lifecircle
@@ -181,6 +181,10 @@ func (lcc *LifeCircleControl) SetParameters(parameters []string) *LifeCircleCont
 
 func (l *Life) SetRegistry(registry *register.ProtonSegment) {
 	l.registry = registry
+}
+
+func (l *Life) Registry() *register.ProtonSegment {
+	return l.registry
 }
 
 // Call Events, and other events.

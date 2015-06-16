@@ -16,7 +16,7 @@ const (
 	UNKNOWN Kind = iota // invalid
 	PAGE
 	COMPONENT
-	MIXIN
+	MIXIN  // TODO not intend to use;
 	STRUCT // Normal Struct
 )
 

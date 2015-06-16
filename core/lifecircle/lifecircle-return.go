@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-return.go] Elivoa @ Wednesday, 2015-03-25 15:10:09>
+   Time-stamp: <[lifecircle-return.go] Elivoa @ Tuesday, 2015-06-16 14:05:24>
 */
 package lifecircle
 
@@ -87,7 +87,6 @@ func SmartReturn(returns []reflect.Value) *exit.Exit {
 		// now only support (string, string) pair
 		if len(returns) <= 1 {
 			// One String mode:: e.g.: redirect::some_text_output
-			// TODO ...
 			panic("return string must have the second return value. OneStringMode not implemented.")
 		}
 
@@ -103,7 +102,6 @@ func SmartReturn(returns []reflect.Value) *exit.Exit {
 				panic(err)
 			}
 			return exit.Redirect(url) //  &Returns{"redirect", url}
-		// case "template":
 		default:
 			debuglog("[Warrning] return type %v not found!", first.String())
 			panic(fmt.Sprintf("[Warrning] return type %v not found!", first.String()))
@@ -135,8 +133,7 @@ func (lcc *LifeCircleControl) HandleBreakReturn() {
 		lcc.return_text("text/json", r.Value)
 
 	case "marshaljson":
-		// marshal object into json.
-		jsonbytes, err := json.Marshal(r.Value)
+		jsonbytes, err := json.Marshal(r.Value) // marshal object into json.
 		if err != nil {
 			panic(err)
 		}
@@ -219,6 +216,10 @@ func (lcc *LifeCircleControl) HandleBreakReturn() {
 		} else {
 			panic(fmt.Sprintf("Can't forward to this type, %s.", utils.GetRootValue(r.Value).Kind()))
 		}
+
+	case "block":
+		// TODO ...
+
 	}
 }
 

@@ -32,6 +32,7 @@ func (n *Node) AddChild(node *Node) {
 	n.children = append(n.children, node)
 }
 
+// Detach the current node from parent and return it;
 func (n *Node) Detach() *Node {
 	p := n.parent
 	n.parent = nil
@@ -77,53 +78,3 @@ func render(html *bytes.Buffer, n *Node) {
 		}
 	}
 }
-
-// func (n *Node) Render() string {
-// 	var html bytes.Buffer
-// 	render(&html, n, 0)
-// 	return html.String()
-// }
-
-// func render(html *bytes.Buffer, n *Node, level int) {
-// 	if n == nil {
-// 		return
-// 	}
-// 	for i := 0; i < level; i++ {
-// 		html.WriteString("  ")
-// 	}
-// 	// html.WriteString("[")
-// 	// html.WriteString(strconv.Itoa(n.level))
-// 	// if !n.closed {
-// 	// 	html.WriteString("+")
-// 	// }
-// 	// html.WriteString("]")
-
-// 	html.WriteString("+[")
-// 	html.Write(bytes.TrimSpace(n.html.Bytes()))
-// 	html.WriteString("]")
-
-// 	// html.WriteString("  -parent:")
-// 	// if n.parent == nil {
-// 	// 	html.WriteString("nil")
-// 	// } else {
-// 	// 	html.WriteString(n.parent.tagName)
-// 	// }
-
-// 	// if n.children != nil {
-// 	// 	html.WriteString("  -children:")
-// 	// 	html.WriteString("<")
-// 	// 	for _, nn := range n.children {
-// 	// 		html.WriteString(nn.tagName)
-// 	// 		html.WriteString(",")
-// 	// 	}
-// 	// 	html.WriteString(">")
-// 	// }
-
-// 	html.WriteString("\n")
-
-// 	if n.children != nil {
-// 		for _, node := range n.children {
-// 			render(html, node, level+1)
-// 		}
-// 	}
-// }

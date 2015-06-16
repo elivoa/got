@@ -23,12 +23,13 @@ type Exit struct {
 	Value    interface{} // stores values
 }
 
+// only return true or return template is not break;
 func (r *Exit) IsBreakExit() bool {
 	// returns true or nothing
-	if r.ExitType == "bool" && r.Value == true {
+	if r.ExitType == "bool" && r.Value == true { // is bool value true?
 		return false
 	}
-	if r.ExitType == "template" {
+	if r.ExitType == "template" { // is tempalte
 		return false
 	}
 	return true
@@ -54,8 +55,10 @@ func RenderText(text interface{}) *Exit { return &Exit{"text", text} } // use Te
 func RenderJson(json interface{}) *Exit { return &Exit{"json", json} } // use Json
 func Text(text interface{}) *Exit       { return &Exit{"text", text} }
 func Json(json interface{}) *Exit       { return &Exit{"json", json} }
-func MarshalJson(inf interface{}) *Exit { return &Exit{"marshaljson", inf} } // add 2015-03-25
 func Error(err interface{}) *Exit       { return &Exit{"error", err} }
+
+func MarshalJson(inf interface{}) *Exit { return &Exit{"marshaljson", inf} } // add 2015-03-25
+func Block(block interface{}) *Exit     { return &Exit{"block", block} }     // add 2015-06-16
 
 func DownloadFile(mime string, filename string, data interface{}) *Exit {
 	return &Exit{"download", []interface{}{mime, filename, data}}
