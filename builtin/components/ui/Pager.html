@@ -14,27 +14,9 @@
 
 <div class="pager_main">
   <a href="{{$.CreateFirstPagerLink}}">{{.Msg "firstpage"}}</a>
-  <span>
-    <range source=".PageNumbers">
-      <if test="$.IsCurrentPage .">
+  <span><range source=".PageNumbers"><if test="$.IsCurrentPage .">
         <a href="{{$.CreatePagerLink .}}" class="cur">{{.PageNumber}}</a>
         <else />
-        <a href="{{$.CreatePagerLink .}}">{{.PageNumber}}</a>
-      </if>
-    </range>
-  </span>
+        <a href="{{$.CreatePagerLink .}}">{{.PageNumber}}</a></if></range></span>
   <a href="{{$.CreateLastPagerLink}}">{{.Msg "lastpage"}}</a>
 </div>
-
-{{/*<!--
-        <div style="color:#333;display:none" >
-          <strong>DEVELOPMENT MESSAGE:</strong><br>
-          CurrentItem: {{.Current}},<br>
-          Total: {{.Total}},<br>
-          PageItems: {{.PageItems}}<br>
-        </div>
-        --> */}}
-
-<!-- <div style="margin:4px;"> -->
-<!--   {{.PageCursorMessage}} -->
-<!-- </div> -->

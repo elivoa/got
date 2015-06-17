@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle.go] Elivoa @ Tuesday, 2015-06-16 15:16:48>
+   Time-stamp: <[lifecircle.go] Elivoa @ Wednesday, 2015-06-17 01:16:39>
 */
 
 package lifecircle
@@ -77,11 +77,11 @@ type Life struct {
 	embedmap  map[string]*Life // what's this use?
 	//embed     []*Life // not used
 
-	// results
+	// store rendered html.
 	out bytes.Buffer
 
 	// no use?
-	Path string // ???
+	// Path string // ???
 }
 
 // newControl create a new LifeCircleConstrol.

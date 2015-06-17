@@ -1,6 +1,6 @@
 /*
 Functions used in tempalte.
-Time-stamp: <[templates-funcs.go] Elivoa @ Sunday, 2015-05-24 23:56:51>
+Time-stamp: <[templates-funcs.go] Elivoa @ Wednesday, 2015-06-17 11:33:22>
 
 This is a full list:
 
@@ -83,8 +83,8 @@ func registerMiscFunc() template.FuncMap {
 		"eq": equas,
 
 		// strings
-		"truncate": utils.TrimTruncate,
-	}
+		"truncate": utils.TrimTruncate,}
+		   
 }
 
 func registerMathFunc() template.FuncMap {

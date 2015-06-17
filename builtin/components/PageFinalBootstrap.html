@@ -1,0 +1,9 @@
+<if t=".Bootstraps">
+  <!-- PageFinalBootstrap -->  
+</if>
+
+{{with .Bootstraps}}
+
+{{range $k,$v := .HTMLs}} {{$v.HTML}} {{end}}
+
+{{end}}

@@ -1,7 +1,7 @@
 /*
 Transform tapestry like html page into go-template like ones. Keep it functions well.
 
-  Time-stamp: <[transform.go] Elivoa @ Tuesday, 2015-06-16 13:23:13>
+  Time-stamp: <[transform.go] Elivoa @ Wednesday, 2015-06-17 23:27:12>
   TODO remove this package.
   TODO Doc this well.
   TODO Error Report: add line and column when error occured.
@@ -139,10 +139,16 @@ func (t *Transformater) Parse(reader io.Reader) *Transformater {
 				node.html.WriteString("{{end}}")
 			case "hide":
 				node.html.WriteString("*/}}")
+			case "t:import", "t:block":
+				// append nothing, only remove </xxx> tag;
 			case "body":
+				// TODO append page-final-bootstrap component:
+				if err := t.transformComponent(
+					node, []byte("PageFinalBootstrap"), []byte("span"), nil); err != nil {
+					panic(err)
+				}
 				// At the end of body, append a component to process page bootstrap things.
 				node.html.Write(zraw)
-				// TODO append document
 			default:
 				node.html.Write(zraw)
 			}
@@ -184,8 +190,7 @@ func (t *Transformater) Parse(reader io.Reader) *Transformater {
 
 		// case html.CommentToken: // ignore all comments
 		// case html.DoctypeToken: // ignore
-		// case html.DoctypeToken:
-		// 	node.html.Write(zraw)
+		// case html.DoctypeToken: // node.html.Write(zraw)
 		case html.ErrorToken:
 			if z.Err().Error() == "EOF" { // END parsing template.
 
@@ -249,7 +254,7 @@ func (t *Transformater) processStartTag(node *Node) bool {
 		}
 		node.attrs = attrs
 	}
-	
+
 	if iscomopnent {
 		if err = t.transformComponent(node, componentName, elementName, attrs); err == nil {
 			return true
