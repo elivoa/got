@@ -1,7 +1,7 @@
 /*
 Transform tapestry like html page into go-template like ones. Keep it functions well.
 
-  Time-stamp: <[transform.go] Elivoa @ Wednesday, 2015-06-17 23:27:12>
+  Time-stamp: <[transform.go] Elivoa @ Thursday, 2015-06-18 01:14:26>
   TODO remove this package.
   TODO Doc this well.
   TODO Error Report: add line and column when error occured.
@@ -32,8 +32,8 @@ import (
 
 // 同一个Page或者Component应该使用同一个Transformer
 type Transformater struct {
-	tree   *Node // root nopde
-	blocks map[string]*Node
+	tree   *Node            // root node
+	blocks map[string]*Node // blocks in this tempalte
 	z      *html.Tokenizer
 
 	// results

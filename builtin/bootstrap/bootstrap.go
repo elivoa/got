@@ -1,5 +1,4 @@
-// TODO Move to good package.
-package data
+package bootstrap
 
 import (
 	"github.com/elivoa/got/config"
@@ -25,11 +24,8 @@ type PageBootstrapHtmlItem struct {
 	Index int
 }
 
-// functions
-
 func GetBootstraps(req *http.Request) *PageBootstraps {
 	if bts, ok := context.GetOk(req, config.PAGE_FINAL_BOOTSTRAP_CONTEXT_KEY); ok {
-		// TODO: Need to type convertion
 		return bts.(*PageBootstraps)
 	}
 	return nil
@@ -38,7 +34,7 @@ func GetBootstraps(req *http.Request) *PageBootstraps {
 func AddHtml(req *http.Request, uniquekey string, html template.HTML) {
 	var bootstraps *PageBootstraps
 	bts := context.Get(req, config.PAGE_FINAL_BOOTSTRAP_CONTEXT_KEY)
-	if bts == nil { // TODO: Need to type convertion
+	if bts == nil {
 		bootstraps = NewPageBootstraps()
 		context.Set(req, config.PAGE_FINAL_BOOTSTRAP_CONTEXT_KEY, bootstraps)
 	} else {
@@ -46,7 +42,7 @@ func AddHtml(req *http.Request, uniquekey string, html template.HTML) {
 	}
 
 	bootstraps.HTMLs[uniquekey] = &PageBootstrapHtmlItem{
-		Key:   "dsfsdf",
+		Key:   uniquekey,
 		HTML:  html,
 		Index: 0,
 	}

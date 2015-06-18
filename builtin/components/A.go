@@ -7,13 +7,9 @@ import (
 )
 
 /*
-   Select Component Struct
+A Component
 
-   Key is string.
-   Value is string by default.
-
-   TODO:
-     support tag `param:"data"`
+See tapestry component: PageLink, ActionLink
 
 */
 type A struct {
@@ -22,7 +18,7 @@ type A struct {
 	// parameters
 
 	Label     string
-	MainBlock string // TODO
+	MainBlock string // TODO implement this as block;
 	Event     string // event name
 	Page      string // TODO: page, event must have one value.
 

@@ -4,7 +4,7 @@ import (
 	// bs "github.com/elivoa/got/builtin/services" // builtin services
 	"bytes"
 	"fmt"
-	"github.com/elivoa/got/builtin/data"
+	"github.com/elivoa/got/builtin/bootstrap"
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/core/lifecircle"
@@ -15,6 +15,12 @@ import (
 
 /*
 Delegate Component
+
+See tapestry component: Delegate.
+
+Usages:
+  <t:delegate to="block-name" global="true" />
+
 */
 type Delegate struct {
 	core.Component
@@ -40,8 +46,8 @@ func (c *Delegate) Setup() *exit.Exit {
 		// 只需要执行第一个component即可，既然是全局唯一的那么一个页面中所有Component执行的结果应该是一样的，
 		// 并且只需要一个；因此这里只执行第一个即可；
 		var blockUniqueKey string = c.GlobalUniqueKey()
-		if !data.Has(c.Request(), blockUniqueKey) {
-			data.AddHtml(c.Request(), blockUniqueKey, template.HTML(c.executeBlock()))
+		if !bootstrap.Has(c.Request(), blockUniqueKey) {
+			bootstrap.AddHtml(c.Request(), blockUniqueKey, template.HTML(c.executeBlock()))
 		}
 
 	} else {
