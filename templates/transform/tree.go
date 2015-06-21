@@ -78,3 +78,13 @@ func render(html *bytes.Buffer, n *Node) {
 		}
 	}
 }
+
+func (n *Node) GetAttrSafe(attr string) string {
+	if nil != n.attrs {
+		if attrvalue, ok := n.attrs[attr]; ok {
+			return string(attrvalue)
+		}
+
+	}
+	return ""
+}

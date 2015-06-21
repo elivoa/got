@@ -1,0 +1,10 @@
+(____PageHeadBootstrap_replace_to_html____)
+
+<t:block id="page_head_bootstrap_defer_block">
+  {{with .Assets}}
+
+  {{range .OrderedScripts}}<script type="text/javascript" src="{{.SourcePath}}"></script>{{end}}
+  {{range .OrderedStyles}}<link rel="stylesheet" type="text/css" href="{{.SourcePath}}" />{{end}}
+
+  {{end}}
+</t:block>

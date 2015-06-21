@@ -1,9 +1,10 @@
 /*
-   Time-stamp: <[lifecircle-component.go] Elivoa @ Tuesday, 2015-06-16 15:54:14>
+   Time-stamp: <[lifecircle-component.go] Elivoa @ Sunday, 2015-06-21 02:41:04>
 */
 package lifecircle
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/core"
@@ -16,6 +17,7 @@ import (
 	"path"
 	"reflect"
 	"strings"
+	"time"
 )
 
 var cflog = logs.Get("ComponentFLow")
@@ -254,4 +256,93 @@ func (l *Life) renderTemplate() {
 	if err := templates.Engine.RenderTemplate(&l.out, l.registry.Identity(), l.proton); err != nil {
 		panic(err)
 	}
+
+	// PageHeadBootstrap Replace
+	// TODO BIG Performance issue.
+	if l.kind == core.PAGE {
+		var start = time.Now().UnixNano()
+		var dur int64
+		if headbs, ok := l.proton.Embed("PageHeadBootstrap"); ok {
+
+			var blockhtml bytes.Buffer
+			life := headbs.FlowLife().(*Life)
+			if err := templates.Engine.RenderBlock(&blockhtml, life.registry.Identity(),
+				"page_head_bootstrap_defer_block", headbs); err != nil {
+				panic(err)
+			}
+
+			var PLACEHOLDER string = "(____PageHeadBootstrap_replace_to_html____)"
+			newbuf := replaceInBuffer(&l.out, PLACEHOLDER, blockhtml.Bytes())
+			l.out = *newbuf
+
+			// var html string = l.out.String()
+			// if index := strings.Index(html, PLACEHOLDER); index > 0 {
+			// 	var newout bytes.Buffer
+			// 	newout.WriteString(html[:index])
+
+			// 	// debug print time
+			// 	dur = (time.Now().UnixNano() - start)
+			// 	newout.WriteString(fmt.Sprintf("<br/><br/><br/>Head duration is: %d ms", dur/1000))
+			// 	// append final
+			// 	newout.WriteString(html[index+len(PLACEHOLDER):])
+			// 	l.out = newout
+			// }
+		}
+
+		dur = (time.Now().UnixNano() - start)
+		fmt.Println("TTTTTTTTTTTTTTime is (ReplacePageHeadBootStrap!): ",
+			dur/1000, "ms.")
+	}
+}
+
+// Extract to tools.
+func replaceInBuffer(buf *bytes.Buffer, s string, to []byte) *bytes.Buffer {
+	var newbuf bytes.Buffer
+	var err error
+	var c byte
+	var position = 0
+	var cursor = 0
+	var found_first int
+	var matchedbytes = make([]byte, len(s))
+	for err == nil {
+		if c, err = buf.ReadByte(); err != nil {
+			break // eof
+		}
+		// fmt.Printf("outer: char:%s position:%d\n", string(c), position)
+
+		// fmt.Println("c == s[cursor]:  ", string(c), "==", string(s[cursor]), " cursor: ", cursor)
+		if c == s[cursor] || c == s[0] {
+			// fmt.Printf("inner: char:%s position:%d cursor:%d\n", string(c), position, cursor)
+			if cursor == 0 {
+				found_first = position
+			} else if c == s[0] {
+				// special   中途直接重启match e.g.: ((
+				// fmt.Println(">> c == s[0]:  ", string(c), "==", string(s[cursor]), " cursor: ", cursor)
+				newbuf.Write(matchedbytes[:cursor])
+				cursor = 0
+				found_first = position
+			}
+			// fmt.Println("cursor == len(s)-1:  ", cursor, "=?", len(s))
+			if cursor == len(s)-1 { // found match
+				// fmt.Println("Found cursor is: ", cursor, " char is ", string(s[cursor]))
+				newbuf.Write(to)
+				break // found
+			}
+			matchedbytes[cursor] = c
+			// fmt.Println("matchedbytes:", string(matchedbytes))
+			cursor += 1
+		} else if found_first > 0 {
+			// find part, start failed. reset.
+			newbuf.Write(matchedbytes[:cursor])
+			found_first = 0
+			cursor = 0
+		}
+
+		if found_first == 0 { // find part, reset
+			newbuf.WriteByte(c)
+		}
+		position += 1
+	}
+	newbuf.Write(buf.Bytes())
+	return &newbuf
 }

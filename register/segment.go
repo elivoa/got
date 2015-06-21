@@ -59,6 +59,8 @@ type ProtonSegment struct {
 	ContentOrigin     string                    // template's html
 	ContentTransfered string                    // template's transfered html
 	EmbedComponents   map[string]*ProtonSegment // lowercased id
+	assets            *core.AssetSet            // js and css files.
+	combinedAssets    *core.AssetSet            // Combined it's embed assets.
 
 	// Used for debug, when modified a template file, system will reload the tempalte file as veriosn+1.
 	templateVersion          int
@@ -478,6 +480,39 @@ func (s *ProtonSegment) Lookup(url string) (result *LookupResult, err error) {
 	return
 }
 
+// asset helper
+func (s *ProtonSegment) Assets() *core.AssetSet {
+	return s.assets
+}
+
+func (s *ProtonSegment) SetAssets(assetset *core.AssetSet) {
+	s.assets = assetset
+	s.combinedAssets = nil // clear cached combined assets.
+}
+
+// Get CombinedAssets, initialize it first.
+func (s *ProtonSegment) CombinedAssets() *core.AssetSet {
+	if nil == s.combinedAssets {
+		var combinedAssets = core.NewAssetSet()
+		_combine(s, combinedAssets, 0)
+		s.combinedAssets = combinedAssets
+	}
+	return s.combinedAssets
+}
+
+func _combine(currentSeg *ProtonSegment, combinedAssets *core.AssetSet, depth int) {
+	if depth >= 20 {
+		panic("Reach max depth when loop EmbedComponents!")
+	}
+	// do things
+	combinedAssets.CombineAssets(currentSeg.Assets())
+	if nil != currentSeg.EmbedComponents {
+		for _, es := range currentSeg.EmbedComponents {
+			_combine(es, combinedAssets, depth+1)
+		}
+	}
+}
+
 /* ________________________________________________________________________________
    Print Helper
 */
@@ -518,7 +553,8 @@ func (s *ProtonSegment) StringTree(newline string) string {
 }
 
 func (s *ProtonSegment) treeSegment(out *bytes.Buffer, segmentName string, segment *ProtonSegment, newline string) {
-	out.WriteString(fmt.Sprintf("+ %v >> %v%s", segment.ToString(segmentName), segment.StructInfo, newline))
+	out.WriteString(fmt.Sprintf("+ %v >> %v ||<strong>%s</strong> %s",
+		segment.ToString(segmentName), segment.StructInfo, segment.EmbedComponents, newline))
 	for segName, seg := range s.Children {
 		for i := 0; i <= seg.Level; i++ {
 			out.WriteString("  ")

@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Tuesday, 2015-06-16 17:33:20>
+   Time-stamp: <[templates.go] Elivoa @ Sunday, 2015-06-21 01:02:13>
 */
 package templates
 
@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/templates/transform"
@@ -22,11 +23,12 @@ var logTemplate = logs.Get("Log Template")
 var TemplateInitialized bool = false
 
 func FinalInitialize() {
+	// TODO add lock.
 	TemplateInitialized = true
 	Engine.template.Funcs(buildFuncMap())
 }
 
-// Engine instance.
+// Engine instance. Unique.
 var Engine = NewTemplateEngine()
 
 type TemplateEngine struct {
@@ -102,6 +104,7 @@ var l sync.RWMutex
 func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool) (cached bool, err error) {
 
 	_, templatePath := registry.TemplatePath()
+
 	if logTemplate.Info() {
 		logTemplate.Printf("[ParseTemplate] Identity:%v", registry.Identity())
 		logTemplate.Printf("[ParseTemplate] FullPath:%v", templatePath)
@@ -156,7 +159,9 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 		registry.TemplateLastModifiedTime = fileInfo.ModTime()
 	}
 
+	//
 	// open input file
+	//
 	fi, err := os.Open(templatePath)
 	if err != nil {
 		panic(err)
@@ -174,12 +179,9 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 
 	// transform
 	trans := transform.NewTransformer()
-	trans.Parse(r) // then trans has components
+	trans.Parse(r, registry.StructInfo.ProtonKind == core.PAGE) // then trans has components
 
 	registry.ContentTransfered = trans.RenderToString()
-
-	// fmt.Println("\n\n\n\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-	// fmt.Println(registry.ContentTransfered)
 
 	// append components
 	if nil != trans.Components && len(trans.Components) > 0 {
@@ -190,9 +192,6 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 			registry.EmbedComponents[strings.ToLower(componentInfo.ID)] = componentInfo.Segment
 		}
 	}
-
-	// fmt.Println("\n\n\n\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-	// fmt.Println("parse tempalte: ", registry.Identity())
 
 	// parse tempalte
 
@@ -222,7 +221,6 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 					// panic(fmt.Sprintf("Error when parse template %x", identity))
 				}
 			} // ----------- HIDDEN THINGS ----------------------
-
 		}
 
 		blocks := trans.RenderBlocks() // blocks found in template.
@@ -242,6 +240,14 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 
 			}
 		}
+
+		registry.SetAssets(trans.Assets) // set assets into registry
+
+		// debug print assets
+		// if nil != registry.Assets {
+		// 	registry.Assets.DebugPrintAll()
+		// }
+
 		// add to cache
 		register.TemplateKeyMap.Keymap[registry.Identity()] = registry
 	}

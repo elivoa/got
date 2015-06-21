@@ -39,6 +39,7 @@ type Protoner interface {
 	SetInjected(fieldName string, b bool)
 	Embed(name string) (Protoner, bool)
 	SetEmbed(name string, proton Protoner) // return loop index
+	AllEmbed() map[string]Protoner         //
 	IncLoopIndex() int                     // is this useful?
 	ClientId() string                      // no meaning for PAGE // TODO: generate clientid in loop
 	CID() string                           // short for ClientId()
@@ -143,6 +144,10 @@ func (p *Proton) Embed(name string) (Protoner, bool) {
 		fmt.Println("\tProtonn embed:", k)
 	}
 	return proton, ok
+}
+
+func (p *Proton) AllEmbed() map[string]Protoner {
+	return p.embed
 }
 
 func (p *Proton) SetEmbed(name string, proton Protoner) {

@@ -1,7 +1,7 @@
 /*
 Transform tapestry like html page into go-template like ones. Keep it functions well.
 
-  Time-stamp: <[transform.go] Elivoa @ Thursday, 2015-06-18 01:14:26>
+  Time-stamp: <[transform.go] Elivoa @ Saturday, 2015-06-20 16:42:34>
   TODO remove this package.
   TODO Doc this well.
   TODO Error Report: add line and column when error occured.
@@ -32,14 +32,17 @@ import (
 
 // 同一个Page或者Component应该使用同一个Transformer
 type Transformater struct {
-	tree   *Node            // root node
-	blocks map[string]*Node // blocks in this tempalte
+	tree   *Node // root node
 	z      *html.Tokenizer
+	blocks map[string]*Node // blocks in this tempalte
 
-	// results
-	// Components' Id --> ComponentInfo
-	Components map[string]*ComponentInfo
-	// Components map[string][]ComponentInfo
+	// status tag
+	tag_2nd_parse_in_import bool // true if in t:import block
+
+	// output!!
+	Components map[string]*ComponentInfo // Components' Id --> ComponentInfo
+
+	Assets *core.AssetSet // assets
 
 	// outdated. 值如果是-1， 说明这个是通过t:id的方式指定的ID，不允许重复。
 	ComponentCount map[string]int
@@ -55,6 +58,7 @@ type ComponentInfo struct {
 
 func NewTransformer() *Transformater {
 	return &Transformater{
+		Assets:         core.NewAssetSet(),
 		Components:     map[string]*ComponentInfo{},
 		ComponentCount: map[string]int{},
 	}
@@ -78,7 +82,7 @@ TODOs:
 */
 var compressHtml bool = false
 
-func (t *Transformater) Parse(reader io.Reader) *Transformater {
+func (t *Transformater) Parse(reader io.Reader, isPage bool) *Transformater {
 	z := html.NewTokenizer(reader)
 	t.z = z
 
@@ -141,6 +145,15 @@ func (t *Transformater) Parse(reader io.Reader) *Transformater {
 				node.html.WriteString("*/}}")
 			case "t:import", "t:block":
 				// append nothing, only remove </xxx> tag;
+			case "head":
+				if isPage {
+					if err := t.transformComponent(
+						node, []byte("PageHeadBootstrap"), []byte("span"), nil); err != nil {
+						panic(err)
+					}
+				}
+				// At the end of body, append a component to process page bootstrap things.
+				node.html.Write(zraw)
 			case "body":
 				// TODO append page-final-bootstrap component:
 				if err := t.transformComponent(
@@ -285,7 +298,7 @@ func (t *Transformater) processStartTag(node *Node) bool {
 	return true
 }
 
-// parse blocks 需要解析第二遍；
+// parse blocks, parse imports 需要解析第二遍；
 // TODO 解析t:imports
 func (t *Transformater) parseBlocks() {
 	t.blocks = map[string]*Node{}
@@ -296,39 +309,78 @@ func (t *Transformater) _parseBlocks(n *Node) {
 	if n == nil {
 		return
 	}
-	// TODO do something
-	if n.tagName == "t:block" {
-		var foundId bool = false
-		var id string
-		if n.attrs != nil {
-			for k, v := range n.attrs {
-				// TODO add another parameters;
-				if strings.ToLower(k) == "id" {
-					id = string(v)
-					foundId = true
-					break
+	// import 里面不允许任何其他类型的tag除了 link, style, 也不只允许一层tag.
+	if t.tag_2nd_parse_in_import == true {
+		// in t:import, parse script links and forbid orther tags.
+		switch n.tagName {
+		case "script":
+			// TODO 这里暂时忽略他们的type；所有url都根据url去重；
+			t.Assets.AddScripts(&core.Script{
+				Type: n.GetAttrSafe("type"),
+				Src:  n.GetAttrSafe("src"),
+			})
+		case "link":
+			t.Assets.AddStyleSheet(&core.StyleLink{
+				Type: n.GetAttrSafe("type"),
+				Rel:  n.GetAttrSafe("src"),
+				Href: n.GetAttrSafe("href"),
+			})
+		case "": // ignored
+		default:
+			panic(fmt.Sprintf("Template Structure Error: '%s' are not allowed in t:import.", n.tagName))
+		}
+	} else {
+		// not in t:import, do block parse and import-enter.
+		if n.tagName == "t:block" { // parse block
+			t._secondparse_block(n)
+			return // not go deeper, just get block and return;
+		}
+		if n.tagName == "t:import" { // enter t:import
+			t.tag_2nd_parse_in_import = true
+			// Go deeper
+			if n.children != nil {
+				for _, node := range n.children {
+					t._parseBlocks(node)
+				}
+			}
+			t.tag_2nd_parse_in_import = false // return back
+		} else {
+			// normal tag go deeper.
+			if n.children != nil {
+				for _, node := range n.children {
+					t._parseBlocks(node)
 				}
 			}
 		}
-		if !foundId {
-			panic("Can't find `id` attribute in t:block tag!")
-		}
 
-		// check id conflict
-		if _, ok := t.blocks[id]; ok {
-			panic(fmt.Sprintf("Block ID Conflict, ID: %s", id))
-		} else {
-			t.blocks[id] = n.Detach()
-		}
-	} else {
-		// go in next
-		if n.children != nil {
-			for _, node := range n.children {
-				t._parseBlocks(node)
+	}
+
+}
+
+// extract blocks in templates' structure tree.
+func (t *Transformater) _secondparse_block(n *Node) {
+	var foundId bool = false
+	var id string
+	if n.attrs != nil {
+		for k, v := range n.attrs {
+			// TODO add another parameters;
+			if strings.ToLower(k) == "id" {
+				id = string(v)
+				foundId = true
+				break
 			}
 		}
 	}
+	if !foundId {
+		panic("Can't find `id` attribute in t:block tag!")
+	}
 
+	// check id conflict
+	if _, ok := t.blocks[id]; ok {
+		panic(fmt.Sprintf("Block ID Conflict, ID: %s", id))
+	} else {
+		t.blocks[id] = n.Detach()
+	}
 }
 
 func (t *Transformater) renderDelegate(node *Node, attrs map[string][]byte) {
@@ -556,11 +608,12 @@ func (t *Transformater) appendComponentParameter(buffer *bytes.Buffer, val []byt
 	return nil
 }
 
-// Redner
+// Render template to string
 func (t *Transformater) RenderToString() string {
 	return t.tree.Render()
 }
 
+// Render blocks to map.p
 func (t *Transformater) RenderBlocks() map[string]string {
 	if t.blocks != nil {
 		returns := map[string]string{}
