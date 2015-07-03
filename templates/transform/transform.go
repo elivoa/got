@@ -1,7 +1,7 @@
 /*
 Transform tapestry like html page into go-template like ones. Keep it functions well.
 
-  Time-stamp: <[transform.go] Elivoa @ Saturday, 2015-06-20 16:42:34>
+  Time-stamp: <[transform.go] Elivoa @ Friday, 2015-07-03 13:01:46>
   TODO remove this package.
   TODO Doc this well.
   TODO Error Report: add line and column when error occured.
@@ -32,8 +32,8 @@ import (
 
 // 同一个Page或者Component应该使用同一个Transformer
 type Transformater struct {
-	tree   *Node // root node
-	z      *html.Tokenizer
+	tree   *Node            // root node
+	z      *html.Tokenizer  // tokenizer
 	blocks map[string]*Node // blocks in this tempalte
 
 	// status tag
@@ -80,7 +80,7 @@ TODOs:
 
 ---- N --------------------------------------------------------------------------------
 */
-var compressHtml bool = false
+var compressHtml bool = true
 
 func (t *Transformater) Parse(reader io.Reader, isPage bool) *Transformater {
 	z := html.NewTokenizer(reader)
@@ -110,7 +110,7 @@ func (t *Transformater) Parse(reader io.Reader, isPage bool) *Transformater {
 		case html.TextToken:
 			// here may contains {{ }}
 			if compressHtml {
-				node.html.Write(TrimTextNode(z.Raw())) // trimed spaces
+				node.html.Write(t.TrimTextNode(zraw, node)) // trimed spaces
 			} else {
 				node.html.Write(zraw)
 			}
@@ -633,15 +633,99 @@ var printValueRegex, _ = regexp.Compile("^(.*){{(.*)}}$")
 // ---- utils --------------------------------------------------------------------------------
 
 // TODO trim node function not finished.
-func TrimTextNode(text []byte) []byte {
-	// var (
-	// 	addSpaceLeft    bool = false
-	// 	addSpaceRight   bool = false
-	// 	addNewLineLeft  bool = false
-	// 	addNewLineRight bool = false
-	// )
-	// for _, b := range bytes {
-	// 	// if b
-	// }
-	return bytes.Trim(text, " ")
+func (t *Transformater) TrimTextNode(text []byte, node *Node) []byte {
+
+	var debug = false
+	if debug {
+		fmt.Printf("++ space ++: [%s] --> ", strings.Replace(string(text), "\n", "\\n", -1))
+	}
+
+	var (
+		firstValidCharacter int  = -1
+		hasUsefulCharacters bool = false
+		hasLeftSpace        bool = false
+		hasLeftNewLine      bool = false
+		hasRightNewLine     bool = false
+		hasRightSpace       bool = false
+		lastValidCharacter  int  = -1
+	)
+
+	// from left
+	var conti = true
+LOOP:
+	for idx, b := range text {
+		switch b {
+		case ' ', '\t':
+			if conti {
+				hasLeftSpace = true
+			}
+		case '\r', '\n':
+			conti = false
+			hasLeftNewLine = true
+		default: // has other c haracters
+			hasUsefulCharacters = true
+			firstValidCharacter = idx
+			break LOOP
+		}
+	}
+	if hasUsefulCharacters {
+	LOOP2:
+		for i := len(text) - 1; i >= 0; i-- {
+			switch text[i] {
+			case ' ', '\t':
+				hasRightSpace = true
+			case '\r', '\n':
+				hasRightSpace = true
+				hasRightNewLine = true
+			default: // has other characters
+				// fmt.Println(">>> ", i, text[i], string(text[i]), lastValidCharacter)
+				lastValidCharacter = i
+				break LOOP2
+			}
+
+		}
+	}
+	if hasRightNewLine {
+		// fmt.Println("firstValidCharacter is ", firstValidCharacter, lastValidCharacter, hasRightNewLine)
+	}
+	// result
+	var result bytes.Buffer
+	if hasUsefulCharacters {
+		if hasLeftNewLine {
+
+		}
+		if hasLeftSpace {
+			// TODO \n
+			result.WriteByte(' ')
+		}
+
+		// fmt.Printf("<<text[firstValidCharacter:lastValidCharacter]= text[%d:%d]=%s >> // %s",
+		// 	firstValidCharacter, lastValidCharacter,
+		// string(text[firstValidCharacter:lastValidCharacter]), string(text))
+
+		result.Write(text[firstValidCharacter : lastValidCharacter+1])
+		if hasRightSpace {
+			result.WriteRune(' ')
+		}
+		if hasRightNewLine {
+			result.WriteRune('\n')
+		}
+		if debug {
+			fmt.Printf("--1: [%s]\n", strings.Replace(result.String(), "\n", "\\n", -1))
+		}
+		return result.Bytes()
+	} else {
+		if hasLeftSpace {
+			result.WriteRune(' ')
+		}
+		if hasLeftNewLine {
+			result.WriteRune('\n')
+		}
+		if debug {
+			fmt.Printf("--2: [%s]\n", strings.Replace(result.String(), "\n", "\\n", -1))
+		}
+		return result.Bytes()
+	}
+
+	// return bytes.TrimSpace(text) //, " \r\n")
 }

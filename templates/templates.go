@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Sunday, 2015-06-21 01:02:13>
+   Time-stamp: <[templates.go] Elivoa @ Friday, 2015-07-03 11:38:15>
 */
 package templates
 
@@ -182,6 +182,9 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 	trans.Parse(r, registry.StructInfo.ProtonKind == core.PAGE) // then trans has components
 
 	registry.ContentTransfered = trans.RenderToString()
+	fmt.Println("\n\n----------------------------------------------------------------------")
+	fmt.Println(registry.ContentTransfered)
+	fmt.Println("----------------------------------------------------------------------\n\n-")
 
 	// append components
 	if nil != trans.Components && len(trans.Components) > 0 {
