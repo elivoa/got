@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-return.go] Elivoa @ Tuesday, 2015-06-16 14:05:24>
+   Time-stamp: <[lifecircle-return.go] Elivoa @ Wednesday, 2015-08-05 23:48:10>
 */
 package lifecircle
 
@@ -154,7 +154,7 @@ func (lcc *LifeCircleControl) HandleBreakReturn() {
 		} else {
 			panic("exit.download format error!")
 		}
-
+		// TODO need downloadfile
 	case "redirect":
 		if str, ok := r.Value.(string); ok {
 			http.Redirect(lcc.w, lcc.r, str, http.StatusFound)

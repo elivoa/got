@@ -11,7 +11,7 @@ import (
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/debug"
-	"github.com/robfig/revel"
+	"github.com/elivoa/got/utils/revex"
 	"os"
 	"os/exec"
 	"path"
@@ -27,7 +27,7 @@ var importErrorPattern = regexp.MustCompile("cannot find package \"([^\"]+)\"")
 // Build the app:
 // 1. Generate the the main.go file.
 // 2. Run the appropriate "go build" command.
-// Requires that revel.Init has been called previously.
+// Requires that revex.Init has been called previously.
 // Returns the path to the built binary, and an error if there was a problem building it.
 func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 	if modules == nil || len(modules) == 0 {
@@ -45,7 +45,7 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 	// set it to cache
 
 	// // Add the db.import to the import paths.
-	// if dbImportPath, found := revel.Config.String("db.import"); found {
+	// if dbImportPath, found := revex.Config.String("db.import"); found {
 	// 	sourceInfo.InitImportPaths = append(sourceInfo.InitImportPaths, dbImportPath)
 	// }
 	importPaths := make(map[string]string)
@@ -87,7 +87,7 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 	genSource("generated", "main.go", MAIN, data)
 
 	// // Read build config.
-	// buildTags := revel.Config.StringDefault("build.tags", "")
+	// buildTags := revex.Config.StringDefault("build.tags", "")
 
 	// Build the user program (all code under app).
 	// It relies on the user having "go" installed.
@@ -100,7 +100,7 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 	// packagePath := config.Config.StartupModule.PackagePath
 	// pkg, err := build.Default.Import(packagePath, "", build.FindOnly)
 	// if err != nil {
-	// 	debug.Log("Failure importing %v", revel.ImportPath)
+	// 	debug.Log("Failure importing %v", revex.ImportPath)
 	// }
 
 	// binNamex := path.Join(pkg.BinDir, path.Base(config.Config.AppBasePath))
@@ -146,6 +146,7 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 			return NewApp(binName), nil
 		}
 
+		// On error goes here!
 		fmt.Println("\n===== Error Occured when Building main.go ================")
 		fmt.Println(err.Error())
 		panic(string(output))
@@ -171,7 +172,7 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 			getOutput, err := getCmd.CombinedOutput()
 			if err != nil {
 				panic(string(getOutput))
-				// revel.ERROR.Println(string(getOutput))
+				// revex.ERROR.Println(string(getOutput))
 				return nil, newCompileError(output)
 			}
 		}
@@ -228,7 +229,7 @@ func cleanSource(dirs ...string) {
 		fmt.Printf("!> Generator: Remove Folder %s\n", tmpPath)
 		err := os.RemoveAll(tmpPath)
 		if err != nil {
-			revel.ERROR.Println("!> [ERROR in Generator]: Failed to remove dir:", err)
+			revex.ERROR.Println("!> [ERROR in Generator]: Failed to remove dir:", err)
 		}
 	}
 }
@@ -252,27 +253,27 @@ func genSource(dir, filename, templateSource string, args map[string]interface{}
 
 	err := os.RemoveAll(tmpPath)
 	if err != nil {
-		revel.ERROR.Println("Failed to remove dir:", err)
+		revex.ERROR.Println("Failed to remove dir:", err)
 	}
 	err = os.Mkdir(tmpPath, 0777)
 	if err != nil {
-		revel.ERROR.Fatalf("Failed to make tmp directory: %v", err)
+		revex.ERROR.Fatalf("Failed to make tmp directory: %v", err)
 	}
 
 	// Create the file
 	file, err := os.Create(path.Join(tmpPath, filename))
 	defer file.Close()
 	if err != nil {
-		revel.ERROR.Fatalf("Failed to create file: %v", err)
+		revex.ERROR.Fatalf("Failed to create file: %v", err)
 	}
 	_, err = file.WriteString(sourceCode)
 	if err != nil {
-		revel.ERROR.Fatalf("Failed to write to file: %v", err)
+		revex.ERROR.Fatalf("Failed to write to file: %v", err)
 	}
 }
 
 // Execute a template and returns the result as a string.
-func ExecuteTemplate(tmpl revel.ExecutableTemplate, data interface{}) string {
+func ExecuteTemplate(tmpl revex.ExecutableTemplate, data interface{}) string {
 	var b bytes.Buffer
 	if err := tmpl.Execute(&b, data); err != nil {
 		panic(err.Error())
@@ -347,7 +348,7 @@ func newCompileError(output []byte) *Error {
 	errorMatch := regexp.MustCompile(`(?m)^([^:#]+):(\d+):(\d+:)? (.*)$`).
 		FindSubmatch(output)
 	if errorMatch == nil {
-		revel.ERROR.Println("Failed to parse build errors:\n", string(output))
+		revex.ERROR.Println("Failed to parse build errors:\n", string(output))
 		return &Error{
 			SourceType:  "Go code",
 			Title:       "Go Compilation Error",
@@ -357,7 +358,7 @@ func newCompileError(output []byte) *Error {
 
 	// Read the source for the offending file.
 	var (
-		relFilename    = string(errorMatch[1]) // e.g. "src/revel/sample/app/controllers/app.go"
+		relFilename    = string(errorMatch[1]) // e.g. "src/revex/sample/app/controllers/app.go"
 		absFilename, _ = filepath.Abs(relFilename)
 		line, _        = strconv.Atoi(string(errorMatch[2]))
 		description    = string(errorMatch[4])
@@ -370,10 +371,10 @@ func newCompileError(output []byte) *Error {
 		}
 	)
 
-	fileStr, err := revel.ReadLines(absFilename)
+	fileStr, err := revex.ReadLines(absFilename)
 	if err != nil {
 		compileError.MetaError = absFilename + ": " + err.Error()
-		revel.ERROR.Println(compileError.MetaError)
+		revex.ERROR.Println(compileError.MetaError)
 		return compileError
 	}
 

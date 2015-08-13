@@ -6,14 +6,15 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/robfig/revel"
+	"github.com/elivoa/got/utils/revex"
 	"io"
 	"os"
 	"os/exec"
 	"time"
 )
 
-// App contains the configuration for running a Revel app.  (Not for the app itself)
+//------------------
+// App contains the configuration for running an app.  (Not for the app itself)
 // Its only purpose is constructing the command to execute.
 type App struct {
 	BinaryPath string // Path to the app executable
@@ -37,8 +38,8 @@ func (a *App) Kill() {
 	a.cmd.Kill()
 }
 
-// AppCmd manages the running of a Revel app server.
-// It requires revel.Init to have been called previously.
+// AppCmd manages the running of an app server.
+// It requires revex.Init to have been called previously.
 type AppCmd struct {
 	*exec.Cmd
 }
@@ -46,8 +47,8 @@ type AppCmd struct {
 func NewAppCmd(binPath string, port int) AppCmd {
 	cmd := exec.Command(binPath,
 		fmt.Sprintf("-port=%d", port),
-		fmt.Sprintf("-importPath=%s", revel.ImportPath),
-		fmt.Sprintf("-runMode=%s", revel.RunMode))
+		fmt.Sprintf("-importPath=%s", revex.ImportPath),
+		fmt.Sprintf("-runMode=%s", revex.RunMode))
 	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 	return AppCmd{cmd}
 }
@@ -56,18 +57,18 @@ func NewAppCmd(binPath string, port int) AppCmd {
 func (cmd AppCmd) Start() error {
 	listeningWriter := startupListeningWriter{os.Stdout, make(chan bool)}
 	cmd.Stdout = listeningWriter
-	revel.TRACE.Println("Exec app:", cmd.Path, cmd.Args)
+	revex.TRACE.Println("Exec app:", cmd.Path, cmd.Args)
 	if err := cmd.Cmd.Start(); err != nil {
-		revel.ERROR.Fatalln("Error running:", err)
+		revex.ERROR.Fatalln("Error running:", err)
 	}
 
 	select {
 	case <-cmd.waitChan():
-		return errors.New("revel/harness: app died")
+		return errors.New("revex/harness: app died")
 
 	case <-time.After(30 * time.Second):
 		cmd.Kill()
-		return errors.New("revel/harness: app timed out")
+		return errors.New("revex/harness: app timed out")
 
 	case <-listeningWriter.notifyReady:
 		return nil
@@ -77,19 +78,19 @@ func (cmd AppCmd) Start() error {
 
 // Run the app server inline.  Never returns.
 func (cmd AppCmd) Run() {
-	revel.TRACE.Println("Exec app:", cmd.Path, cmd.Args)
+	revex.TRACE.Println("Exec app:", cmd.Path, cmd.Args)
 	if err := cmd.Cmd.Run(); err != nil {
-		revel.ERROR.Fatalln("Error running:", err)
+		revex.ERROR.Fatalln("Error running:", err)
 	}
 }
 
 // Terminate the app server if it's running.
 func (cmd AppCmd) Kill() {
 	if cmd.Cmd != nil && (cmd.ProcessState == nil || !cmd.ProcessState.Exited()) {
-		revel.TRACE.Println("Killing revel server pid", cmd.Process.Pid)
+		revex.TRACE.Println("Killing revex server pid", cmd.Process.Pid)
 		err := cmd.Process.Kill()
 		if err != nil {
-			revel.ERROR.Fatalln("Failed to kill revel server:", err)
+			revex.ERROR.Fatalln("Failed to kill revex server:", err)
 		}
 	}
 }
@@ -105,7 +106,7 @@ func (cmd AppCmd) waitChan() <-chan struct{} {
 }
 
 // A io.Writer that copies to the destination, and listens for "Listening on.."
-// in the stream.  (Which tells us when the revel server has finished starting up)
+// in the stream.  (Which tells us when the server has finished starting up)
 // This is super ghetto, but by far the simplest thing that should work.
 type startupListeningWriter struct {
 	dest        io.Writer

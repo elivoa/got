@@ -11,6 +11,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/utils"
 	"go/ast"
@@ -18,7 +19,6 @@ import (
 	"go/parser"
 	"go/scanner"
 	"go/token"
-	"github.com/elivoa/got/core"
 	"log"
 	"os"
 	"path/filepath"
@@ -137,7 +137,7 @@ func ParseSource(modules []*core.Module, findOnly bool) (*SourceInfo, *Error) {
 						Description: errList[0].Msg,
 						Line:        pos.Line,
 						Column:      pos.Column,
-						// SourceLines: revel.MustReadLines(pos.Filename),
+						// SourceLines: revex.MustReadLines(pos.Filename),
 					}
 					return compileError
 				}
@@ -468,7 +468,7 @@ func appendAction(fset *token.FileSet, mm methodMap, decl ast.Decl, pkgImportPat
 	// if selExpr.Sel.Name != "Result" {
 	// 	return
 	// }
-	// if pkgIdent, ok := selExpr.X.(*ast.Ident); !ok || imports[pkgIdent.Name] != revel.REVEL_IMPORT_PATH {
+	// if pkgIdent, ok := selExpr.X.(*ast.Ident); !ok || imports[pkgIdent.Name] != revex.REVEX_IMPORT_PATH {
 	// 	return
 	// }
 
@@ -572,7 +572,7 @@ func getValidationKeys(fset *token.FileSet, funcDecl *ast.FuncDecl, imports map[
 	var (
 		lineKeys = make(map[int]string)
 
-		// Check the func parameters and the receiver's members for the *revel.Validation type.
+		// Check the func parameters and the receiver's members for the *revex.Validation type.
 		validationParam = getValidationParameter(funcDecl, imports)
 	)
 
@@ -633,15 +633,15 @@ func getValidationKeys(fset *token.FileSet, funcDecl *ast.FuncDecl, imports map[
 	return lineKeys
 }
 
-// Check to see if there is a *revel.Validation as an argument.
+// Check to see if there is a *revex.Validation as an argument.
 func getValidationParameter(funcDecl *ast.FuncDecl, imports map[string]string) *ast.Object {
 	for _, field := range funcDecl.Type.Params.List {
-		starExpr, ok := field.Type.(*ast.StarExpr) // e.g. *revel.Validation
+		starExpr, ok := field.Type.(*ast.StarExpr) // e.g. *revex.Validation
 		if !ok {
 			continue
 		}
 
-		selExpr, ok := starExpr.X.(*ast.SelectorExpr) // e.g. revel.Validation
+		selExpr, ok := starExpr.X.(*ast.SelectorExpr) // e.g. revex.Validation
 		if !ok {
 			continue
 		}
@@ -651,8 +651,8 @@ func getValidationParameter(funcDecl *ast.FuncDecl, imports map[string]string) *
 			continue
 		}
 
-		if selExpr.Sel.Name == "Validation" && imports[xIdent.Name] == "github.com/robfig/revel" {
-			// revel.REVEL_IMPORT_PATH {
+		if selExpr.Sel.Name == "Validation" && imports[xIdent.Name] == "github.com/robfig/revex" {
+			// revex.REVEX_IMPORT_PATH { // NOTE nouse by gb
 			return field.Names[0].Obj
 		}
 	}
@@ -694,7 +694,7 @@ func getStructTypeDecl(decl ast.Decl) (spec *ast.TypeSpec, found bool) {
 
 // TypesThatEmbed returns all types that (directly or indirectly) embed the
 // target type, which must be a fully qualified type name,
-// e.g. "github.com/robfig/revel.Controller"
+// e.g. "github.com/robfig/revex.Controller"
 func (s *SourceInfo) TypesThatEmbed(targetType string) (filtered []*StructInfo) {
 	// Do a search in the "embedded type graph", starting with the target type.
 	nodeQueue := []string{targetType}
@@ -733,14 +733,14 @@ func ContainsString(list []string, target string) bool {
 
 // func (s *SourceInfo) ControllerSpecs() []*StructInfo {
 // 	if s.controllerSpecs == nil {
-// 		s.controllerSpecs = s.TypesThatEmbed(revel.REVEL_IMPORT_PATH + ".Controller")
+// 		s.controllerSpecs = s.TypesThatEmbed(reveX.REVEX_IMPORT_PATH + ".Controller")
 // 	}
 // 	return s.controllerSpecs
 // }
 
 // func (s *SourceInfo) TestSuites() []*StructInfo {
 // 	if s.testSuites == nil {
-// 		s.testSuites = s.TypesThatEmbed(revel.REVEL_IMPORT_PATH + ".TestSuite")
+// 		s.testSuites = s.TypesThatEmbed(reveX.REVEX_IMPORT_PATH + ".TestSuite")
 // 	}
 // 	return s.testSuites
 // }

@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Wednesday, 2015-08-05 12:27:54>
+   Time-stamp: <[templates.go] Elivoa @ Saturday, 2015-08-08 20:44:21>
 */
 package templates
 
@@ -260,7 +260,7 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 func parseTemplate(key string, content string) error {
 	// Old version uses filename as key, I make my own key. not
 	// filepath.Base(filename) First template becomes return value if
-	// not already defined, and we use that one for subsequent New
+	// not already defined, we use that one for subsequent New
 	// calls to associate all the templates together. Also, if this
 	// file has the same name as t, this file becomes the contents of
 	// t, so t, err := New(name).Funcs(xxx).ParseFiles(name)

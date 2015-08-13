@@ -41,7 +41,7 @@ type SourceInfo struct {
 	//# TODO parse validation keys.
 	// ValidationKeys provides a two-level lookup.  The keys are:
 	// 1. The fully-qualified function name,
-	//    e.g. "github.com/robfig/revel/samples/chat/app/controllers.(*Application).Action"
+	//    e.g. "github.com/robfig/revex/samples/chat/app/controllers.(*Application).Action"
 	// 2. Within that func's file, the line number of the (overall) expression statement.
 	//    e.g. the line returned from runtime.Caller()
 	// The result of the lookup the name of variable being validated.
@@ -55,7 +55,7 @@ type SourceInfo struct {
 
 	//#TODO kill this?
 	// controllerSpecs lists type info for all structs found under
-	// app/controllers/... that embed (directly or indirectly) revel.Controller
+	// app/controllers/... that embed (directly or indirectly) revex.Controller
 	// controllerSpecs []*TypeInfo
 
 	// testSuites list the types that constitute the set of application tests.
@@ -75,7 +75,7 @@ type StructInfo struct {
 	ProtonKind    core.Kind // + Page | Component | Mixins
 	MethodSpecs   []*MethodSpec
 
-	// Used internally to identify controllers that indirectly embed *revel.Controller.
+	// Used internally to identify controllers that indirectly embed *revex.Controller.
 	embeddedTypes []*embeddedTypeName
 }
 
