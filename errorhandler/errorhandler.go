@@ -67,6 +67,7 @@ func AddHandler(name string, errType reflect.Type,
 // TODO: return what
 func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 
+	// TODO 如果500错了，那么错了。
 	if true { // Debug print
 		fmt.Println("\n________________________________________________________________________________")
 		fmt.Println("---- DEBUG: ErrorHandler >> Meet An Error --------------------------------------")
@@ -114,7 +115,7 @@ func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 			return true
 		} else {
 			fmt.Println("--------------------------------------------")
-			fmt.Println("Current life circle conrol not found!!")
+			fmt.Println("Current life circle control not found!!")
 			fmt.Println("--------------------------------------------")
 		}
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/elivoa/got/core/exception"
 	"github.com/elivoa/got/core/lifecircle"
 	"github.com/elivoa/got/coreservice/sessions"
+	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/errorhandler"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/register"
@@ -39,19 +40,48 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(">>> Start Logging time. now is: ", time.Now())
 		starttime = time.Now()
 	}
-
 	printAccessHeader(r)
 
 	// --------  Error Handling  --------------------------------------------------------------
 	defer func() {
 		if err := recover(); err != nil {
 
-			fmt.Println("\n============= Panic Occured. =============")
+			if true { // **** disable this function
+				if true { // Debug print
+					fmt.Println("\n_______________________________________________________________")
+					fmt.Println("---- DEBUG: ErrorHandler >> Meet An Error -------------------------")
+					// fmt.Println(reflect.TypeOf(err))
+					if e, ok := err.(error); ok {
+						fmt.Println(debug.StackString(e))
+					} else if s, ok := err.(string); ok {
+						err = fmt.Errorf(s)
+						debug.DebugPrintVariable(err)
+					} else {
+						debug.DebugPrintVariable(err)
+					}
+					fmt.Println("-------------------------------------------------------------------")
+					fmt.Println("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --")
+					fmt.Println("")
+				}
 
+				w.Header().Add("content-type", "text/plain")
+				w.Write([]byte(fmt.Sprint("[ErrorHandler can't handler this error, it returns false]")))
+				w.Write([]byte(fmt.Sprint(err)))
+				return
+			}
+
+			fmt.Println("\n============= Panic Occured. =============")
 			// Give control to ErrorHandler if panic occurs.
 			if b := errorhandler.Process(w, r, err); b == false {
-				panic(err)
+				// return
+				if true { // **** disable this function
+					w.Header().Add("content-type", "text/plain")
+					w.Write([]byte(fmt.Sprint("[ErrorHandler can't handler this error, it returns false]")))
+					w.Write([]byte(fmt.Sprint(err)))
+					return
+				}
 			}
+
 		}
 
 		// clear request scope data store.:: should clear context here? Where to?

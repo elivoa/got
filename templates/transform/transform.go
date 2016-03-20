@@ -1,10 +1,10 @@
 /*
 Transform tapestry like html page into go-template like ones. Keep it functions well.
 
-  Time-stamp: <[transform.go] Elivoa @ Friday, 2015-07-03 13:01:46>
-  TODO remove this package.
-  TODO Doc this well.
-  TODO Error Report: add line and column when error occured.
+  Time-stamp: <[transform.go] Elivoa @ Sunday, 2016-03-20 13:26:49>
+  TODO: remove this package.
+  TODO: Doc this well.
+  TODO: Error Report: add line and column when error occured.
 
 Tapestry template like components:
   <t:a href="chedan" />
@@ -303,6 +303,12 @@ func (t *Transformater) processStartTag(node *Node) bool {
 func (t *Transformater) parseBlocks() {
 	t.blocks = map[string]*Node{}
 	t._parseBlocks(t.tree)
+	fmt.Println("\n\n---- [DEBUG: IMPORTS] -----------------------------------------------------------")
+	if nil != t.blocks {
+		for k, v := range t.blocks {
+			fmt.Println(k, "  --  >  ", v)
+		}
+	}
 }
 
 func (t *Transformater) _parseBlocks(n *Node) {

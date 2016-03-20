@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-component.go] Elivoa @ Sunday, 2015-06-21 02:41:04>
+   Time-stamp: <[lifecircle-component.go] Elivoa @ Monday, 2016-03-21 01:04:42>
 */
 package lifecircle
 
@@ -250,6 +250,7 @@ func (l *Life) flow() (returns *exit.Exit) {
 func (l *Life) renderTemplate() {
 	// reach here means I can find the template and render it.
 	// debug.Log("-755- [TemplateSelect] %v -> %v", identity, templatePath)
+	// debug.Log("-755- [TemplateSelect] %v -> %v", l.registry.Identity(), "-templatePath-")
 	if _, err := templates.LoadTemplates(l.registry, config.ReloadTemplate); err != nil {
 		panic(err)
 	}
@@ -266,7 +267,9 @@ func (l *Life) renderTemplate() {
 
 			var blockhtml bytes.Buffer
 			life := headbs.FlowLife().(*Life)
-			if err := templates.Engine.RenderBlock(&blockhtml, life.registry.Identity(),
+
+			// BUG: What if this block not exists??
+			if err := templates.Engine.RenderBlockIfExist(&blockhtml, life.registry.Identity(),
 				"page_head_bootstrap_defer_block", headbs); err != nil {
 				panic(err)
 			}
@@ -290,7 +293,7 @@ func (l *Life) renderTemplate() {
 		}
 
 		dur = (time.Now().UnixNano() - start)
-		fmt.Println("TTTTTTTTTTTTTTime is (ReplacePageHeadBootStrap!): ",
+		fmt.Println("[Performance] Time for ReplacePageHeadBootStrap is: ",
 			dur/1000, "ms.")
 	}
 }

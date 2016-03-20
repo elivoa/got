@@ -76,7 +76,7 @@ func init() {
 	InitLogger("ComponentFLow", "", Error) //
 	InitLogger("Route", "", Error)         // Trace
 	InitLogger("Return", "", Error)        // Info
-	InitLogger("Log Template", "", Error)
+	InitLogger("Log Template", "", Info)
 	InitLogger(LOGGER_INJECTION_VALUE_COERCION, "", Trace)
 	InitLogger("SQL:Print", "", Trace)
 

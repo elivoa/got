@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Saturday, 2015-08-08 20:44:21>
+   Time-stamp: <[templates.go] Elivoa @ Monday, 2016-03-21 01:09:29>
 */
 package templates
 
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/logs"
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/templates/transform"
@@ -80,11 +81,23 @@ func (e *TemplateEngine) RenderTemplate(w io.Writer, key string, p interface{}) 
 	return nil
 }
 
-func (e *TemplateEngine) RenderBlock(w io.Writer, templateIdentity, blockId string, p interface{}) error {
-	blockKey := fmt.Sprintf("%s%s%s", templateIdentity, config.SPLITER_BLOCK, blockId)
+// 如果不存在没关系
+func (e *TemplateEngine) RenderBlock(w io.Writer, templateId, blockId string, p interface{}) error {
+	blockKey := fmt.Sprintf("%s%s%s", templateId, config.SPLITER_BLOCK, blockId)
 	err := Engine.template.ExecuteTemplate(w, blockKey, p)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (e *TemplateEngine) RenderBlockIfExist(w io.Writer, templateId, blockId string, p interface{}) error {
+	blockKey := fmt.Sprintf("%s%s%s", templateId, config.SPLITER_BLOCK, blockId)
+	if t := Engine.template.Lookup(blockKey); t != nil {
+		err := Engine.template.ExecuteTemplate(w, blockKey, p)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -182,9 +195,15 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 	trans.Parse(r, registry.StructInfo.ProtonKind == core.PAGE) // then trans has components
 
 	registry.ContentTransfered = trans.RenderToString()
-	// fmt.Println("\n\n----------------------------------------------------------------------")
-	// fmt.Println(registry.ContentTransfered)
-	// fmt.Println("----------------------------------------------------------------------\n\n-")
+	if false {
+		// fmt.Println("\n\n---- [CONTENT TRANSFERED] --------------------------------------------------")
+		// fmt.Println(registry.ContentTransfered)
+		// fmt.Println("----------------------------------------------------------------------\n\n-")
+
+		// fmt.Println("\n\n---- [IMPORTS IN BLOCK] ----------------------------------------------------")
+		// fmt.Println(registry.ContentTransfered)
+		// fmt.Println("----------------------------------------------------------------------\n\n-")
+	}
 
 	// append components
 	if nil != trans.Components && len(trans.Components) > 0 {
@@ -198,49 +217,54 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 
 	// parse tempalte
 
+	// [debug:print template keymaps]
+	fmt.Println("============== Key map is : ================")
+	for k, v := range register.TemplateKeyMap.Keymap {
+		fmt.Printf("\t%s => %s\n", k, v)
+	}
+	fmt.Println()
+
 	if _, ok := register.TemplateKeyMap.Keymap[registry.Identity()]; ok {
 		// cached templates
 		fmt.Println("\n\n\n\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 		fmt.Println("cached templates, ignore", registry.Identity())
 	} else {
 		// if not cached.
+		var meet_an_bug = false
 		if err = parseTemplate(registry.Identity(), registry.ContentTransfered); err != nil {
-			panic(err)
 
-			if false { // ----------- HIDDEN THINGS ----------------------
-				// ~~ temp ignore the followings. ~~
-				if strings.Index(err.Error(), "redefinition of template") > 0 {
-					if logTemplate.Info() {
-						logTemplate.Printf("[ParseTemplate] ERROR:%v", err)
-					}
+			if debug.QuickFixEnabled {
+				meet_an_bug = true
+				// #01 Quick Fix.
+				if strings.Index(err.Error(), "html/template: cannot redefine") == 0 {
+					fmt.Printf("[>QUICK-FIX] #01: %v\n", err)
 					err = nil
-					// return false, nil
-					// return
 					// ignore all then return. because all tempalte are already registered.
-
 				} else {
-					// TODO: Detailed template parse Error page.
+					// TODO: Goto Detailed template parse Error page.
 					panic(err)
 					// panic(fmt.Sprintf("Error when parse template %x", identity))
 				}
-			} // ----------- HIDDEN THINGS ----------------------
+			} else {
+				panic(err)
+			}
 		}
 
-		blocks := trans.RenderBlocks() // blocks found in template.
-		if blocks != nil {
-			registry.Blocks = map[string]*register.Block{}
-			for blockId, html := range blocks {
-				block := &register.Block{
-					ID:                blockId,
-					ContentTransfered: html,
+		if !meet_an_bug {
+			blocks := trans.RenderBlocks() // blocks found in template.
+			if blocks != nil {
+				registry.Blocks = map[string]*register.Block{}
+				for blockId, html := range blocks {
+					block := &register.Block{
+						ID:                blockId,
+						ContentTransfered: html,
+					}
+					registry.Blocks[blockId] = block
+					blockKey := fmt.Sprintf("%s%s%s", registry.Identity(), config.SPLITER_BLOCK, blockId)
+					if err = parseTemplate(blockKey, block.ContentTransfered); err != nil {
+						panic(fmt.Sprintf("Error when parse template %x", blockKey))
+					}
 				}
-				registry.Blocks[blockId] = block
-				blockKey := fmt.Sprintf("%s%s%s", registry.Identity(), config.SPLITER_BLOCK, blockId)
-				// fmt.Println("--++", blockKey)
-				if err = parseTemplate(blockKey, block.ContentTransfered); err != nil {
-					panic(fmt.Sprintf("Error when parse template %x", blockKey))
-				}
-
 			}
 		}
 
@@ -266,19 +290,32 @@ func parseTemplate(key string, content string) error {
 	// t, so t, err := New(name).Funcs(xxx).ParseFiles(name)
 	// works. Otherwise we create a new template associated with t.
 
-	t := Engine.template
+	// fmt.Printf("[parse tempalte] parseTempalte(%s,<<%s>>);\n", key, content) //content) // REMOVE
+
 	var tmpl *template.Template
-	if t == nil {
-		t = template.New(key)
-	}
-	if key == t.Name() {
-		tmpl = t
-	} else {
-		tmpl = t.New(key)
+	if Engine.template == nil {
+		Engine.template = template.New(key)
 	}
 
+	if key == Engine.template.Name() {
+		tmpl = Engine.template
+	} else {
+		tmpl = Engine.template.New(key)
+		// Engine.template = tmpl
+	}
+
+	if false { // -------------------------- debug print templates.
+		fmt.Println("--$$$$$$$$$$$$--")
+		for _, t := range Engine.template.Templates() {
+			fmt.Println("\t", t.Name())
+		}
+		fmt.Println("<<< $$$")
+	}
 	_, err := tmpl.Parse(content)
+
+	// fmt.Printf("[parse tempalte] End parseTempalte(%s, << ignored >>);\n", key) // REMOVE
 	if err != nil {
+		// fmt.Println("[ERROR] : \t", err) // REMOVE
 		return err
 	}
 	return nil
