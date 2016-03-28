@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-component.go] Elivoa @ Monday, 2016-03-21 01:04:42>
+   Time-stamp: <[lifecircle-component.go] Elivoa @ Monday, 2016-03-28 23:40:41>
 */
 package lifecircle
 
@@ -201,6 +201,8 @@ func (l *Life) flow() (returns *exit.Exit) {
 						}
 						if !returns.IsReturnsFalse() {
 
+
+							fmt.Println("debug info {  }", l.name)
 							// Here we ignored BeforeRenderBody and AfterRenderBody.
 							// Maybe add it later.
 							// May be useful for Loop component?
@@ -258,6 +260,7 @@ func (l *Life) renderTemplate() {
 		panic(err)
 	}
 
+	fmt.Println("===============================================\n\n\n\n\n\n=====================")
 	// PageHeadBootstrap Replace
 	// TODO BIG Performance issue.
 	if l.kind == core.PAGE {

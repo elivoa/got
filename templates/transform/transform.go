@@ -1,7 +1,7 @@
 /*
 Transform tapestry like html page into go-template like ones. Keep it functions well.
 
-  Time-stamp: <[transform.go] Elivoa @ Sunday, 2016-03-20 13:26:49>
+  Time-stamp: <[transform.go] Elivoa @ Monday, 2016-03-28 22:38:38>
   TODO: remove this package.
   TODO: Doc this well.
   TODO: Error Report: add line and column when error occured.
@@ -303,12 +303,13 @@ func (t *Transformater) processStartTag(node *Node) bool {
 func (t *Transformater) parseBlocks() {
 	t.blocks = map[string]*Node{}
 	t._parseBlocks(t.tree)
-	fmt.Println("\n\n---- [DEBUG: IMPORTS] -----------------------------------------------------------")
+	fmt.Println("\ndebug info { ---- [DEBUG: IMPORTS] ---------------------------------------------------- {")
 	if nil != t.blocks {
 		for k, v := range t.blocks {
 			fmt.Println(k, "  --  >  ", v)
 		}
 	}
+	fmt.Println("} // DEBUG: IMPORTS\n")
 }
 
 func (t *Transformater) _parseBlocks(n *Node) {

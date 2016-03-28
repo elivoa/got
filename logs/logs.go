@@ -72,11 +72,11 @@ func init() {
 	InitLogger("IOC:Inject", "", Error)    // Info
 	InitLogger("GOT:PageFlow", "", Trace)  //
 	InitLogger("GOT:EventCall", "", Trace) //
-	InitLogger("URL Lookup", "", Info)     // Info
+	InitLogger("URL Lookup", "", Error)    // Info
 	InitLogger("ComponentFLow", "", Error) //
 	InitLogger("Route", "", Error)         // Trace
 	InitLogger("Return", "", Error)        // Info
-	InitLogger("Log Template", "", Info)
+	InitLogger("Log Template", "", Error)
 	InitLogger(LOGGER_INJECTION_VALUE_COERCION, "", Trace)
 	InitLogger("SQL:Print", "", Trace)
 

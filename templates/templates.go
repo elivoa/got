@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Monday, 2016-03-28 14:00:17>
+   Time-stamp: <[templates.go] Elivoa @ Monday, 2016-03-28 23:09:24>
 */
 package templates
 
@@ -40,7 +40,7 @@ func NewTemplateEngine() *TemplateEngine {
 	e := &TemplateEngine{
 		// init template TODO remove this, change another init method.
 		// TODO: use better way to init.
-		template: template.New("-"),
+		template: template.New(""),
 	}
 	return e
 }
@@ -218,11 +218,11 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 	// parse tempalte
 
 	// [debug:print template keymaps]
-	fmt.Println("============== Key map is : ================")
+	fmt.Println("\ndebug info { // Key map is")
 	for k, v := range register.TemplateKeyMap.Keymap {
-		fmt.Printf("\t%s => %s\n", k, v)
+		fmt.Printf("\t  %s => %s\n", k, v)
 	}
-	fmt.Println("")
+	fmt.Println("}")
 
 	if _, ok := register.TemplateKeyMap.Keymap[registry.Identity()]; ok {
 		// cached templates
@@ -304,12 +304,12 @@ func parseTemplate(key string, content string) error {
 		// Engine.template = tmpl
 	}
 
-	if false { // -------------------------- debug print templates.
-		fmt.Println("--$$$$$$$$$$$$--")
+	if true { // -------------------------- debug print templates.
+		fmt.Println("\ndebug info { // templates loop")
 		for _, t := range Engine.template.Templates() {
-			fmt.Println("\t", t.Name())
+			fmt.Println("  ", t.Name())
 		}
-		fmt.Println("<<< $$$")
+		fmt.Println("}")
 	}
 	_, err := tmpl.Parse(content)
 
