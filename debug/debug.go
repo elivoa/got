@@ -12,7 +12,7 @@ var (
 	DebugLog   = true
 	PrintStack = true
 
-	QuickFixEnabled = true // 忽略一些会导致崩溃的bug，显示警告信息。以后再修复bug。
+	QuickFixEnabled = false // 忽略一些会导致崩溃的bug，显示警告信息。以后再修复bug。
 
 	FLAG_print_form_submit_details = true
 )

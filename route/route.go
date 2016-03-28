@@ -46,7 +46,8 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 
-			if true { // **** disable this function
+			var enable_error_handler = true
+			if !enable_error_handler {
 				if true { // Debug print
 					fmt.Println("\n_______________________________________________________________")
 					fmt.Println("---- DEBUG: ErrorHandler >> Meet An Error -------------------------")
@@ -65,7 +66,7 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 				}
 
 				w.Header().Add("content-type", "text/plain")
-				w.Write([]byte(fmt.Sprint("[ErrorHandler can't handler this error, it returns false]")))
+				w.Write([]byte(fmt.Sprint("[ErrorHandler can't handler this error!]<br>\n")))
 				w.Write([]byte(fmt.Sprint(err)))
 				return
 			}

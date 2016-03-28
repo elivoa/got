@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Monday, 2016-03-21 01:09:29>
+   Time-stamp: <[templates.go] Elivoa @ Monday, 2016-03-28 14:00:17>
 */
 package templates
 
@@ -222,7 +222,7 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 	for k, v := range register.TemplateKeyMap.Keymap {
 		fmt.Printf("\t%s => %s\n", k, v)
 	}
-	fmt.Println()
+	fmt.Println("")
 
 	if _, ok := register.TemplateKeyMap.Keymap[registry.Identity()]; ok {
 		// cached templates
@@ -250,7 +250,7 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 			}
 		}
 
-		if !meet_an_bug {
+		if true || !meet_an_bug {
 			blocks := trans.RenderBlocks() // blocks found in template.
 			if blocks != nil {
 				registry.Blocks = map[string]*register.Block{}
