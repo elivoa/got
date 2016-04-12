@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[templates.go] Elivoa @ Monday, 2016-03-28 23:09:24>
+   Time-stamp: <[templates.go] Elivoa @ Tuesday, 2016-04-12 14:07:50>
 */
 package templates
 
@@ -13,7 +13,6 @@ import (
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/templates/transform"
 	"html/template"
-	"io"
 	"os"
 	"strings"
 	"sync"
@@ -21,92 +20,54 @@ import (
 
 var logTemplate = logs.Get("Log Template")
 
-var TemplateInitialized bool = false
+// TODO 1：加全局锁来解决多线程问题。
+// TODO 2：多实例最后加锁合并。
+// Engine instance. Unique.
+var (
+	Engine                         = core.NewTemplateEngine() // Root Template
+	TemplateInitialized bool       = false
+	Lock                sync.Mutex // 全局锁
+)
 
 func FinalInitialize() {
-	// TODO add lock.
+	Lock.Lock()
+	defer Lock.Unlock()
 	TemplateInitialized = true
-	Engine.template.Funcs(buildFuncMap())
-}
-
-// Engine instance. Unique.
-var Engine = NewTemplateEngine()
-
-type TemplateEngine struct {
-	template *template.Template
-}
-
-func NewTemplateEngine() *TemplateEngine {
-	e := &TemplateEngine{
-		// init template TODO remove this, change another init method.
-		// TODO: use better way to init.
-		template: template.New(""),
-	}
-	return e
+	Engine.Template().Funcs(buildFuncMap())
 }
 
 /*_______________________________________________________________________________
   Register components
 */
 
-// RegisterComponent register component as tempalte function. ComponentKey is converted to function name by replacing all shash '/' into '_'. Original cased and lowercased key is used. in component invoke.
-func (e *TemplateEngine) RegisterComponent(componentKey string, componentFunc interface{}) {
+// RegisterComponent register component as tempalte function.
+// ComponentKey is converted to function name by replacing all shash '/' into '_'.
+// Original cased and lowercased key is used. in component invoke.
+// Note: 这个方法只在启动时调用。
+func RegisterComponent(componentKey string, componentFunc interface{}) {
 	funcName := fmt.Sprintf("t_%v", strings.Replace(componentKey, "/", "_", -1))
-	e.template.Funcs(template.FuncMap{
+	funcmap := template.FuncMap{
 		funcName:                  componentFunc,
 		strings.ToLower(funcName): componentFunc,
-	})
+	}
+	Engine.Template().Funcs(funcmap) // Set function to root TemplateEngine.
+
+	if false { // disabled-code
+		// Loop all templates engine instance, set function to them.
+		for _, seg := range register.TemplateKeyMap.Keymap {
+			fmt.Println("\t>> RegisterComponent ", seg.Name)
+			seg.TemplateEngine.Template().Funcs(funcmap)
+		}
+	}
 }
 
 /*_______________________________________________________________________________
   Render Tempaltes
 */
 
-// RenderTemplate render template into writer.
-func (e *TemplateEngine) RenderTemplate(w io.Writer, key string, p interface{}) error {
-
-	// // cache some panic
-	// defer func() {
-	// 	if err := recover(); err != nil {
-	// 		fmt.Println("\n\n====== Panic Occured When rendering template. =============")
-	// 		panic(err)
-	// 	}
-	// }()
-
-	// TODO: process key, with versions.
-	err := Engine.template.ExecuteTemplate(w, key, p)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// 如果不存在没关系
-func (e *TemplateEngine) RenderBlock(w io.Writer, templateId, blockId string, p interface{}) error {
-	blockKey := fmt.Sprintf("%s%s%s", templateId, config.SPLITER_BLOCK, blockId)
-	err := Engine.template.ExecuteTemplate(w, blockKey, p)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (e *TemplateEngine) RenderBlockIfExist(w io.Writer, templateId, blockId string, p interface{}) error {
-	blockKey := fmt.Sprintf("%s%s%s", templateId, config.SPLITER_BLOCK, blockId)
-	if t := Engine.template.Lookup(blockKey); t != nil {
-		err := Engine.template.ExecuteTemplate(w, blockKey, p)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 /*_______________________________________________________________________________
   GOT Templates Caches
 */
-
-var l sync.RWMutex
 
 /*
   Load template and it's contents into memory. Then parse it into template.
@@ -114,7 +75,8 @@ var l sync.RWMutex
   TODO: Implement force reload
 */
 /*, protonType reflect.Type, key string, filename string*/
-func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool) (cached bool, err error) {
+func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool) (
+	/* returns: */ cached bool, engine *core.TemplateEngine, err error) {
 
 	_, templatePath := registry.TemplatePath()
 
@@ -125,24 +87,34 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 		logTemplate.Printf("[ParseTemplate] registry Alias:%v", registry.Alias)
 	}
 
-	// TODO: 这里的锁有问题，高并发时容易引起资源浪费。
+	// TODO: 这里的锁有问题，高并发时容易引起资源浪费。 /锁呢？
 	if !reloadWhenFileChanges && registry.IsTemplateLoaded {
 		// Be Lazy, err is Tempalte not loaded yet!
+		if nil == registry.TemplateEngine {
+			panic("不可能!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		}
 		cached = true
-		return // return cached version.
+		engine = registry.TemplateEngine
+		return
 	}
 
 	// load and parse it.
+	// fmt.Println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+	// fmt.Println("Lock registry.L.Lock()")
 	registry.L.Lock() // write lock
-	defer registry.L.Unlock()
+	// fmt.Println("Lock registry.L.Lock() success")
+	defer func() {
+		registry.L.Unlock()
+	}()
 
 	// if file doesn't exist.
 	var fileInfo os.FileInfo
 	if fileInfo, err = os.Stat(templatePath); os.IsNotExist(err) {
 		// set nil to cache
 		// Set loaded flag to true even if file not exist. FileNotExist is a normal case.
+		fmt.Println("文件不存在， template not exist.!")
 		registry.IsTemplateLoaded = true
-		return
+		return false, nil, err
 	} else if err != nil {
 		panic(err) // panic on other file error.
 	} else {
@@ -161,6 +133,10 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 			if registry.TemplateLastModifiedTime == fileInfo.ModTime() {
 				// nothing changed, return cached one.
 				cached = true
+				engine = registry.TemplateEngine
+				if engine == nil {
+					fmt.Println("绝对不可能")
+				}
 				return
 			} else {
 				registry.IncTemplateVersion()
@@ -196,13 +172,13 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 
 	registry.ContentTransfered = trans.RenderToString()
 	if false {
-		// fmt.Println("\n\n---- [CONTENT TRANSFERED] --------------------------------------------------")
-		// fmt.Println(registry.ContentTransfered)
-		// fmt.Println("----------------------------------------------------------------------\n\n-")
+		fmt.Println("\n\n---- [CONTENT TRANSFERED] --------------------------------------------------")
+		fmt.Println(registry.ContentTransfered)
+		fmt.Println("----------------------------------------------------------------------\n\n-")
 
-		// fmt.Println("\n\n---- [IMPORTS IN BLOCK] ----------------------------------------------------")
-		// fmt.Println(registry.ContentTransfered)
-		// fmt.Println("----------------------------------------------------------------------\n\n-")
+		fmt.Println("\n\n---- [IMPORTS IN BLOCK] ----------------------------------------------------")
+		fmt.Println(registry.ContentTransfered)
+		fmt.Println("----------------------------------------------------------------------\n\n-")
 	}
 
 	// append components
@@ -216,106 +192,54 @@ func LoadTemplates(registry *register.ProtonSegment, reloadWhenFileChanges bool)
 	}
 
 	// parse tempalte
-
-	// [debug:print template keymaps]
-	fmt.Println("\ndebug info { // Key map is")
-	for k, v := range register.TemplateKeyMap.Keymap {
-		fmt.Printf("\t  %s => %s\n", k, v)
-	}
-	fmt.Println("}")
-
-	if _, ok := register.TemplateKeyMap.Keymap[registry.Identity()]; ok {
+	if seg, ok := register.TemplateKeyMap.Keymap[registry.Identity()]; ok {
+		fmt.Println("Set engine from x to x; ", engine, seg.TemplateEngine)
+		engine = seg.TemplateEngine // set return value
 		// cached templates
 		fmt.Println("\n\n\n\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 		fmt.Println("cached templates, ignore", registry.Identity())
 	} else {
 		// if not cached.
-		var meet_an_bug = false
-		if err = parseTemplate(registry.Identity(), registry.ContentTransfered); err != nil {
+		engine = Engine.Clone()
+		registry.TemplateEngine = engine
 
+		if err = ParseTemplate(engine, registry.Identity(), registry.ContentTransfered); err != nil {
 			if debug.QuickFixEnabled {
-				meet_an_bug = true
-				// #01 Quick Fix.
-				if strings.Index(err.Error(), "html/template: cannot redefine") == 0 {
-					fmt.Printf("[>QUICK-FIX] #01: %v\n", err)
-					err = nil
-					// ignore all then return. because all tempalte are already registered.
-				} else {
-					// TODO: Goto Detailed template parse Error page.
-					panic(err)
-					// panic(fmt.Sprintf("Error when parse template %x", identity))
-				}
+				panic(err)
 			} else {
 				panic(err)
 			}
 		}
 
-		if true || !meet_an_bug {
-			blocks := trans.RenderBlocks() // blocks found in template.
-			if blocks != nil {
-				registry.Blocks = map[string]*register.Block{}
-				for blockId, html := range blocks {
-					block := &register.Block{
-						ID:                blockId,
-						ContentTransfered: html,
-					}
-					registry.Blocks[blockId] = block
-					blockKey := fmt.Sprintf("%s%s%s", registry.Identity(), config.SPLITER_BLOCK, blockId)
-					if err = parseTemplate(blockKey, block.ContentTransfered); err != nil {
-						panic(fmt.Sprintf("Error when parse template %x", blockKey))
-					}
+		// blocks found in template.
+		blocks := trans.RenderBlocks()
+		if blocks != nil {
+			registry.Blocks = map[string]*register.Block{}
+			for blockId, html := range blocks {
+				block := &register.Block{
+					ID:                blockId,
+					ContentTransfered: html,
+				}
+				registry.Blocks[blockId] = block
+				blockKey := fmt.Sprintf("%s%s%s", registry.Identity(), config.SPLITER_BLOCK, blockId)
+				// fmt.Println("debug info { RenderBlock inline key is} ", blockKey)
+				if err = ParseTemplate(engine, blockKey, block.ContentTransfered); err != nil {
+					fmt.Printf("~~~ Error when parse template %x", blockKey)
+					panic(err)
 				}
 			}
 		}
 
 		registry.SetAssets(trans.Assets) // set assets into registry
-
-		// debug print assets
-		// if nil != registry.Assets {
-		// 	registry.Assets.DebugPrintAll()
-		// }
-
-		// add to cache
 		register.TemplateKeyMap.Keymap[registry.Identity()] = registry
 	}
 	return
 }
 
-func parseTemplate(key string, content string) error {
-	// Old version uses filename as key, I make my own key. not
-	// filepath.Base(filename) First template becomes return value if
-	// not already defined, we use that one for subsequent New
-	// calls to associate all the templates together. Also, if this
-	// file has the same name as t, this file becomes the contents of
-	// t, so t, err := New(name).Funcs(xxx).ParseFiles(name)
-	// works. Otherwise we create a new template associated with t.
-
-	// fmt.Printf("[parse tempalte] parseTempalte(%s,<<%s>>);\n", key, content) //content) // REMOVE
-
-	var tmpl *template.Template
-	if Engine.template == nil {
-		Engine.template = template.New(key)
-	}
-
-	if key == Engine.template.Name() {
-		tmpl = Engine.template
-	} else {
-		tmpl = Engine.template.New(key)
-		// Engine.template = tmpl
-	}
-
-	if true { // -------------------------- debug print templates.
-		fmt.Println("\ndebug info { // templates loop")
-		for _, t := range Engine.template.Templates() {
-			fmt.Println("  ", t.Name())
-		}
-		fmt.Println("}")
-	}
+func ParseTemplate(engine *core.TemplateEngine, key string, content string) error {
+	tmpl := engine.InitTemplate(key)
 	_, err := tmpl.Parse(content)
-
-	// fmt.Printf("[parse tempalte] End parseTempalte(%s, << ignored >>);\n", key) // REMOVE
 	if err != nil {
-		// fmt.Println("[ERROR] : \t", err) // REMOVE
 		return err
 	}
 	return nil

@@ -48,7 +48,7 @@ func GetPage(t reflect.Type) *ProtonSegment {
 		// -------
 		fmt.Println("------------------------------------------------------------------------------------")
 	}
-	
+
 	if v, ok := PageTypeMap[t]; ok {
 		return v
 	}

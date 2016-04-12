@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-page.go] Elivoa @ Thursday, 2014-08-07 19:11:41>
+   Time-stamp: <[lifecircle-page.go] Elivoa @ Wednesday, 2016-04-13 00:13:15>
 */
 package lifecircle
 
@@ -81,7 +81,12 @@ func (lcc *LifeCircleControl) PageFlow() *LifeCircleControl {
 			// lcc.SetToRequest(config.LCC_OBJECT_KEY, lcc) // set in router
 
 			// universial flow
-			lcc.rendering = true
+
+			// lcc.rendering = true
+			// fmt.Println(">>>>>>>>>>>>>>>>>>>>>%%%%%%%%%%%%%%%%%%%%%%%%3 lock")
+			// fmt.Println(">>>>>>>>>>>>>>>>>>>>>%%%%%%%%%%%%%%%%%%%%%%%%4 lock success")
+			templates.Lock.Lock() // global lock on templates
+			defer templates.Lock.Unlock()
 			returns = lcc.page.flow()
 			lcc.rendering = false
 		}
@@ -119,7 +124,7 @@ var eventlog = logs.Get("GOT:EventCall")
 // 暂不支持Event的popup
 func (lcc *LifeCircleControl) EventCall(result *register.LookupResult) *LifeCircleControl {
 
-	fmt.Println("--$$------------------------------------ Call event ----------------------------")
+	// fmt.Println("--$$------------------------------------ Call event ----------------------------")
 	// Note that page is new created. all values needs inject.
 
 	// 1. Inject values into root page
@@ -156,7 +161,7 @@ func (lcc *LifeCircleControl) EventCall(result *register.LookupResult) *LifeCirc
 		// Call event on page.
 	}
 
-	fmt.Println("\n----------    EVENT CALL    ----------------")
+	// fmt.Println("\n----------    EVENT CALL    ----------------")
 	if eventlog.Debug() {
 		eventlog.Printf("[EventCall] Call Event %v", "On"+result.EventName)
 	}
@@ -225,7 +230,7 @@ func FollowComponentByIds(rootSeg *register.ProtonSegment, componentIds []string
 				fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 				fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 				fmt.Println("   >> LoadTemplate ", lowercasedId, " >> ", current)
-				if _, err := templates.LoadTemplates(current, config.ReloadTemplate); err != nil {
+				if _, _, err := templates.LoadTemplates(current, config.ReloadTemplate); err != nil {
 					panic(err)
 				}
 			}

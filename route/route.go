@@ -24,6 +24,9 @@ var (
 	emptyParameters = []reflect.Value{}
 	debugLog        = true
 	logRoute        = logs.Get("Router")
+
+	// debug optons
+	enable_error_handler = true
 )
 
 // RouteHandler is responsible to handler all got request.
@@ -46,7 +49,6 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 
-			var enable_error_handler = true
 			if !enable_error_handler {
 				if true { // Debug print
 					fmt.Println("\n_______________________________________________________________")
@@ -71,11 +73,13 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			fmt.Println("\n============= Panic Occured. =============")
+			// Error hancler process.
+
+			fmt.Println("\n============= ErrorHandler: Panic Occured. =============")
 			// Give control to ErrorHandler if panic occurs.
 			if b := errorhandler.Process(w, r, err); b == false {
 				// return
-				if true { // **** disable this function
+				if false { // **** disable this function
 					w.Header().Add("content-type", "text/plain")
 					w.Write([]byte(fmt.Sprint("[ErrorHandler can't handler this error, it returns false]")))
 					w.Write([]byte(fmt.Sprint(err)))
@@ -134,7 +138,9 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("********************************************************************************")
 	}
 
+	// ************************************************************
 	// Normal request page flow, create then flow.
+	// ************************************************************
 	if lcc == nil {
 		lcc = lifecircle.NewPageFlow(w, r, result.Segment)
 	}
@@ -146,7 +152,7 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Done: print some information.
 	defer func() {
-		fmt.Println("----------------------------")
+		fmt.Println("---- [defer] ------------------------")
 		fmt.Println("Describe the page structure:")
 		fmt.Println(lcc.PrintCallStructure())
 		// fmt.Println("-- Page Result is ---------")
@@ -215,7 +221,7 @@ func RegisterProton(pkgPrefix string, name string, modulePkg string, proton core
 		// register component as func
 		for _, selector := range selectors {
 			key := strings.Join(selector, "/") // e.g.: got/TestComponent
-			templates.Engine.RegisterComponent(key, lifecircle.ComponentLifeCircle(strings.ToLower(key)))
+			templates.RegisterComponent(key, lifecircle.ComponentLifeCircle(strings.ToLower(key)))
 			// templates.RegisterComponentAsFunc(key, lifecircle.ComponentLifeCircle(lowerKey))
 		}
 	case core.MIXIN:

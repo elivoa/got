@@ -61,6 +61,7 @@ type ProtonSegment struct {
 	EmbedComponents   map[string]*ProtonSegment // lowercased id
 	assets            *core.AssetSet            // js and css files.
 	combinedAssets    *core.AssetSet            // Combined it's embed assets.
+	TemplateEngine    *core.TemplateEngine      // Embed Template Engine
 
 	// Used for debug, when modified a template file, system will reload the tempalte file as veriosn+1.
 	templateVersion          int

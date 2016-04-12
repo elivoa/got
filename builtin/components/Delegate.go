@@ -9,7 +9,6 @@ import (
 	"github.com/elivoa/got/core"
 	"github.com/elivoa/got/core/lifecircle"
 	"github.com/elivoa/got/route/exit"
-	"github.com/elivoa/got/templates"
 	"html/template"
 )
 
@@ -67,7 +66,7 @@ func (c *Delegate) executeBlock() string {
 	reg := c.containerLife.Registry()
 
 	var out bytes.Buffer
-	if err := templates.Engine.RenderBlock(
+	if err := reg.TemplateEngine.RenderBlock(
 		&out, reg.Identity(), c.To, c.containerLife.GetProton()); err != nil {
 		panic(err)
 	}

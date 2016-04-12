@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-component.go] Elivoa @ Monday, 2016-03-28 23:40:41>
+   Time-stamp: <[lifecircle-component.go] Elivoa @ Tuesday, 2016-04-12 12:38:40>
 */
 package lifecircle
 
@@ -201,18 +201,17 @@ func (l *Life) flow() (returns *exit.Exit) {
 						}
 						if !returns.IsReturnsFalse() {
 
-
-							fmt.Println("debug info {  }", l.name)
 							// Here we ignored BeforeRenderBody and AfterRenderBody.
 							// Maybe add it later.
 							// May be useful for Loop component?
+
 							l.renderTemplate()
 
-							// if any component breaks it's render, stop all rendering.
-							if l.control.rendering == false {
-								returns = nil
-								return
-							}
+							// if any // component breaks it's render, stop all rendering.
+							// if l.control.rendering == false {
+							// 	returns = nil
+							// 	return
+							// }
 						}
 
 						returns = SmartReturn(l.call("AfterRenderTemplate"))
@@ -246,21 +245,25 @@ func (l *Life) flow() (returns *exit.Exit) {
 	// finally I go through all render phrase.
 	returns = exit.Template(nil)
 	return
+
 }
 
 // renderTemplate find and render Template using go way.
 func (l *Life) renderTemplate() {
 	// reach here means I can find the template and render it.
 	// debug.Log("-755- [TemplateSelect] %v -> %v", identity, templatePath)
-	// debug.Log("-755- [TemplateSelect] %v -> %v", l.registry.Identity(), "-templatePath-")
-	if _, err := templates.LoadTemplates(l.registry, config.ReloadTemplate); err != nil {
-		panic(err)
-	}
-	if err := templates.Engine.RenderTemplate(&l.out, l.registry.Identity(), l.proton); err != nil {
+	var (
+		engine *core.TemplateEngine
+		err    error
+	)
+	if _, engine, err = templates.LoadTemplates(l.registry, config.ReloadTemplate); err != nil {
 		panic(err)
 	}
 
-	fmt.Println("===============================================\n\n\n\n\n\n=====================")
+	if err := engine.RenderTemplate(&l.out, l.registry.Identity(), l.proton); err != nil {
+		panic(err)
+	}
+
 	// PageHeadBootstrap Replace
 	// TODO BIG Performance issue.
 	if l.kind == core.PAGE {
@@ -272,7 +275,7 @@ func (l *Life) renderTemplate() {
 			life := headbs.FlowLife().(*Life)
 
 			// BUG: What if this block not exists??
-			if err := templates.Engine.RenderBlockIfExist(&blockhtml, life.registry.Identity(),
+			if err := engine.RenderBlockIfExist(&blockhtml, life.registry.Identity(),
 				"page_head_bootstrap_defer_block", headbs); err != nil {
 				panic(err)
 			}
