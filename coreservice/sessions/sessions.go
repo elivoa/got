@@ -16,14 +16,26 @@ var (
 	// globalSession     *sessions.Session // TODO: change this to application scope.
 )
 
+var Store = sessions.NewCookieStore([]byte("something-very-secret"))
+
+func LongCookieSessiontttttttt(r *http.Request) *sessions.Session {
+	if session, err := Store.Get(r, "session-name"); err != nil {
+		fmt.Printf("Error occured %v\n", err)
+		panic(err)
+	} else {
+		return session
+	}
+}
+
 func init() {
 	// Init session store
-	longliveCookieStore = sessions.NewCookieStore([]byte("GOTLongLiveSessionStore"))
-	longliveCookieStore.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 7,
-		HttpOnly: true,
-	}
+	longliveCookieStore = sessions.NewCookieStore([]byte("something-very-secret"))
+	// longliveCookieStore = sessions.NewCookieStore([]byte("GOTLongLiveSessionStore"))
+	// longliveCookieStore.Options = &sessions.Options{
+	// 	Path:     "/",
+	// 	MaxAge:   86400 * 7,
+	// 	HttpOnly: true,
+	// }
 
 	ephemeron = sessions.NewCookieStore([]byte("GOTShortLiveSessionStore"))
 	ephemeron.Options = &sessions.Options{
@@ -35,7 +47,7 @@ func init() {
 
 // LongSession returns Long-lived Cookie based Session
 func LongCookieSession(r *http.Request) *sessions.Session {
-	if session, err := longliveCookieStore.Get(r, "session"); err != nil {
+	if session, err := longliveCookieStore.Get(r, "gotsession"); err != nil {
 		fmt.Printf("Error occured %v\n", err)
 		panic(err)
 	} else {
