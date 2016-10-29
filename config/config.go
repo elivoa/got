@@ -161,6 +161,11 @@ var (
 // logic configs
 var (
 	LIST_PAGE_SIZE = 20 // items list per-page.
+
+	// stores
+	STORE_DAKU             = 1
+	STORE_MAIN_BATTLEFIELD = 2
+	STORE_ALIBABA          = 3
 )
 
 // if true, check file if modified each time call an template render.
