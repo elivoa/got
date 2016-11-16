@@ -5,8 +5,9 @@
   <input id="" type="file" name="files[]" data-url="/got/fileupload/" multiple>
 
   {{range .Restore}}
-  <div>
+  <div style="border-bottom: solid 1px#ddd;margin-bottom: 4px;padding-bottom:2px;">
     <input type="hidden" name="{{$.Name}}" value="{{.}}">
+    <img width="60" src="{{$.PictureLink .}}" style="border:solid 1px gray"></img>
     <a href="{{$.PictureLink .}}" target="_blank">{{.}}</a>
     <a href="#" onclick="alert('TODO: delete this file on server.')">x</a>
   </div>
@@ -33,7 +34,7 @@
       sequentialUploads : true,
 
       add: function (e, data) {
-        data.context = $('<p class="fu_add"/>').text('Uploading ' + data.files[0].name + ' ...')
+        data.context = $('<p class="fu_add"/>').text('上传中 ' + data.files[0].name + ' ...')
           .appendTo(container);
         data.submit();
       },

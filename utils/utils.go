@@ -183,14 +183,3 @@ func PageCursorMessage(current, total, pageItems int, lang string) string {
 func Floor(n float32) float32 {
 	return float32(math.Floor(float64(n)*100) / 100)
 }
-
-// TODO need doc.
-func NatureTimeRange(years, months, days int) (start, end time.Time) {
-	natureEnd := time.Now().AddDate(0, 0, 1).UTC().Truncate(time.Hour * 24)
-	natureStart := natureEnd.AddDate(years, months, days-1)
-	return natureStart, natureEnd
-}
-
-func NatureTimeTodayEnd() (t time.Time) {
-	return time.Now().AddDate(0, 0, 1).UTC().Truncate(time.Hour * 24)
-}

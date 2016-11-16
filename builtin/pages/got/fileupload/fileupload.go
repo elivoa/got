@@ -126,7 +126,7 @@ func FU(w http.ResponseWriter, r *http.Request) {
 			}
 			fileInfos = append(fileInfos, fi)
 
-			fmt.Println("Create file: " + absFilename)
+			fmt.Println("Create temp file: " + absFilename)
 			// write file here
 			dst, err := os.Create(absFilename)
 			defer dst.Close()
@@ -140,7 +140,7 @@ func FU(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// fmt.Println("done 1")
+			fmt.Println("Create temp file Done!")
 		}
 		result["files"] = fileInfos
 

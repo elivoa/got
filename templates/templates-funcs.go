@@ -1,6 +1,6 @@
 /*
 Functions used in tempalte.
-Time-stamp: <[templates-funcs.go] Elivoa @ Wednesday, 2016-04-06 23:38:00>
+Time-stamp: <[templates-funcs.go] Elivoa @ Tuesday, 2016-11-15 18:22:05>
 
 This is a full list:
 
@@ -48,6 +48,9 @@ func addToFuncMac(fms ...template.FuncMap) {
 
 func registerDateTimeFunc() template.FuncMap {
 	return template.FuncMap{
+
+		// time related
+
 		"formattime":         FormatTime,
 		"datetime":           DateTime,
 		"date":               Date,
@@ -59,6 +62,9 @@ func registerDateTimeFunc() template.FuncMap {
 		"prettyday":        gxl.PrettyDay,
 		"prettycurrency":   PrettyCurrency,
 		"prettycurrency32": PrettyCurrency32,
+
+		"local":   gxl.LocalTime,
+		"tolocal": gxl.ToLocalTime,
 
 		"now":       func() time.Time { return time.Now() },
 		"validtime": utils.ValidTime,
@@ -83,8 +89,8 @@ func registerMiscFunc() template.FuncMap {
 		"eq": equas,
 
 		// strings
-		"truncate": utils.TrimTruncate,}
-		   
+		"truncate": utils.TrimTruncate}
+
 }
 
 func registerMathFunc() template.FuncMap {
