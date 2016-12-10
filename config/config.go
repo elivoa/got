@@ -50,7 +50,7 @@ type Configure struct {
 }
 
 func NewConfigure() *Configure {
-	return &Configure{
+	return &Configure{ // default information
 		Version:               "0.3.0",
 		ResourcePath:          "/tmp/",
 		Modules:               []*core.Module{},
@@ -60,13 +60,15 @@ func NewConfigure() *Configure {
 		// BasePackages: []string{"happystroking"},
 		// server
 		Port: 8080,
-
-		// DB
-		// DBPort:     3306,
-		// DBName:     "syd",
-		// DBUser:     "root",
-		// DBPassword: "eserver409$)(",
 	}
+}
+
+// quick set db information, TODO: add host configuration.
+func (c *Configure) SetDBInfo(port int, dbname, dbuser, dbpassword string) {
+	c.DBPort = port
+	c.DBName = dbname
+	c.DBUser = dbuser
+	c.DBPassword = dbpassword
 }
 
 // set app base path and other settings.
@@ -179,5 +181,5 @@ var (
 
 // Debug Output Settings;
 var (
-	ROUTE_PRINT_TIME = true
+	ROUTE_PRINT_TIME = false
 )

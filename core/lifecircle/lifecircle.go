@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle.go] Elivoa @ Wednesday, 2015-06-17 01:16:39>
+   Time-stamp: <[lifecircle.go] Elivoa @ Saturday, 2016-12-10 17:32:03>
 */
 
 package lifecircle
@@ -322,8 +322,8 @@ func (lcc *LifeCircleControl) PostFlow() (returns *exit.Exit) {
 	if returns.IsBreakExit() {
 		return
 	}
-	fmt.Println("***************************************************************************")
-	fmt.Println(onSuccessEventName)
+	// fmt.Println("***************************************************************************")
+	// fmt.Println(onSuccessEventName)
 
 	// something else, validation...
 	// post flows stopd here.

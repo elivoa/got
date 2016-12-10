@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-component.go] Elivoa @ Tuesday, 2016-04-12 12:38:40>
+   Time-stamp: <[lifecircle-component.go] Elivoa @ Saturday, 2016-12-10 17:43:22>
 */
 package lifecircle
 
@@ -199,13 +199,23 @@ func (l *Life) flow() (returns *exit.Exit) {
 						if returns.IsBreakExit() {
 							return
 						}
+
+						// render tempalte
 						if !returns.IsReturnsFalse() {
 
 							// Here we ignored BeforeRenderBody and AfterRenderBody.
 							// Maybe add it later.
 							// May be useful for Loop component?
 
+							// fmt.Println(">>>>>>>>>>>>>>>LOCK LOCK LOCK LOCK LOCK LOCK 3 lock")
+							// templates.Lock.Lock() // global lock on templates
+							// fmt.Println(">>>>>>>>>>>>>>>LOCK LOCK LOCK LOCK LOCK LOCK 4 lock success")
+
 							l.renderTemplate()
+
+							// fmt.Println(">>>>>>>>>>>>>>>LOCK LOCK LOCK LOCK LOCK LOCK 3 unlock")
+							// templates.Lock.Unlock()
+							// fmt.Println(">>>>>>>>>>>>>>>LOCK LOCK LOCK LOCK LOCK LOCK s3 unlock success")
 
 							// if any // component breaks it's render, stop all rendering.
 							// if l.control.rendering == false {

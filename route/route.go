@@ -32,7 +32,7 @@ var (
 // RouteHandler is responsible to handler all got request.
 func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Path
-
+	// fmt.Println("]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] url: ", url)
 	// 1. skip special resources. TODO Expand to config. // TODO better this
 	if url == "/favicon.ico" {
 		return
@@ -152,9 +152,10 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Done: print some information.
 	defer func() {
-		fmt.Println("---- [defer] ------------------------")
-		fmt.Println("Describe the page structure:")
-		fmt.Println(lcc.PrintCallStructure())
+		// fmt.Println("---- [defer] ------------------------")
+		// fmt.Println("Describe the page structure:")
+		// fmt.Println(lcc.PrintCallStructure())
+
 		// fmt.Println("-- Page Result is ---------")
 		// fmt.Println(result)
 	}()

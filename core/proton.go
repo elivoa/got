@@ -139,10 +139,10 @@ func (p *Proton) SetInjected(fieldName string, b bool) {
 
 func (p *Proton) Embed(name string) (Protoner, bool) {
 	proton, ok := p.embed[name]
-	fmt.Println("\t&&&&&&&&&&&&&&&&")
-	for k, _ := range p.embed {
-		fmt.Println("\tProtonn embed:", k)
-	}
+	// fmt.Println("\t&&&&&&&&&&&&&&&&")
+	// for k, _ := range p.embed {
+	// 	fmt.Println("\tProtonn embed:", k)
+	// }
 	return proton, ok
 }
 

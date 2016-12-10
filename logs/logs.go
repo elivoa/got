@@ -74,7 +74,7 @@ func init() {
 	InitLogger("GOT:EventCall", "", Trace) //
 	InitLogger("URL Lookup", "", Error)    // Info
 	InitLogger("ComponentFLow", "", Error) //
-	InitLogger("Route", "", Error)         // Trace
+	InitLogger("Router", "", Error)         // Trace
 	InitLogger("Return", "", Error)        // Info
 	InitLogger("Log Template", "", Error)
 	InitLogger(LOGGER_INJECTION_VALUE_COERCION, "", Trace)

@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-page.go] Elivoa @ Wednesday, 2016-04-13 00:13:15>
+   Time-stamp: <[lifecircle-page.go] Elivoa @ Saturday, 2016-12-10 17:51:55>
 */
 package lifecircle
 
@@ -50,10 +50,8 @@ func NewPageFlowFromExistingPage(w http.ResponseWriter, r *http.Request, page co
 
 // Page Render Flow: (Entrance 1)    new -> path -> url ->
 func (lcc *LifeCircleControl) PageFlow() *LifeCircleControl {
-
 	// Inject
 	lcc.injectBasic().injectPath().injectURLParameter().injectHiddenThings()
-
 	// add lcc object to request. :: move to router
 	// lcc.SetToRequest(config.LCC_OBJECT_KEY, lcc)
 
@@ -82,12 +80,22 @@ func (lcc *LifeCircleControl) PageFlow() *LifeCircleControl {
 
 			// universial flow
 
-			// lcc.rendering = true
-			// fmt.Println(">>>>>>>>>>>>>>>>>>>>>%%%%%%%%%%%%%%%%%%%%%%%%3 lock")
-			// fmt.Println(">>>>>>>>>>>>>>>>>>>>>%%%%%%%%%%%%%%%%%%%%%%%%4 lock success")
-			templates.Lock.Lock() // global lock on templates
-			defer templates.Lock.Unlock()
+			lcc.rendering = true
+
+			// NOTE: Don't lock template here. will cause cycle lock.
+
+			// fmt.Println(">>>>>>>>>>>>>>>>>>>>>LOCK LOCK LOCK LOCK LOCK LOCK 3 lock")
+			// templates.Lock.Lock() // global lock on templates
+			// fmt.Println(">>>>>>>>>>>>>>>>>>>>>LOCK LOCK LOCK LOCK LOCK LOCK 4 lock success")
+			// defer func() {
+			// fmt.Println(">>>>>>>>>>>>>>>>>>>>>LOCK LOCK LOCK LOCK LOCK LOCK 3 unlock")
+			// templates.Lock.Unlock()
+			// fmt.Println(">>>>>>>>>>>>>>>>>>>>>LOCK LOCK LOCK LOCK LOCK LOCK s3 unlock success")
+			// }()
+
+			// call main flow function.
 			returns = lcc.page.flow()
+
 			lcc.rendering = false
 		}
 	}

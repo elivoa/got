@@ -1,5 +1,5 @@
 /*
-   Time-stamp: <[lifecircle-return.go] Elivoa @ Wednesday, 2015-08-05 23:48:10>
+   Time-stamp: <[lifecircle-return.go] Elivoa @ Saturday, 2016-12-10 13:48:58>
 */
 package lifecircle
 
@@ -79,11 +79,14 @@ func SmartReturn(returns []reflect.Value) *exit.Exit {
 		return exit.TrueExit()
 	}
 
+	// deprecated, use exit.Result instead.
 	firstObject := first.Interface()
+	// fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\t", firstObject)
 	switch firstObject.(type) {
 	case bool:
 		return exit.Bool(first.Bool())
 	case string:
+		// fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++\tresult is strings")
 		// now only support (string, string) pair
 		if len(returns) <= 1 {
 			// One String mode:: e.g.: redirect::some_text_output
@@ -107,6 +110,7 @@ func SmartReturn(returns []reflect.Value) *exit.Exit {
 			panic(fmt.Sprintf("[Warrning] return type %v not found!", first.String()))
 		}
 	case error:
+		// fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++\tresult is error")
 		panic(firstObject.(error))
 	case exit.Exit:
 		exxx := firstObject.(exit.Exit)
@@ -118,7 +122,7 @@ func SmartReturn(returns []reflect.Value) *exit.Exit {
 	}
 }
 
-// HandleBreakReturn means
+// HandleBreakReturn, handel exit.Exit returns.
 func (lcc *LifeCircleControl) HandleBreakReturn() {
 	r := lcc.returns
 	if r == nil {
@@ -216,10 +220,13 @@ func (lcc *LifeCircleControl) HandleBreakReturn() {
 		} else {
 			panic(fmt.Sprintf("Can't forward to this type, %s.", utils.GetRootValue(r.Value).Kind()))
 		}
-
+	case "error":
+		fmt.Println("+++ Return Error, ", r.Value)
+		panic(r.Value)
 	case "block":
-		// TODO ...
-
+	// TODO ...
+	default:
+		panic("lifecircle-return.go:228 exit.Exit not handled.")
 	}
 }
 
