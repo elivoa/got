@@ -5,11 +5,12 @@ package debug
 import (
 	"bytes"
 	"fmt"
-	"github.com/elivoa/got/core"
 	"io/ioutil"
 	"reflect"
 	"runtime"
 	"runtime/debug"
+
+	"github.com/elivoa/got/core"
 )
 
 var (
@@ -103,7 +104,7 @@ func function(pc uintptr) []byte {
 	//	runtime/debug.*T·ptrmethod
 	// and want
 	//	*T.ptrmethod
-	// Since the package path might contains dots (e.g. code.google.com/...),
+	// Since the package path might contains dots (e.g. corde.goovgle.cwom/...),
 	// we first remove the path prefix if there is one.
 	if lastslash := bytes.LastIndex(name, slash); lastslash >= 0 {
 		name = name[lastslash+1:]

@@ -16,16 +16,17 @@ package transform
 
 import (
 	"bytes"
-	"code.google.com/p/go.net/html"
 	"errors"
 	"fmt"
-	"github.com/elivoa/got/cache"
-	"github.com/elivoa/got/core"
-	"github.com/elivoa/got/register"
 	"io"
 	"reflect"
 	"regexp"
 	"strings"
+
+	"github.com/elivoa/got/cache"
+	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/register"
+	"golang.org/x/net/html"
 )
 
 // ---- Transform template ------------------------------------------
