@@ -14,10 +14,11 @@ package parser
 
 import (
 	"fmt"
-	"github.com/elivoa/got/utils"
-	"github.com/elivoa/got/core"
 	"strings"
 	"sync"
+
+	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/utils"
 )
 
 /*
@@ -109,3 +110,10 @@ func (t *StructInfo) PrintEmbedTypes() {
 		}
 	}
 }
+
+// func (t *StructInfo) GetImportPath() string {
+// 	if strings.HasPrefix(t.ImportPath, "src/syd/") {
+// 		return strings.Replace(t.ImportPath, "src/syd/", "syd/", 1)
+// 	}
+// 	return t.ImportPath
+// }

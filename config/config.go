@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/elivoa/got/core"
 	"path"
 	"reflect"
 	"time"
+
+	"github.com/elivoa/got/core"
 )
 
 // ________________________________________________________________________________
@@ -71,23 +72,14 @@ func (c *Configure) SetDBInfo(port int, dbname, dbuser, dbpassword string) {
 	c.DBPassword = dbpassword
 }
 
-// set app base path and other settings.
-func (c *Configure) SetBasepath(appBasePath string) {
-	fmt.Printf("Config: Set base path to [%v]\n", appBasePath)
-
-	c.AppBasePath = path.Join(appBasePath, "../")
-	c.SrcPath = path.Join(appBasePath, "../", "src")
-	c.StaticPath = path.Join(appBasePath, "../", "static")
-}
-
 // Register modules
 func (c *Configure) RegisterModule(module *core.Module) {
 	if module.IsStartupModule {
 		if c.StartupModule != nil {
 			// panic if not only one startup modules.
 			panic(fmt.Sprintln("There are more than one StartupModule, they are: \n  ",
-				c.StartupModule.PackagePath, c.StartupModule.VarName, "\n  ",
-				module.PackagePath, module.VarName,
+				c.StartupModule.PackageName, c.StartupModule.VarName, "\n  ",
+				module.PackageName, module.VarName,
 			))
 		}
 		c.StartupModule = module
@@ -96,14 +88,27 @@ func (c *Configure) RegisterModule(module *core.Module) {
 
 	Config.Modules = append(Config.Modules, module)
 
-	// fmt.Println("\n____  REGISTER MODULE   ____________________________________________________________")
-	// fmt.Println("model.Name = ", module.Name)
-	// fmt.Println("model.VarName = ", module.VarName)
-	// fmt.Println("model.BasePath = ", module.BasePath)
-	// fmt.Println("model.PackagePath = ", module.PackagePath)
-	// fmt.Println("model.Description = ", module.Description)
-	// fmt.Println("model.IsStartupModule = ", module.IsStartupModule)
-	// fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	fmt.Println("\n____  REGISTER MODULE   ____________________________________________________________")
+	fmt.Println("model.Name = ", module.Name)
+	fmt.Println("model.VarName = ", module.VarName)
+	fmt.Println("model.BasePath = ", module.BasePath)
+	// fmt.Println("model.SourcePath = ", module.SourcePath)
+	fmt.Println("model.PackageName = ", module.PackageName)
+	fmt.Println("model.Description = ", module.Description)
+	fmt.Println("model.IsStartupModule = ", module.IsStartupModule)
+	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+}
+
+// set app base path and other settings.
+func (c *Configure) SetBasepath(appBasePath string) {
+	fmt.Printf("Config: Set base path to [%v]\n", appBasePath)
+
+	// c.AppBasePath = path.Join(appBasePath, "../")
+	// c.SrcPath = path.Join(appBasePath, "../", "src")
+	// c.StaticPath = path.Join(appBasePath, "../", "static")
+	c.AppBasePath = appBasePath                               // path.Join(appBasePath, "../")
+	c.SrcPath = appBasePath                                   //  path.Join(appBasePath, "../", "src")
+	c.StaticPath = path.Join(appBasePath, "../../", "static") // TODO 这里太特殊了
 }
 
 func (c *Configure) AddStaticResource(url string, path string) {
@@ -173,7 +178,7 @@ var (
 // if true, check file if modified each time call an template render.
 // This will be an performance loss. TODO: Should be monitor file change and reparse if chagne.
 var (
-	ProductionMode = false // full debug information when debug.
+	ProductionMode = true // full debug information when debug.
 
 	// Reload templates need more work to finish.
 	ReloadTemplate = true
@@ -182,4 +187,9 @@ var (
 // Debug Output Settings;
 var (
 	ROUTE_PRINT_TIME = false
+)
+
+var (
+	LIST_PRODUCT_SIZE             = 10000
+	LIST_PRODUCT_SIZE_WITH_LETTER = 10000
 )

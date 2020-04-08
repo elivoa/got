@@ -5,17 +5,20 @@ GOT Module: builtin package
 package builtin
 
 import (
-	"github.com/elivoa/got/builtin/pages/got/fileupload"
-	"github.com/elivoa/got/utils"
-	"github.com/elivoa/got/core"
 	"net/http"
+
+	"github.com/elivoa/got/builtin/pages/got/fileupload"
+	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/utils"
 )
 
 var BuiltinModule = &core.Module{
 	Name:        "github.com/elivoa/got/builtin",
 	VarName:     "BuiltinModule",
-	BasePath:    utils.CurrentBasePath(),
-	PackagePath: "github.com/elivoa/got/builtin",
+	BasePath:    utils.CurrentBasePath(), // filepath.Join(workPath, "../got"),
+	PackageName: "github.com/elivoa/got/builtin",
+	// PackagePath: "builtin",
+	// SourcePath:  "builtin",
 	Description: "GOT Framework Built-in pages and components etc.",
 	// some special configuration.
 	Register: func() {

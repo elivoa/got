@@ -19,22 +19,26 @@ package errorhandler
 import (
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+	"reflect"
+	rd "runtime/debug"
+	"strings"
+	"text/template"
+
 	pBuiltin "github.com/elivoa/got/builtin/pages"
 	"github.com/elivoa/got/core/exception"
 	"github.com/elivoa/got/core/lifecircle"
 	"github.com/elivoa/got/debug"
 	"github.com/elivoa/got/route/exit"
 	"github.com/elivoa/got/utils"
-	"log"
-	"net/http"
-	"reflect"
-	rd "runtime/debug"
 )
 
-var handlers map[reflect.Type]HandlerPair
+// var handlers map[reflect.Type]HandlerPair
+var handlers map[string]HandlerPair
 
 func init() {
-	handlers = make(map[reflect.Type]HandlerPair, 0) // it's a slice.
+	handlers = make(map[string]HandlerPair, 0) // it's a slice.
 
 	// register handlers
 	// TODO should move this to generate?
@@ -42,6 +46,7 @@ func init() {
 	// AddHandler("string-panic-handler", reflect.TypeOf(""), Handle500)
 	AddHandler("Core Error", reflect.TypeOf(exception.CoreError{}), Handle500)
 	AddHandler("page not found", reflect.TypeOf(exception.PageNotFoundError{}), Handle404)
+	AddHandler("access denied", reflect.TypeOf(exception.AccessDeniedError{}), HandleAccessDeniedError)
 	AddHandler("access denied", reflect.TypeOf(exception.AccessDeniedError{}), HandleAccessDeniedError)
 
 	// register by application
@@ -55,7 +60,8 @@ func init() {
 // Function f returns an interface{} that are treated as GOT returns.
 func AddHandler(name string, errType reflect.Type,
 	f func(w http.ResponseWriter, r *http.Request, err interface{}) *exit.Exit) error {
-	handlers[errType] = HandlerPair{
+
+	handlers[errType.String()] = HandlerPair{
 		name:    name,
 		errType: errType,
 		handler: f,
@@ -87,9 +93,16 @@ func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 
 	t := utils.GetRootType(err)
 	var handlerResult *exit.Exit
-	if handlerPair, ok := handlers[t]; ok {
+	if handlerPair, ok := handlers[t.String()]; ok {
 		// Handler found, process
 		handlerResult = handlerPair.handler(w, r, err)
+	}
+
+	if execErr, ok := err.(template.ExecError); ok {
+		msg := execErr.Err.Error()
+		if strings.HasPrefix(msg, "template:") && strings.Contains(msg, "User not login") {
+			handlerResult = handlers["base.LoginError"].handler(w, r, err)
+		}
 	} else {
 		// common error
 		// TODO: change this into environment settings.
@@ -102,7 +115,9 @@ func Process(w http.ResponseWriter, r *http.Request, err interface{}) bool {
 			}
 			fmt.Println("----  What is Expected Error?")
 		}
+	}
 
+	if nil == handlerResult {
 		// handle all other exceptions with 500.;; **** should return false.
 		handlerResult = Handle500(w, r, err)
 	}
@@ -155,8 +170,8 @@ ERR       ER     ER ER     OR
   ERROR   ER     ER ER     OR
       ER  ER     ER ER     OR
 ERR   ER   ER   OR   RO   OR
-  ERROR     ERROR     ORERR
-`)
+	ERROR     ERROR     ORERR`)
+
 	fmt.Println("500 Error Page: error is")
 	printError(err)
 	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")

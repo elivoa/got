@@ -9,6 +9,8 @@ package got
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/elivoa/got/builtin"
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/core"
@@ -18,7 +20,6 @@ import (
 	"github.com/elivoa/got/templates"
 	"github.com/elivoa/got/utils"
 	"github.com/gorilla/context"
-	"net/http"
 )
 
 // build phrase. only set config.
@@ -37,12 +38,13 @@ func BuildStart() {
 
 	printRegisteredModulePaths()
 
-	// Generate startup codes.
+	// * Generate startup codes.
 
 	// generate proton register sourcecode and compile and run.
 	timer := utils.NewTimer()
 	fmt.Println("> Generating startup codes...")
 
+	// * HackSource
 	app, err := parser.HackSource(Config.Modules)
 	if err != nil {
 		panic(fmt.Sprintf("build error: %v", err.Error()))
@@ -65,7 +67,7 @@ func printRegisteredModulePaths() {
 	// print registered modules.
 	fmt.Println("> Registered Module paths:")
 	for _, module := range Config.Modules {
-		fmt.Printf("    - module: %v.%v\n", module.PackagePath, module.VarName)
+		fmt.Printf("    - module: %v.%v\n", module.PackageName, module.VarName)
 	}
 }
 
@@ -102,9 +104,8 @@ func Start() {
 	// mapping static paths.
 	for _, pair := range config.Config.StaticResources {
 		fmt.Printf("    [Static Path] %s -> %s (dir: %s)\n", pair[0], pair[1], http.Dir(pair[1]))
-		http.Handle(pair[0],
-			http.StripPrefix(pair[0], http.FileServer(http.Dir(pair[1]))),
-		)
+		path := http.StripPrefix(pair[0], http.FileServer(http.Dir(pair[1])))
+		http.Handle(pair[0], path)
 	}
 
 	// Template initialize
@@ -127,7 +128,7 @@ func welcome() {
 	fmt.Println("`  GOT WebFramework     (EARLY BUILD 4)          `")
 	fmt.Println("`                                                `")
 	fmt.Println("``````````````````````````````````````````````````")
-	// PrintRegistry()
+	PrintRegistry()
 }
 
 // ________________________________________________________________________________

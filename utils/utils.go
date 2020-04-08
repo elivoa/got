@@ -3,12 +3,9 @@ package utils
 import (
 	"database/sql"
 	"fmt"
-	"go/build"
-	"log"
 	"math"
 	"math/rand"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -19,48 +16,48 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
-func CurrentPackagePath() string {
-	// get base path
-	_, file, _, ok := runtime.Caller(1)
-	if !ok {
-		panic("Can't get current path!")
-	}
-	basePath := path.Join(path.Dir(file))
-	return PackagePath(basePath)
-	// for _, gopath := range filepath.SplitList(build.Default.GOPATH) {
-	// 	srcPath := filepath.Join(gopath, "src")
-	// 	if strings.HasPrefix(basePath, srcPath) {
-	// 		return filepath.ToSlash(basePath[len(srcPath)+1:])
-	// 	}
-	// }
+// func CurrentPackagePath() string {
+// 	// get base path
+// 	_, file, _, ok := runtime.Caller(1)
+// 	if !ok {
+// 		panic("Can't get current path!")
+// 	}
+// 	basePath := path.Join(path.Dir(file))
+// 	return PackagePath(basePath)
+// 	// for _, gopath := range filepath.SplitList(build.Default.GOPATH) {
+// 	// 	srcPath := filepath.Join(gopath, "src")
+// 	// 	if strings.HasPrefix(basePath, srcPath) {
+// 	// 		return filepath.ToSlash(basePath[len(srcPath)+1:])
+// 	// 	}
+// 	// }
 
-	// srcPath := filepath.Join(build.Default.GOROOT, "src", "pkg")
-	// if strings.HasPrefix(basePath, srcPath) {
-	// 	log.Fatalf("Code path should be in GOPATH, but is in GOROOT: %v", basePath)
-	// 	return filepath.ToSlash(basePath[len(srcPath)+1:])
-	// }
+// 	// srcPath := filepath.Join(build.Default.GOROOT, "src", "pkg")
+// 	// if strings.HasPrefix(basePath, srcPath) {
+// 	// 	log.Fatalf("Code path should be in GOPATH, but is in GOROOT: %v", basePath)
+// 	// 	return filepath.ToSlash(basePath[len(srcPath)+1:])
+// 	// }
 
-	// log.Fatalln("Unexpected! Code path is not in GOPATH:", basePath)
-	// return ""
-}
+// 	// log.Fatalln("Unexpected! Code path is not in GOPATH:", basePath)
+// 	// return ""
+// }
 
-func PackagePath(basePath string) string {
-	for _, gopath := range filepath.SplitList(build.Default.GOPATH) {
-		srcPath := filepath.Join(gopath, "src")
-		if strings.HasPrefix(basePath, srcPath) {
-			return filepath.ToSlash(basePath[len(srcPath)+1:])
-		}
-	}
+// func PackagePath(basePath string) string {
+// 	for _, gopath := range filepath.SplitList(build.Default.GOPATH) {
+// 		srcPath := filepath.Join(gopath, "src")
+// 		if strings.HasPrefix(basePath, srcPath) {
+// 			return filepath.ToSlash(basePath[len(srcPath)+1:])
+// 		}
+// 	}
 
-	srcPath := filepath.Join(build.Default.GOROOT, "src", "pkg")
-	if strings.HasPrefix(basePath, srcPath) {
-		log.Fatalf("Code path should be in GOPATH, but is in GOROOT: %v", basePath)
-		return filepath.ToSlash(basePath[len(srcPath)+1:])
-	}
+// 	srcPath := filepath.Join(build.Default.GOROOT, "src", "pkg")
+// 	if strings.HasPrefix(basePath, srcPath) {
+// 		log.Fatalf("Code path should be in GOPATH, but is in GOROOT: %v", basePath)
+// 		return filepath.ToSlash(basePath[len(srcPath)+1:])
+// 	}
 
-	log.Fatalln("Unexpected! Code path is not in GOPATH:", basePath)
-	return ""
-}
+// 	log.Fatalln("Unexpected! Code path2 is not in GOPATH:", basePath)
+// 	return ""
+// }
 
 func CurrentBasePath() string {
 	_, file, _, ok := runtime.Caller(1)
@@ -68,46 +65,40 @@ func CurrentBasePath() string {
 		panic("Can't get current path!")
 	}
 	currentPath := path.Join(path.Dir(file))
-	//	fmt.Println("currentpath is : ", currentPath)
-	return BasePath(currentPath)
-	// for _, gopath := range filepath.SplitList(build.Default.GOPATH) {
-	// 	srcPath := filepath.Join(gopath, "src")
-	// 	if strings.HasPrefix(currentPath, srcPath) {
-	// 		return srcPath
-	// 		// return filepath.ToSlash(currentPath[len(srcPath)+1:])
-	// 	}
-	// }
-
-	// srcPath := filepath.Join(build.Default.GOROOT, "src", "pkg")
-	// if strings.HasPrefix(currentPath, srcPath) {
-	// 	log.Fatalf("Code path should be in GOPATH, but is in GOROOT: %v", currentPath)
-	// 	return srcPath
-	// 	// return filepath.ToSlash(currentPath[len(srcPath)+1:])
-	// }
-
-	// log.Fatalln("Unexpected! Code path is not in GOPATH:", currentPath)
-	// return ""
+	return currentPath
 }
 
-func BasePath(currentPath string) string {
-	for _, gopath := range filepath.SplitList(build.Default.GOPATH) {
-		srcPath := filepath.Join(gopath, "src")
-		if strings.HasPrefix(currentPath, srcPath) {
-			return srcPath
-			// return filepath.ToSlash(currentPath[len(srcPath)+1:])
-		}
-	}
+// func BasePath(currentPath string) string {
 
-	srcPath := filepath.Join(build.Default.GOROOT, "src", "pkg")
-	if strings.HasPrefix(currentPath, srcPath) {
-		log.Fatalf("Code path should be in GOPATH, but is in GOROOT: %v", currentPath)
-		return srcPath
-		// return filepath.ToSlash(currentPath[len(srcPath)+1:])
-	}
+// 	workPath, _ := os.Getwd()
 
-	log.Fatalln("Unexpected! Code path is not in GOPATH:", currentPath)
-	return ""
-}
+// 	paths := []string{workPath}
+// 	for _, p := range filepath.SplitList(build.Default.GOPATH) {
+// 		paths = append(paths, p)
+// 	}
+
+// 	for _, gopath := range paths {
+// 		srcPath := filepath.Join(gopath, "src")
+
+// 		fmt.Println("........ current has prefix?", currentPath, srcPath)
+
+// 		if strings.HasPrefix(currentPath, srcPath) {
+// 			return srcPath
+// 			// return filepath.ToSlash(currentPath[len(srcPath)+1:])
+// 		}
+// 	}
+
+// 	srcPath := filepath.Join(build.Default.GOROOT, "src", "pkg")
+// 	if strings.HasPrefix(currentPath, srcPath) {
+// 		log.Fatalf("Code path should be in GOPATH, but is in GOROOT: %v", currentPath)
+// 		return srcPath
+// 		// return filepath.ToSlash(currentPath[len(srcPath)+1:])
+// 	}
+
+// 	// log.Fatalln("Unexpected! Code path3 is not in GOPATH:", currentPath)
+// 	panic(fmt.Sprintf("Unexpected! Code path3 is not in GOPATH: %v", currentPath))
+// 	// return ""
+// }
 
 func IsCapitalized(s string) bool {
 	if len(s) > 0 {

@@ -2,8 +2,9 @@ package register
 
 import (
 	"fmt"
-	"github.com/elivoa/got/core"
 	"sync"
+
+	"github.com/elivoa/got/core"
 )
 
 // Use Module instead.
@@ -26,10 +27,18 @@ func RegisterModule(modules ...*core.Module) {
 
 func (mc *ModuleCache) Add(module *core.Module) {
 	mc.l.Lock()
-	mc.m[module.PackagePath] = module // use package path as package key
+	key := module.PackageName //module.Key()
+	if dupm, ok := mc.m[key]; ok {
+		panic(fmt.Sprint("Duplicated model when register! ", key,
+			"\n\t", dupm.BasePath,
+			"\n\t", module.BasePath,
+		))
+	}
+	mc.m[key] = module // use package path as package key
 	mc.l.Unlock()
 }
 
+// TODO no one use this?
 func (mc *ModuleCache) Get(name string) *core.Module {
 	mc.l.RLock()
 	module := mc.m[name]

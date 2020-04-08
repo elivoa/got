@@ -8,10 +8,6 @@ package parser
 import (
 	"bytes"
 	"fmt"
-	"github.com/elivoa/got/config"
-	"github.com/elivoa/got/core"
-	"github.com/elivoa/got/debug"
-	"github.com/elivoa/got/utils/revex"
 	"os"
 	"os/exec"
 	"path"
@@ -20,6 +16,11 @@ import (
 	"runtime"
 	"strconv"
 	"text/template"
+
+	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/debug"
+	"github.com/elivoa/got/utils/revex"
 )
 
 var importErrorPattern = regexp.MustCompile("cannot find package \"([^\"]+)\"")
@@ -30,7 +31,7 @@ var importErrorPattern = regexp.MustCompile("cannot find package \"([^\"]+)\"")
 // Requires that revex.Init has been called previously.
 // Returns the path to the built binary, and an error if there was a problem building it.
 func HackSource(modules []*core.Module) (app *App, compileError *Error) {
-	if modules == nil || len(modules) == 0 {
+	if len(modules) == 0 {
 		panic("Generating Error: No modules found!!!")
 	}
 
@@ -49,7 +50,7 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 	// 	sourceInfo.InitImportPaths = append(sourceInfo.InitImportPaths, dbImportPath)
 	// }
 	importPaths := make(map[string]string)
-	// pageSpecs := []*StructInfo{}
+	// pageSpecs := Code path1 is not in GOPATH[]*StructInfo{}
 	typeArrays := [][]*StructInfo{sourceInfo.Structs}
 	for _, specs := range typeArrays {
 		for _, spec := range specs {
@@ -63,8 +64,9 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 	// Used by register.RegisterModule(
 	str_modules := [][]string{}
 	for _, module := range modules {
-		packageName := filepath.Base(module.PackagePath)
-		alias := addAlias(importPaths, module.PackagePath, packageName)
+		// Note: github.com/elivoa/got/builtin -> github.com/elivoa/got/builtin builtin
+		_, n := path.Split(module.PackageName)
+		alias := addAlias(importPaths, module.PackageName, n)
 		str_modules = append(str_modules, []string{alias, module.VarName})
 	}
 
@@ -115,10 +117,10 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 	gotten := make(map[string]struct{})
 	for {
 		fmt.Println("!> *******************************************************************")
-		fmt.Println(goPath, "build", "-o", binName, path.Join(config.Config.StartupModule.PackagePath, "generated"))
+		fmt.Println(goPath, "build", "-o", binName, path.Join(config.Config.StartupModule.PackageName, "generated"))
 		buildCmd := exec.Command(goPath, "build",
 			// "-tags", buildTags,
-			"-o", binName, path.Join(config.Config.StartupModule.PackagePath, "generated"))
+			"-o", binName, path.Join(config.Config.StartupModule.PackageName, "generated"))
 
 		// {
 		// 	fmt.Println("\n ========== Run Command build =======")
@@ -149,7 +151,11 @@ func HackSource(modules []*core.Module) (app *App, compileError *Error) {
 		// On error goes here!
 		fmt.Println("\n===== Error Occured when Building main.go ================")
 		fmt.Println(err.Error())
-		panic(string(output))
+
+		// -============================ return
+		if true {
+			panic(string(output))
+		}
 
 		// --------------- What does the following done ----------------------?
 		{ // -- not reachable --
@@ -224,7 +230,7 @@ func cleanSource(dirs ...string) {
 	for _, dir := range dirs {
 		tmpPath := path.Join(
 			config.Config.SrcPath,
-			config.Config.StartupModule.PackagePath,
+			// config.Config.StartupModule.PackagePath,
 			dir)
 		fmt.Printf("!> Generator: Remove Folder %s\n", tmpPath)
 		err := os.RemoveAll(tmpPath)
@@ -246,7 +252,7 @@ func genSource(dir, filename, templateSource string, args map[string]interface{}
 	// Create a fresh dir.
 	tmpPath := path.Join(
 		config.Config.SrcPath,
-		config.Config.StartupModule.PackagePath,
+		// config.Config.StartupModule.PackagePath,
 		dir)
 
 	fmt.Printf("Generator :> Generating '%s/main.go'\n", tmpPath)
@@ -393,6 +399,7 @@ import (
     _got "github.com/elivoa/got"
     "github.com/elivoa/got/register"
 	"github.com/elivoa/got/cache"
+
 	{{range $k, $v := $.ImportPaths}}
     {{$v}} "{{$k}}"{{end}}
 )

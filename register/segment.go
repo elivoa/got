@@ -4,11 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/elivoa/got/config"
-	"github.com/elivoa/got/core"
-	"github.com/elivoa/got/logs"
-	"github.com/elivoa/got/parser"
-	"github.com/elivoa/got/utils"
 	"log"
 	"path"
 	"path/filepath"
@@ -17,6 +12,12 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/logs"
+	"github.com/elivoa/got/parser"
+	"github.com/elivoa/got/utils"
 )
 
 // ----  Identity & Template path  ---------------------------------------------------------------
@@ -82,7 +83,7 @@ type ProtonSegment struct {
 	identity     string // cache identity, default the same name with StructName
 	templatePath string // cache template path.
 
-	// TODO - try the method that use use channel to lock.
+	// TODO - try the method that use channel to lock.
 	L sync.RWMutex
 }
 
@@ -140,9 +141,13 @@ func (s *ProtonSegment) TemplatePath() (string, string) {
 	if s.templatePath == "" {
 		module := s.Module()
 		if s.templatePath == "" {
+			if !strings.HasPrefix(s.StructInfo.ImportPath, module.PackageName) {
+				panic("不可能！！！！！")
+			}
+			filePath := s.StructInfo.ImportPath[len(module.PackageName):]
 			s.templatePath = filepath.Join(
 				module.BasePath,
-				s.StructInfo.ImportPath,
+				filePath,
 				fmt.Sprintf("%v%v", s.StructInfo.StructName, conf.TemplateFileExtension),
 			) // TODO Configthis
 		}
@@ -182,6 +187,10 @@ func (s *ProtonSegment) Add(si *parser.StructInfo, p core.Protoner) [][]string {
 		segments = segments[1:]
 	}
 	segments = append(segments, si.StructName)
+
+	// if si.StructName == "Status" {
+	// 	fmt.Println("++++++++++++++++++++++++", si.StructName)
+	// }
 
 	dlog("-___- [Register %v] %v::%v", pathMap[p.Kind()], src, segments)
 	dlog("-___- [%v's URL is] %v", pathMap[p.Kind()], si)
@@ -608,7 +617,7 @@ func trimPathSegments(url string, protonType string) (string, []string) {
 // Tools & helper methods
 // --------------------------------------------------------------------------------
 
-var debug_add = false
+var debug_add = true
 
 func dlog(format string, params ...interface{}) {
 	if debug_add {

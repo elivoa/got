@@ -2,6 +2,10 @@ package route
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/elivoa/got/cache"
 	"github.com/elivoa/got/config"
 	"github.com/elivoa/got/core"
@@ -14,16 +18,12 @@ import (
 	"github.com/elivoa/got/register"
 	"github.com/elivoa/got/templates"
 	"github.com/gorilla/context"
-	"net/http"
-	"reflect"
-	"strings"
-	"time"
 )
 
 var (
-	emptyParameters = []reflect.Value{}
-	debugLog        = true
-	logRoute        = logs.Get("Router")
+	// emptyParameters = []reflect.Value{}
+	// debugLog        = true
+	logRoute = logs.Get("Router")
 
 	// debug optons
 	enable_error_handler = true
@@ -208,7 +208,12 @@ func lookup(url string /*, referer *lifecircle.LifeCircleControl*/) *register.Lo
       route.RegisterProton("syd/components/layout", "HeaderNav", "syd", &layout.HeaderNav{})
 */
 func RegisterProton(pkgPrefix string, name string, modulePkg string, proton core.Protoner) {
-	si, ok := cache.SourceCache.StructMap[fmt.Sprintf("%v.%v", pkgPrefix, name)]
+	v := pkgPrefix
+	// if strings.HasPrefix(v, "syd/") {
+	// 	v = strings.Replace(v, "syd/", "src/syd/", 1)
+	// }
+	sm := cache.SourceCache.StructMap
+	si, ok := sm[fmt.Sprintf("%v.%v", v, name)]
 	if !ok {
 		panic(fmt.Sprintf("struct info not found: %v.%v ", pkgPrefix, name))
 	}

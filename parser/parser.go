@@ -11,9 +11,6 @@ package parser
 
 import (
 	"fmt"
-	"github.com/elivoa/got/core"
-	"github.com/elivoa/got/debug"
-	"github.com/elivoa/got/utils"
 	"go/ast"
 	"go/build"
 	"go/parser"
@@ -23,7 +20,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/elivoa/got/perfs"
+
+	"github.com/elivoa/got/core"
+	"github.com/elivoa/got/debug"
+	"github.com/elivoa/got/utils"
 )
+
+var DEBUG_QUICK = false
 
 // methodCall describes a call to c.Render(..)
 // It documents the argument names used, in order to propagate them to RenderArgs.
@@ -60,33 +65,45 @@ func ParseSource(modules []*core.Module, findOnly bool) (*SourceInfo, *Error) {
 	timer := utils.NewTimer()
 	defer timer.Log("Parsing Sources Done.")
 
-	if modules == nil || len(modules) == 0 {
+	if len(modules) == 0 {
 		panic("Generating Error: No modules found!!!")
 	}
 
 	var (
 		srcInfo      *SourceInfo
 		compileError *Error
-		sourcePaths  []string = make([]string, len(modules))
+		// sourcePaths  []string = make([]string, len(modules))
 	)
 
-	for i := 0; i < len(modules); i++ {
-		sourcePaths[i] = modules[i].Path()
-		fmt.Println("!> Generator # Parse Source Folder: ", sourcePaths[i])
-	}
+	for _, module := range modules {
+		sourcePath := module.BasePath
 
-	for _, sourcePath := range sourcePaths {
-		modulePackagePath := extractPackagePath(sourcePath)
-		fmt.Println("!> Generator # Module.modulePackagePath --> ", modulePackagePath)
-		if modulePackagePath == "" {
-			debug.Log("Skipping code path %v", sourcePath)
-			continue
-		}
+		fmt.Println("!> Generator # Parse Source Folder: ", sourcePath)
+		fmt.Println("!> Generator # Module.modulePackagePath --> ", module.PackageName)
 
+		// }
+
+		// for i := 0; i < len(modules); i++ {
+		// 	sourcePaths[i] = modules[i].PackageName
+		// }
+
+		// for _, sourcePath := range sourcePaths {
+		// modulePackagePath := extractPackagePath(sourcePath)
+
+		// if modulePackagePath == "" {
+		// 	debug.Log("Skipping code path %v", sourcePath)
+		// 	continue
+		// }
+
+		i := 0
 		// Start walking the directory tree.
 		filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				debug.Log("Error scanning source: %v", err)
+
+			// timer := perfs.NewPerfTimer("Walk")
+
+			i += 1
+			if DEBUG_QUICK && i > 10 {
+				// debug.Log("！！！！！！！！！！！！Special Skipping code path %v", sourcePath)
 				return nil
 			}
 
@@ -95,14 +112,19 @@ func ParseSource(modules []*core.Module, findOnly bool) (*SourceInfo, *Error) {
 				return nil
 			}
 
+			if err != nil {
+				debug.Log("Error scanning source: %v", err)
+				return nil
+			}
+
 			// Get the import path of the package.
+			modulePackagePath := module.PackageName
 			pkgPath := modulePackagePath
 			if sourcePath != path {
 				pkgPath = modulePackagePath + "/" + filepath.ToSlash(path[len(sourcePath)+1:])
 			}
 
-			// debuglog
-			// fmt.Println("pkg path is: ", pkgPath)
+			// timer.LapInfo(fmt.Sprintf("pkg: [%s]", pkgPath))
 
 			// TODO: here we get things like this, deep parse & analisys proton value and cache them.
 			//       or even generate new source code.
@@ -119,9 +141,13 @@ func ParseSource(modules []*core.Module, findOnly bool) (*SourceInfo, *Error) {
 			// Parse files within the path.
 			var pkgs map[string]*ast.Package
 			fset := token.NewFileSet()
+
 			pkgs, err = parser.ParseDir(fset, path, func(f os.FileInfo) bool {
 				return !f.IsDir() && !strings.HasPrefix(f.Name(), ".") && strings.HasSuffix(f.Name(), ".go")
 			}, 0)
+
+			// timer.LapInfo("2")
+
 			if err != nil {
 				if errList, ok := err.(scanner.ErrorList); ok {
 					var pos token.Position = errList[0].Pos
@@ -163,7 +189,11 @@ func ParseSource(modules []*core.Module, findOnly bool) (*SourceInfo, *Error) {
 			for _, v := range pkgs {
 				pkg = v
 			}
+
 			ssi := processPackage(fset, modulePackagePath, pkgPath, path, pkg)
+
+			// timer.LapInfo("4")
+
 			srcInfo = appendSourceInfo(srcInfo, ssi)
 			return nil // return walk
 		})
@@ -200,6 +230,8 @@ func appendSourceInfo(srcInfo1, srcInfo2 *SourceInfo) *SourceInfo {
 // pkgPath is full filepath
 func processPackage(fset *token.FileSet, modulePackatePath string, pkgImportPath, pkgPath string,
 	pkg *ast.Package) *SourceInfo {
+
+	timer := perfs.NewPerfTimer("PACKAGE")
 
 	// fmt.Println("    --------------------------------------------------------")
 	// fmt.Printf("    .processPackage: pkgImportPath: %v\n", pkgImportPath)
@@ -255,6 +287,9 @@ func processPackage(fset *token.FileSet, modulePackatePath string, pkgImportPath
 				}
 			}
 		}
+
+		timer.LapInfo(fmt.Sprintf("process [%s]", file.Name))
+
 	}
 
 	// Add the method specs to the struct specs.
@@ -660,6 +695,9 @@ func getValidationParameter(funcDecl *ast.FuncDecl, imports map[string]string) *
 }
 
 func (s *StructInfo) String() string {
+	if s == nil {
+		return "[StructInfo is NIL]"
+	}
 	return s.ImportPath + "." + s.StructName
 }
 
@@ -827,21 +865,51 @@ func IsBuiltinType(name string) bool {
 	return ok
 }
 
+// TODO 这个是不对的。
 // @processed
-func extractPackagePath(path string) string {
-	for _, gopath := range filepath.SplitList(build.Default.GOPATH) {
-		srcPath := filepath.Join(gopath, "src")
-		// fmt.Println(srcPath)
-		if strings.HasPrefix(path, srcPath) {
-			return filepath.ToSlash(path[len(srcPath)+1:])
-		}
-	}
+// func extractPackagePath(path string) string {
+// 	fmt.Println(".....", path)
 
-	srcPath := filepath.Join(build.Default.GOROOT, "src", "pkg")
-	if strings.HasPrefix(path, srcPath) {
-		debug.Log("Code path should be in GOPATH, but is in GOROOT: %v", path)
-		return filepath.ToSlash(path[len(srcPath)+1:])
-	}
+// 	if strings.HasSuffix(path, "github.com/elivoa/got/builtin") {
+// 		// path = strings.ReplaceAll(path, "gotapestry/github.com/elivoa/got/builtin", "got/builtin")
+// 		// fmt.Println("****************", path)
+// 		return "github.com/elivoa/got/builtin"
+// 		// return path
+// 	}
 
-	panic(fmt.Sprintf("Unexpected! Code path is not in GOPATH: %v", path))
-}
+// 	workPath, _ := os.Getwd()
+// 	paths := []string{
+// 		workPath,
+// 	}
+// 	if strings.HasSuffix(workPath, "/gotapestry") {
+// 		paths = append(paths, filepath.Join(workPath, "../got"))
+// 		paths = append(paths, filepath.Join(workPath, "../syd"))
+// 	}
+// 	for _, p := range filepath.SplitList(build.Default.GOPATH) {
+// 		paths = append(paths, p)
+// 	}
+
+// 	for _, gopath := range paths {
+// 		fmt.Println("---- ", path, gopath, strings.HasPrefix(path, gopath))
+
+// 		if strings.HasPrefix(path, gopath) {
+// 			return filepath.ToSlash(path[len(gopath)+1:])
+// 		}
+
+// 		srcPath := filepath.Join(gopath, "src") // 这是不对的
+
+// 		if strings.HasPrefix(path, srcPath) {
+// 			return filepath.ToSlash(path[len(srcPath)+1:])
+// 		}
+// 	}
+// 	// ...../gotapestry/src/pkg
+// 	srcPath := filepath.Join(build.Default.GOROOT, "src", "pkg")
+// 	fmt.Println(".....", path, srcPath, strings.HasPrefix(path, srcPath))
+
+// 	if strings.HasPrefix(path, srcPath) {
+// 		debug.Log("Code path should be in GOPATH, but is in GOROOT: %v", path)
+// 		return filepath.ToSlash(path[len(srcPath)+1:])
+// 	}
+
+// 	panic(fmt.Sprintf("Unexpected! Code path1 is not in GOPATH: %v", path))
+// }
