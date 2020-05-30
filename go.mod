@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/context v1.1.1
 	github.com/gorilla/schema v1.1.0
 	github.com/gorilla/sessions v1.2.0
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	golang.org/x/net v0.0.0-20200528225125-3c3fba18258b
 )
 
 replace github.com/elivoa/gxl => ../gxl
