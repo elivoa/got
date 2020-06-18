@@ -8,8 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/elivoa/got/config"
-	"github.com/elivoa/got/core"
 	"io"
 	"math/rand"
 	"mime/multipart"
@@ -20,6 +18,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/elivoa/got/config"
+	"github.com/elivoa/got/core"
 )
 
 // ________________________________________________________________________________
@@ -73,6 +74,11 @@ func FU(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if reader == nil {
+			http.Error(w, "未接受到文件", http.StatusInternalServerError)
+			return
+		}
+
 		// var path string = ""
 		// copy each part to destination.
 		result := make(map[string][]*FileInfo, 1)
@@ -84,13 +90,18 @@ func FU(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
+			fmt.Printf("FileName=[%s],FormName[%s]\n", part.FileName(), part.FormName())
+
 			// _______________________________
 			// get path
 			if part.FormName() == pathkey {
+				fmt.Println("****************************", pathkey)
+
 				bytes := make([]byte, 2048) // 2048 is enough to path
 				i, err := part.Read(bytes)
 				if err != nil {
-					panic(err.Error())
+					fmt.Println("+++ ERROR +++ ", err.Error())
+					// panic(err.Error())
 				}
 				path = string(bytes[0:i])
 				fmt.Println("___________________________________________________________________")
